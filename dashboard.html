@@ -212,96 +212,50 @@
       100% { right: 30%; bottom: 20%; }
     }
 
+    /* ── MENU SUPERIOR ── */
+    .top-nav {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      gap: 20px;
+      z-index: 100;
+    }
+
+    .nav-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 6px;
+      cursor: pointer;
+      text-decoration: none;
+      border: 2px solid #8B2D8F;
+      border-radius: 12px;
+      padding: 10px 18px;
+      background: rgba(255, 255, 255, 0.3);
+      backdrop-filter: blur(6px);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .nav-item:hover {
+      background: rgba(255, 255, 255, 0.55);
+      transform: translateY(-3px);
+    }
+
+    .nav-item span.icon {
+      font-size: 26px;
+    }
+
+    .nav-item span.label {
+      font-size: 12px;
+      font-weight: 700;
+      color: #8B2D8F;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
     /* ── BANNERS DE PROPAGANDA ── */
     .ad-banner {
       position: fixed;
-      bottom: 0;
-      width: 160px;
-      height: 600px;
-      z-index: 100;
-      overflow: hidden;
-    }
-
-    .ad-banner-left  { left: 0; }
-    .ad-banner-right { right: 0; }
-
-    /* ── RESPONSIVO ── */
-    @media (max-width: 768px) {
-      .book {
-        width: 140px;
-        height: 210px;
-      }
-
-      .construction-text {
-        bottom: 40px;
-        padding: 0 15px;
-        width: 100%;
-      }
-
-      .construction-text h1 {
-        font-size: 28px;
-        letter-spacing: 1px;
-      }
-
-      .construction-text p {
-        font-size: 12px;
-      }
-
-      .bee {
-        width: 20px;
-        height: 20px;
-        font-size: 18px;
-      }
-    }
-  </style>
-</head>
-<body>
-
-  <!-- ABELHAS -->
-  <div class="bee bee-1">🐝</div>
-  <div class="bee bee-2">🐝</div>
-  <div class="bee bee-3">🐝</div>
-  <div class="bee bee-4">🐝</div>
-  <div class="bee bee-5">🐝</div>
-  <div class="bee bee-6">🐝</div>
-  <div class="bee bee-7">🐝</div>
-  <div class="bee bee-8">🐝</div>
-  <div class="bee bee-9">🐝</div>
-  <div class="bee bee-10">🐝</div>
-
-  <!-- BANNER ESQUERDO -->
-  <div class="ad-banner ad-banner-left">
-    <script>
-      atOptions = {
-        'key' : 'ca08d750749145cc2b964ef3aff564e5',
-        'format' : 'iframe',
-        'height' : 600,
-        'width' : 160,
-        'params' : {}
-      };
-    </script>
-    <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
-  </div>
-
-  <!-- BANNER DIREITO -->
-  <div class="ad-banner ad-banner-right">
-    <script>
-      atOptions = {
-        'key' : 'ca08d750749145cc2b964ef3aff564e5',
-        'format' : 'iframe',
-        'height' : 600,
-        'width' : 160,
-        'params' : {}
-      };
-    </script>
-    <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
-  </div>
-
-  <!-- LIVRO NO CENTRO -->
-  <div class="book-container">
-    <div class="book"></div>
-  </div>
-
-
-</body>
-</html>
+    
