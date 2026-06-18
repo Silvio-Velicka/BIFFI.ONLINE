@@ -304,6 +304,53 @@
       backdrop-filter: blur(10px);
     }
 
+    .dev-link {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 700;
+      color: var(--roxo);
+      text-decoration: none;
+      font-size: 12px;
+      letter-spacing: 2px;
+      font-family: Arial, sans-serif;
+    }
+
+    .dev-tooltip {
+      visibility: hidden;
+      opacity: 0;
+      position: absolute;
+      bottom: calc(100% + 10px);
+      right: 0;
+      background: rgba(91,16,96,0.95);
+      color: #fff;
+      font-size: 12px;
+      font-weight: normal;
+      letter-spacing: 0;
+      padding: 10px 16px;
+      border-radius: 10px;
+      white-space: nowrap;
+      line-height: 1.7;
+      text-align: center;
+      box-shadow: 0 4px 16px rgba(0,0,0,0.25);
+      transition: opacity 0.2s, visibility 0.2s;
+    }
+
+    .dev-tooltip::after {
+      content: '';
+      position: absolute;
+      top: 100%;
+      right: 14px;
+      border: 6px solid transparent;
+      border-top-color: rgba(91,16,96,0.95);
+    }
+
+    .dev-link:hover .dev-tooltip {
+      visibility: visible;
+      opacity: 1;
+    }
+
     @media (max-width: 700px) {
       header { padding: 12px 16px; }
       .logo { font-size: 17px; }
@@ -411,6 +458,10 @@
 
   <footer>
     <p>🐝 &copy; 2025 BIFFI.ONLINE — feito com amor</p>
+    <a class="dev-link" href="https://wa.me/5511947377498" target="_blank" rel="noopener">
+      Dev
+      <span class="dev-tooltip">Desenvolvedor de sites Silvio Velicka<br>para orçamentos clique aqui 💬</span>
+    </a>
   </footer>
 
 </body>
