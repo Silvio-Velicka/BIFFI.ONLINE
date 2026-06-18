@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>BIFFI.ONLINE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -264,6 +265,36 @@
       backdrop-filter: blur(10px);
     }
 
+    .contacts {
+      position: absolute;
+      left: 20px;
+      top: 50%;
+      transform: translateY(-50%);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: var(--roxo);
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .contacts-label { white-space: nowrap; }
+
+    .contacts a {
+      color: var(--roxo);
+      font-size: 18px;
+      text-decoration: none;
+      transition: color 0.2s, transform 0.2s;
+      display: inline-flex;
+    }
+
+    .contacts a:hover {
+      color: var(--roxo-esc);
+      transform: scale(1.25);
+    }
+
     .dev-link {
       position: absolute;
       right: 20px;
@@ -407,6 +438,13 @@
 
   <!-- FOOTER -->
   <footer>
+    <div class="contacts">
+      <span class="contacts-label">Contatos &rsaquo;</span>
+      <a href="https://wa.me/5511947377498" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+      <a href="#" target="_blank" rel="noopener" title="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="#" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook"></i></a>
+      <a href="#" target="_blank" rel="noopener" title="Telegram"><i class="fab fa-telegram"></i></a>
+    </div>
     <p>🐝 &copy; 2025 BIFFI.ONLINE — feito com amor</p>
     <a class="dev-link" href="https://wa.me/5511947377498" target="_blank" rel="noopener">
       Dev
