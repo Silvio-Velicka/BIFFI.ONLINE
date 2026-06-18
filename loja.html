@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Loja — BIFFI.ONLINE</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --rosa:      #FFB6D9;
+      --rosa-med:  #F472B6;
+      --roxo:      #8B2D8F;
+      --roxo-esc:  #5B1060;
+      --dourado:   #FFD700;
+      --branco:    #fff;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #FFB6D9 0%, #FFC0E0 50%, #FFD1EB 100%);
+      min-height: 100vh;
+      color: var(--roxo-esc);
+    }
+
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(139,45,143,0.15);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--roxo);
+      text-decoration: none;
+      text-shadow: 1px 1px 0 var(--dourado);
+    }
+
+    nav { display: flex; gap: 10px; }
+
+    nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 2px solid var(--roxo);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.3);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    nav a.active,
+    nav a:hover {
+      background: rgba(255,255,255,0.6);
+      transform: translateY(-2px);
+    }
+
+    nav a .icon { font-size: 20px; }
+    nav a .label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--roxo);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: Arial, sans-serif;
+    }
+
+    .bee {
+      position: fixed;
+      font-size: 20px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .bee-1 { animation: bee1 13s infinite ease-in-out; }
+    .bee-2 { animation: bee2 18s infinite ease-in-out; }
+    @keyframes bee1 { 0%{left:6%;top:30%} 50%{left:75%;top:18%} 100%{left:6%;top:30%} }
+    @keyframes bee2 { 0%{right:10%;bottom:25%} 50%{right:55%;bottom:40%} 100%{right:10%;bottom:25%} }
+
+    .page {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 110px 40px 80px;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .page-title .emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    .page-title h1 {
+      font-size: 40px;
+      color: var(--roxo);
+      text-shadow: 3px 3px 0 var(--dourado);
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+
+    .page-title p {
+      font-size: 15px;
+      color: var(--roxo-esc);
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* ── DESTAQUE LIVRO ── */
+    .featured {
+      display: flex;
+      gap: 48px;
+      align-items: center;
+      flex-wrap: wrap;
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(139,45,143,0.2);
+      border-radius: 24px;
+      padding: 40px;
+      margin-bottom: 60px;
+    }
+
+    .featured-img {
+      flex-shrink: 0;
+      filter: drop-shadow(0 15px 30px rgba(0,0,0,0.2));
+      animation: bookFloat 4s ease-in-out infinite;
+    }
+
+    .featured-img img {
+      width: 180px;
+      height: 270px;
+      object-fit: cover;
+      border-radius: 6px;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    }
+
+    @keyframes bookFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .featured-info { flex: 1; min-width: 220px; }
+
+    .badge {
+      display: inline-block;
+      background: var(--dourado);
+      color: var(--roxo-esc);
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 50px;
+      font-family: Arial, sans-serif;
+      margin-bottom: 16px;
+    }
+
+    .featured-info h2 {
+      font-size: 28px;
+      color: var(--roxo);
+      margin-bottom: 12px;
+      line-height: 1.2;
+    }
+
+    .featured-info p {
+      font-size: 15px;
+      line-height: 1.8;
+      color: var(--roxo-esc);
+      font-family: Arial, sans-serif;
+      margin-bottom: 24px;
+    }
+
+    .price {
+      font-size: 32px;
+      font-weight: 900;
+      color: var(--roxo);
+      margin-bottom: 20px;
+    }
+
+    .price span {
+      font-size: 14px;
+      font-weight: normal;
+      color: var(--rosa-med);
+      font-family: Arial, sans-serif;
+    }
+
+    .btn-comprar {
+      display: inline-block;
+      padding: 14px 36px;
+      background: var(--roxo);
+      color: var(--branco);
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-family: Arial, sans-serif;
+      letter-spacing: 1px;
+      font-size: 14px;
+      box-shadow: 0 6px 20px rgba(139,45,143,0.4);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    .btn-comprar:hover {
+      background: var(--roxo-esc);
+      transform: translateY(-2px);
+    }
+
+    /* ── OUTROS PRODUTOS ── */
+    .section-title {
+      font-size: 24px;
+      color: var(--roxo);
+      margin-bottom: 28px;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0 var(--dourado);
+    }
+
+    .product-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 24px;
+    }
+
+    .product-card {
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(139,45,143,0.18);
+      border-radius: 18px;
+      overflow: hidden;
+      text-align: center;
+      transition: transform 0.25s, box-shadow 0.25s;
+      cursor: pointer;
+    }
+
+    .product-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 14px 35px rgba(139,45,143,0.18);
+    }
+
+    .product-thumb {
+      height: 120px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 52px;
+    }
+
+    .product-thumb.c1 { background: linear-gradient(135deg, #f9c5e0, #e6a4d6); }
+    .product-thumb.c2 { background: linear-gradient(135deg, #fde68a, #fca5a5); }
+    .product-thumb.c3 { background: linear-gradient(135deg, #c4b5fd, #a5f3fc); }
+    .product-thumb.c4 { background: linear-gradient(135deg, #bbf7d0, #fde68a); }
+
+    .product-info { padding: 16px; }
+
+    .product-info h3 {
+      font-size: 15px;
+      color: var(--roxo);
+      margin-bottom: 6px;
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+    }
+
+    .product-info .prod-price {
+      font-size: 18px;
+      font-weight: 900;
+      color: var(--roxo);
+      margin-bottom: 12px;
+    }
+
+    .btn-small {
+      display: inline-block;
+      padding: 8px 20px;
+      background: var(--roxo);
+      color: var(--branco);
+      border-radius: 50px;
+      text-decoration: none;
+      font-size: 12px;
+      font-weight: 700;
+      font-family: Arial, sans-serif;
+      transition: background 0.2s;
+    }
+
+    .btn-small:hover { background: var(--roxo-esc); }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--roxo);
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      border-top: 1px solid rgba(139,45,143,0.15);
+      background: rgba(255,255,255,0.2);
+      margin-top: 80px;
+    }
+
+    @media (max-width: 700px) {
+      header { padding: 12px 16px; }
+      .logo { font-size: 17px; }
+      nav a { padding: 6px 10px; }
+      nav a .label { display: none; }
+      .page { padding: 90px 16px 60px; }
+      .featured { flex-direction: column; align-items: center; text-align: center; padding: 28px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bee bee-1">🐝</div>
+  <div class="bee bee-2">🐝</div>
+
+  <header>
+    <a class="logo" href="index.html">BIFFI.ONLINE</a>
+    <nav>
+      <a href="blog.html">
+        <span class="icon">📝</span>
+        <span class="label">Blog</span>
+      </a>
+      <a href="loja.html" class="active">
+        <span class="icon">🛍️</span>
+        <span class="label">Loja</span>
+      </a>
+      <a href="estudos.html">
+        <span class="icon">📚</span>
+        <span class="label">Estudos</span>
+      </a>
+      <a href="cafe.html">
+        <span class="icon">☕</span>
+        <span class="label">Café</span>
+      </a>
+    </nav>
+  </header>
+
+  <div class="page">
+    <div class="page-title">
+      <span class="emoji">🛍️</span>
+      <h1>Loja</h1>
+      <p>Produtos selecionados com carinho para a sua jornada.</p>
+    </div>
+
+    <!-- DESTAQUE -->
+    <div class="featured">
+      <div class="featured-img">
+        <img src="Capa BIFFI .jpeg" alt="Livro BIFFI">
+      </div>
+      <div class="featured-info">
+        <span class="badge">⭐ Destaque</span>
+        <h2>Livro BIFFI</h2>
+        <p>
+          Uma leitura transformadora que convida você a mergulhar
+          no autoconhecimento, a reconhecer seu valor e a escrever
+          uma história que é verdadeiramente sua.
+        </p>
+        <div class="price">R$ 49,90 <span>frete grátis acima de R$150</span></div>
+        <a class="btn-comprar" href="#">Comprar agora →</a>
+      </div>
+    </div>
+
+    <!-- OUTROS PRODUTOS -->
+    <h2 class="section-title">✨ Mais produtos</h2>
+    <div class="product-grid">
+
+      <div class="product-card">
+        <div class="product-thumb c1">📓</div>
+        <div class="product-info">
+          <h3>Diário de Gratidão</h3>
+          <div class="prod-price">R$ 34,90</div>
+          <a class="btn-small" href="#">Ver mais</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-thumb c2">🕯️</div>
+        <div class="product-info">
+          <h3>Kit Meditação</h3>
+          <div class="prod-price">R$ 79,90</div>
+          <a class="btn-small" href="#">Ver mais</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-thumb c3">📿</div>
+        <div class="product-info">
+          <h3>Pulseira Intenção</h3>
+          <div class="prod-price">R$ 29,90</div>
+          <a class="btn-small" href="#">Ver mais</a>
+        </div>
+      </div>
+
+      <div class="product-card">
+        <div class="product-thumb c4">🫖</div>
+        <div class="product-info">
+          <h3>Chá da Calma</h3>
+          <div class="prod-price">R$ 24,90</div>
+          <a class="btn-small" href="#">Ver mais</a>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>🐝 &copy; 2025 BIFFI.ONLINE — feito com amor</p>
+  </footer>
+
+</body>
+</html>

@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Estudos — BIFFI.ONLINE</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --rosa:      #FFB6D9;
+      --rosa-med:  #F472B6;
+      --roxo:      #8B2D8F;
+      --roxo-esc:  #5B1060;
+      --dourado:   #FFD700;
+      --branco:    #fff;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #FFB6D9 0%, #FFC0E0 50%, #FFD1EB 100%);
+      min-height: 100vh;
+      color: var(--roxo-esc);
+    }
+
+    header {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(139,45,143,0.15);
+    }
+
+    .logo {
+      font-size: 22px;
+      font-weight: 900;
+      letter-spacing: 3px;
+      color: var(--roxo);
+      text-decoration: none;
+      text-shadow: 1px 1px 0 var(--dourado);
+    }
+
+    nav { display: flex; gap: 10px; }
+
+    nav a {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 3px;
+      text-decoration: none;
+      padding: 8px 16px;
+      border: 2px solid var(--roxo);
+      border-radius: 12px;
+      background: rgba(255,255,255,0.3);
+      transition: background 0.2s, transform 0.2s;
+    }
+
+    nav a.active,
+    nav a:hover {
+      background: rgba(255,255,255,0.6);
+      transform: translateY(-2px);
+    }
+
+    nav a .icon { font-size: 20px; }
+    nav a .label {
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--roxo);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      font-family: Arial, sans-serif;
+    }
+
+    .bee {
+      position: fixed;
+      font-size: 20px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .bee-1 { animation: bee1 15s infinite ease-in-out; }
+    .bee-2 { animation: bee2 20s infinite ease-in-out; }
+    @keyframes bee1 { 0%{left:4%;top:22%} 50%{left:80%;top:12%} 100%{left:4%;top:22%} }
+    @keyframes bee2 { 0%{right:6%;bottom:30%} 50%{right:60%;bottom:50%} 100%{right:6%;bottom:30%} }
+
+    .page {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 110px 40px 80px;
+    }
+
+    .page-title {
+      text-align: center;
+      margin-bottom: 56px;
+    }
+
+    .page-title .emoji { font-size: 48px; display: block; margin-bottom: 12px; }
+
+    .page-title h1 {
+      font-size: 40px;
+      color: var(--roxo);
+      text-shadow: 3px 3px 0 var(--dourado);
+      letter-spacing: 3px;
+      margin-bottom: 12px;
+    }
+
+    .page-title p {
+      font-size: 15px;
+      color: var(--roxo-esc);
+      font-family: Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    /* ── TRILHAS ── */
+    .section-title {
+      font-size: 22px;
+      color: var(--roxo);
+      margin-bottom: 24px;
+      letter-spacing: 2px;
+      text-shadow: 2px 2px 0 var(--dourado);
+    }
+
+    .tracks {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 24px;
+      margin-bottom: 60px;
+    }
+
+    .track-card {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(139,45,143,0.2);
+      border-radius: 20px;
+      padding: 28px;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+
+    .track-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 14px 35px rgba(139,45,143,0.15);
+    }
+
+    .track-icon {
+      font-size: 40px;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .track-card h3 {
+      font-size: 18px;
+      color: var(--roxo);
+      margin-bottom: 8px;
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+    }
+
+    .track-card p {
+      font-size: 13px;
+      color: var(--roxo-esc);
+      line-height: 1.7;
+      font-family: Arial, sans-serif;
+      margin-bottom: 18px;
+    }
+
+    .lessons {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .lesson {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+      color: var(--roxo-esc);
+    }
+
+    .lesson .check {
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: rgba(139,45,143,0.15);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      flex-shrink: 0;
+      color: var(--roxo);
+      font-weight: 700;
+    }
+
+    /* ── MATERIAIS ── */
+    .material-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .material-item {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      background: rgba(255,255,255,0.45);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(139,45,143,0.15);
+      border-radius: 16px;
+      padding: 18px 24px;
+      text-decoration: none;
+      color: inherit;
+      transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .material-item:hover {
+      transform: translateX(4px);
+      box-shadow: 0 8px 24px rgba(139,45,143,0.14);
+    }
+
+    .material-icon {
+      font-size: 34px;
+      flex-shrink: 0;
+    }
+
+    .material-info h4 {
+      font-size: 15px;
+      color: var(--roxo);
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+
+    .material-info p {
+      font-size: 12px;
+      color: var(--roxo-esc);
+      font-family: Arial, sans-serif;
+      line-height: 1.5;
+    }
+
+    .material-tag {
+      margin-left: auto;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      padding: 4px 12px;
+      border-radius: 50px;
+      font-family: Arial, sans-serif;
+      flex-shrink: 0;
+    }
+
+    .tag-free { background: #d1fae5; color: #065f46; }
+    .tag-pdf  { background: #ede9fe; color: #5b21b6; }
+    .tag-video { background: #fce7f3; color: #9d174d; }
+
+    footer {
+      text-align: center;
+      padding: 40px 20px;
+      color: var(--roxo);
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      letter-spacing: 1px;
+      border-top: 1px solid rgba(139,45,143,0.15);
+      background: rgba(255,255,255,0.2);
+      margin-top: 80px;
+    }
+
+    @media (max-width: 700px) {
+      header { padding: 12px 16px; }
+      .logo { font-size: 17px; }
+      nav a { padding: 6px 10px; }
+      nav a .label { display: none; }
+      .page { padding: 90px 16px 60px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="bee bee-1">🐝</div>
+  <div class="bee bee-2">🐝</div>
+
+  <header>
+    <a class="logo" href="index.html">BIFFI.ONLINE</a>
+    <nav>
+      <a href="blog.html">
+        <span class="icon">📝</span>
+        <span class="label">Blog</span>
+      </a>
+      <a href="loja.html">
+        <span class="icon">🛍️</span>
+        <span class="label">Loja</span>
+      </a>
+      <a href="estudos.html" class="active">
+        <span class="icon">📚</span>
+        <span class="label">Estudos</span>
+      </a>
+      <a href="cafe.html">
+        <span class="icon">☕</span>
+        <span class="label">Café</span>
+      </a>
+    </nav>
+  </header>
+
+  <div class="page">
+    <div class="page-title">
+      <span class="emoji">📚</span>
+      <h1>Estudos</h1>
+      <p>Trilhas de conhecimento e materiais para aprofundar sua jornada.</p>
+    </div>
+
+    <!-- TRILHAS -->
+    <h2 class="section-title">🗺️ Trilhas de Aprendizado</h2>
+    <div class="tracks">
+
+      <div class="track-card">
+        <span class="track-icon">🌱</span>
+        <h3>Autoconhecimento</h3>
+        <p>Uma trilha para descobrir quem você é de verdade — seus valores, limites e forças.</p>
+        <div class="lessons">
+          <div class="lesson"><span class="check">1</span> O que é autoconhecimento?</div>
+          <div class="lesson"><span class="check">2</span> Mapa das emoções</div>
+          <div class="lesson"><span class="check">3</span> Seus valores centrais</div>
+          <div class="lesson"><span class="check">4</span> Limites saudáveis</div>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <span class="track-icon">🧘</span>
+        <h3>Mindfulness</h3>
+        <p>Práticas de atenção plena para trazer mais presença e paz para o dia a dia.</p>
+        <div class="lessons">
+          <div class="lesson"><span class="check">1</span> O que é mindfulness?</div>
+          <div class="lesson"><span class="check">2</span> Respiração consciente</div>
+          <div class="lesson"><span class="check">3</span> Meditação guiada (10 min)</div>
+          <div class="lesson"><span class="check">4</span> Rotina de atenção plena</div>
+        </div>
+      </div>
+
+      <div class="track-card">
+        <span class="track-icon">✍️</span>
+        <h3>Escrita Terapêutica</h3>
+        <p>Use o poder das palavras para processar emoções, curar e se reinventar.</p>
+        <div class="lessons">
+          <div class="lesson"><span class="check">1</span> Diário livre vs. dirigido</div>
+          <div class="lesson"><span class="check">2</span> Cartas para si mesma</div>
+          <div class="lesson"><span class="check">3</span> Reescrevendo narrativas</div>
+          <div class="lesson"><span class="check">4</span> Gratidão em palavras</div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- MATERIAIS -->
+    <h2 class="section-title">📥 Materiais Gratuitos</h2>
+    <div class="material-list">
+
+      <a class="material-item" href="#">
+        <span class="material-icon">📄</span>
+        <div class="material-info">
+          <h4>Guia de Autoconhecimento — Iniciante</h4>
+          <p>Um passo a passo prático para quem está começando a se descobrir.</p>
+        </div>
+        <span class="material-tag tag-pdf">PDF</span>
+      </a>
+
+      <a class="material-item" href="#">
+        <span class="material-icon">🎧</span>
+        <div class="material-info">
+          <h4>Meditação Guiada: Conectando com o Presente</h4>
+          <p>Áudio de 15 minutos para acalmar a mente e se ancorar no agora.</p>
+        </div>
+        <span class="material-tag tag-free">Grátis</span>
+      </a>
+
+      <a class="material-item" href="#">
+        <span class="material-icon">📋</span>
+        <div class="material-info">
+          <h4>Planilha de Metas com Intenção</h4>
+          <p>Modelo para definir objetivos alinhados aos seus valores mais profundos.</p>
+        </div>
+        <span class="material-tag tag-pdf">PDF</span>
+      </a>
+
+      <a class="material-item" href="#">
+        <span class="material-icon">🎬</span>
+        <div class="material-info">
+          <h4>Aula: Introdução à Escrita Terapêutica</h4>
+          <p>Uma aula introdutória em vídeo sobre o poder transformador de escrever.</p>
+        </div>
+        <span class="material-tag tag-video">Vídeo</span>
+      </a>
+
+    </div>
+  </div>
+
+  <footer>
+    <p>🐝 &copy; 2025 BIFFI.ONLINE — feito com amor</p>
+  </footer>
+
+</body>
+</html>
