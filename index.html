@@ -265,14 +265,18 @@
 
     /* ── FOOTER ── */
     footer {
+      position: fixed;
+      bottom: 0; left: 0; right: 0;
+      z-index: 200;
       text-align: center;
-      padding: 40px 20px;
+      padding: 14px 20px;
       color: var(--roxo);
       font-family: Arial, sans-serif;
       font-size: 13px;
       letter-spacing: 1px;
       border-top: 1px solid rgba(139,45,143,0.15);
-      background: rgba(255,255,255,0.2);
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
     }
 
     /* ── RESPONSIVE ── */
@@ -281,10 +285,10 @@
       .logo { font-size: 17px; }
       nav a { padding: 6px 10px; }
       nav a .label { display: none; }
-      .hero { padding: 90px 20px 40px; gap: 36px; text-align: center; }
+      .hero { padding: 90px 20px 80px; gap: 36px; text-align: center; }
       .hero-text { text-align: center; }
       .hero-book img { width: 160px; height: 240px; }
-      .sections { padding: 60px 20px; }
+      .sections { padding: 60px 20px 80px; }
     }
   </style>
 </head>
