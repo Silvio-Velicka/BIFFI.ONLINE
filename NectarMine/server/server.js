@@ -13,7 +13,7 @@ const { DatabaseSync } = require('node:sqlite');
 
 const PORT = process.env.PORT || 3000;
 const ROOT = path.join(__dirname, '..');            // pasta do site (HTML)
-const DB_PATH = path.join(__dirname, 'nectarmine.db');
+const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'nectarmine.db'); // usar DB_PATH em produção (ex: volume do Railway)
 const SESSION_DAYS = 30;
 
 /* ── BANCO DE DADOS ── */
@@ -266,5 +266,4 @@ server.listen(PORT, () => {
   console.log('  🍯 NectarMine rodando!');
   console.log(`  Site:  http://localhost:${PORT}`);
   console.log(`  Banco: ${DB_PATH}`);
-  console.log('═══════════════════════════════════════');
-});
+  console.log('════════════════

@@ -1,0 +1,12 @@
+{
+  "name": "nectarmine",
+  "version": "1.0.0",
+  "private": true,
+  "description": "NectarMine — servidor do jogo (Node.js + SQLite, zero dependências)",
+  "scripts": {
+    "start": "node server/server.js"
+  },
+  "engines": {
+    "node": ">=22.5.0"
+  }
+}
