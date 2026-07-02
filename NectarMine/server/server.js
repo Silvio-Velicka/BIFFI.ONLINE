@@ -266,4 +266,5 @@ server.listen(PORT, () => {
   console.log('  🍯 NectarMine rodando!');
   console.log(`  Site:  http://localhost:${PORT}`);
   console.log(`  Banco: ${DB_PATH}`);
-  console.log('════════════════
+  console.log('═══════════════════════════════════════');
+});
