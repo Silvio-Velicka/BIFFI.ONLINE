@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Entrar</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .login-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      width: 100%; max-width: 400px; background: var(--card, rgba(10,18,32,.85));
+      backdrop-filter: blur(12px); border: 1px solid var(--borda2, rgba(255,255,255,.08));
+      border-radius: var(--radius, 12px); padding: 32px 28px;
+    }
+    .login-logo { text-align: center; font-size: 26px; font-weight: bold; color: var(--branco, #fff); margin-bottom: 4px; }
+    .login-sub { text-align: center; font-size: 13px; color: var(--texto3, #6B5F8A); margin-bottom: 24px; }
+    .login-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+    .ltab {
+      flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--borda2, rgba(255,255,255,.08));
+      background: transparent; color: var(--texto2, #9E8FC0); font-size: 13px; font-weight: bold;
+      cursor: pointer; transition: all .2s;
+    }
+    .ltab.active { background: var(--amarelo, #FFD700); color: #000; border-color: var(--amarelo, #FFD700); }
+    .login-field { margin-bottom: 14px; }
+    .login-field label { display: block; font-size: 11px; color: var(--texto3, #6B5F8A); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .login-field input {
+      width: 100%; padding: 11px 12px; border-radius: 8px;
+      border: 1px solid var(--borda2, rgba(255,255,255,.1));
+      background: rgba(255,255,255,.04); color: var(--branco, #fff); font-size: 14px; outline: none;
+    }
+    .login-field input:focus { border-color: var(--amarelo, #FFD700); }
+    .btn-login {
+      width: 100%; padding: 12px; border: none; border-radius: 8px; margin-top: 6px;
+      background: var(--amarelo, #FFD700); color: #000; font-size: 14px; font-weight: bold; cursor: pointer;
+    }
+    .btn-login:disabled { opacity: .5; cursor: wait; }
+    .login-back { text-align: center; margin-top: 16px; font-size: 12px; }
+    .login-back a { color: var(--texto3, #6B5F8A); text-decoration: none; }
+    .login-back a:hover { color: var(--amarelo, #FFD700); }
+  </style>
+</head>
+<body>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">🍯 NectarMine</div>
+    <div class="login-sub">Entre na sua conta ou crie uma nova</div>
+
+    <div class="login-tabs">
+      <button class="ltab active" id="tab-entrar" onclick="switchTab('entrar')">Entrar</button>
+      <button class="ltab" id="tab-criar" onclick="switchTab('criar')">Criar conta</button>
+    </div>
+
+    <!-- ENTRAR -->
+    <form id="form-entrar" onsubmit="doLogin(event)">
+      <div class="login-field">
+        <label>Usuário ou e-mail</label>
+        <input type="text" id="li-login" required autocomplete="username"/>
+      </div>
+      <div class="login-field">
+        <label>Senha</label>
+        <input type="password" id="li-senha" required autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-login" id="btn-entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+    </form>
+
+    <!-- CRIAR CONTA -->
+    <form id="form-criar" style="display:none;" onsubmit="doRegister(event)">
+      <div class="login-field">
+        <label>Nome de usuário</label>
+        <input type="text" id="rg-user" required minlength="3" autocomplete="username"/>
+      </div>
+      <div class="login-field">
+        <label>E-mail</label>
+        <input type="email" id="rg-email" required autocomplete="email"/>
+      </div>
+      <div class="login-field">
+        <label>Senha (mín. 6 caracteres)</label>
+        <input type="password" id="rg-senha" required minlength="6" autocomplete="new-password"/>
+      </div>
+      <button type="submit" class="btn-login" id="btn-criar"><i class="fa-solid fa-user-plus"></i> Criar conta</button>
+    </form>
+
+    <div class="login-back"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Voltar ao site</a></div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  // Se já está logado, vai direto ao dashboard
+  if (localStorage.getItem('nm_token')) {
+    NM_API.me().then(() => location.href = 'dashboard.html').catch(() => localStorage.removeItem('nm_token'));
+  }
+
+  function switchTab(tab) {
+    document.getElementById('tab-entrar').classList.toggle('active', tab === 'entrar');
+    document.getElementById('tab-criar').classList.toggle('active', tab === 'criar');
+    document.getElementById('form-entrar').style.display = tab === 'entrar' ? '' : 'none';
+    document.getElementById('form-criar').style.display = tab === 'criar' ? '' : 'none';
+  }
+
+  async function doLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-entrar');
+    btn.disabled = true;
+    try {
+      await NM_API.login(document.getElementById('li-login').value, document.getElementById('li-senha').value);
+      location.href = 'dashboard.html';
+    } catch (err) {
+      NM_SWAL.error('Ops!', err.message);
+      btn.disabled = false;
+    }
+  }
+
+  async function doRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('btn-criar');
+    btn.disabled = true;
+    try {
+      await NM_API.register(
+        document.getElementById('rg-user').value,
+        document.getElementById('rg-email').value,
+        document.getElementById('rg-senha').value
+      );
+      await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
+      location.href = 'dashboard.html';
+    } catch (err) {
+      NM_SWAL.error('Ops!', err.message);
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

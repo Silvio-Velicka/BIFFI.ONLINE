@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Estatísticas</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    .stats-page-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+    .stats-row { display:grid; grid-template-columns:repeat(4,1fr); gap:14px; margin-bottom:20px; }
+    .stat-box { background:var(--card); backdrop-filter:blur(10px); border:1px solid var(--borda2); border-radius:var(--radius); padding:16px; text-align:center; }
+    .stat-box .icon { font-size:24px; margin-bottom:6px; }
+    .stat-box strong { display:block; font-size:22px; color:var(--amarelo); }
+    .stat-box span { font-size:11px; color:var(--texto3); }
+    .chart-card { background:var(--card); backdrop-filter:blur(10px); border:1px solid var(--borda2); border-radius:var(--radius); overflow:hidden; }
+    .chart-card-header { padding:12px 18px; border-bottom:1px solid var(--borda2); display:flex; align-items:center; justify-content:space-between; }
+    .chart-card-header h3 { font-size:14px; color:var(--branco); }
+    @media(max-width:900px){ .stats-page-grid{grid-template-columns:1fr;} .stats-row{grid-template-columns:1fr 1fr;} }
+    @media(max-width:480px){ .stats-row{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Calculando produção de mel...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link active"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <h1 style="font-size:22px;color:var(--branco);margin-bottom:18px;"><i class="fa-solid fa-chart-line" style="color:var(--amarelo)"></i> Minhas Estatísticas</h1>
+
+    <!-- Totais -->
+    <div class="stats-row">
+      <div class="stat-box"><div class="icon">🍯</div><strong>5.430</strong><span>Potes produzidos (total)</span></div>
+      <div class="stat-box"><div class="icon">💎</div><strong>48.320</strong><span>Néctar total ganho</span></div>
+      <div class="stat-box"><div class="icon">📦</div><strong>4.183</strong><span>Potes envasados</span></div>
+      <div class="stat-box"><div class="icon">💸</div><strong>75.000</strong><span>NCT sacados</span></div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="stats-page-grid">
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>📈 Produção Diária (7 dias)</h3></div>
+        <div id="chart-prod" style="padding:8px;"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>💰 Néctar Ganho (7 dias)</h3></div>
+        <div id="chart-nectar" style="padding:8px;"></div>
+      </div>
+    </div>
+
+    <div class="anuncio anuncio-728" style="margin:18px 0;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <div class="stats-page-grid">
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>🌸 Consumo de Flores</h3></div>
+        <div id="chart-flores" style="padding:8px;"></div>
+      </div>
+      <div class="chart-card">
+        <div class="chart-card-header"><h3>🔒 Histórico de Stakes</h3></div>
+        <div id="chart-stake" style="padding:8px;"></div>
+      </div>
+    </div>
+
+    <div class="anuncio anuncio-728" style="margin-top:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  const CHART_OPT = {
+    chart:{height:200,background:'transparent',toolbar:{show:false},zoom:{enabled:false}},
+    grid:{borderColor:'rgba(255,215,0,0.06)'},
+    tooltip:{theme:'dark'},
+    xaxis:{labels:{style:{colors:'#6B5F8A',fontSize:'10px'}}},
+    yaxis:{labels:{style:{colors:'#6B5F8A',fontSize:'10px'}}}
+  };
+
+  const days = ['24/06','25/06','26/06','27/06','28/06','29/06','30/06'];
+
+  function initCharts() {
+    // Produção
+    new ApexCharts(document.getElementById('chart-prod'), {
+      ...CHART_OPT,
+      chart:{...CHART_OPT.chart,type:'bar'},
+      series:[{name:'Potes',data:[820,940,1100,780,1050,1200,1247]}],
+      colors:['#FFD700'], xaxis:{...CHART_OPT.xaxis,categories:days}
+    }).render();
+
+    // Néctar
+    new ApexCharts(document.getElementById('chart-nectar'), {
+      ...CHART_OPT,
+      chart:{...CHART_OPT.chart,type:'area'},
+      series:[{name:'NCT ganhos',data:[6000,7200,8500,5900,8100,9200,9500]}],
+      colors:['#9B59B6'],
+      fill:{type:'gradient',gradient:{shadeIntensity:1,opacityFrom:.4,opacityTo:0.05}},
+      stroke:{curve:'smooth',width:2},
+      xaxis:{...CHART_OPT.xaxis,categories:days}
+    }).render();
+
+    // Flores
+    new ApexCharts(document.getElementById('chart-flores'), {
+      ...CHART_OPT,
+      chart:{...CHART_OPT.chart,type:'bar'},
+      series:[{name:'Flores usadas',data:[1440,1440,1440,1440,1440,1440,960]}],
+      colors:['#22C55E'], xaxis:{...CHART_OPT.xaxis,categories:days}
+    }).render();
+
+    // Stakes (donut)
+    new ApexCharts(document.getElementById('chart-stake'), {
+      chart:{type:'donut',height:200,background:'transparent'},
+      series:[500,200,0],
+      labels:['Avançado (20d)','Inicial (10d)','Elite (30d)'],
+      colors:['#9B59B6','#FFD700','#7B2FBE'],
+      legend:{labels:{colors:'#9E8FC0'}},
+      tooltip:{theme:'dark'}
+    }).render();
+  }
+
+  window.addEventListener('load',()=>{ setTimeout(initCharts,2600); });
+</script>
+</body>
+</html>

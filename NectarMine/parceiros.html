@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Parceiros & Indicações</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .parceiros-layout { display:grid; grid-template-columns:1fr 300px; gap:18px; }
+
+    /* Hero indicação */
+    .ref-hero {
+      background:linear-gradient(135deg, rgba(123,47,190,.2), rgba(255,215,0,.06));
+      border:1px solid var(--borda-roxo); border-radius:var(--radius-lg);
+      padding:28px; margin-bottom:22px;
+    }
+    .ref-hero h2 { font-size:22px; color:var(--branco); margin-bottom:6px; }
+    .ref-hero p { color:var(--texto2); font-size:13px; margin-bottom:16px; }
+    .ref-link-box { display:flex; gap:8px; }
+    .ref-link-box input { flex:1; background:rgba(255,255,255,.08); border:1px solid var(--borda); border-radius:var(--radius-sm); padding:10px 14px; color:var(--amarelo); font-size:13px; outline:none; }
+    .ref-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:16px; }
+    .ref-stat { background:rgba(0,0,0,.3); border-radius:var(--radius-sm); padding:12px; text-align:center; }
+    .ref-stat strong { display:block; font-size:22px; color:var(--amarelo); }
+    .ref-stat span { font-size:11px; color:var(--texto3); }
+
+    /* Como funciona */
+    .steps { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; margin-bottom:22px; }
+    .step-card { background:var(--card); backdrop-filter:blur(10px); border:1px solid var(--borda2); border-radius:var(--radius); padding:18px; text-align:center; }
+    .step-num { width:36px; height:36px; border-radius:50%; background:var(--amarelo); color:#000; font-weight:bold; font-size:16px; display:flex; align-items:center; justify-content:center; margin:0 auto 10px; }
+    .step-card h4 { font-size:14px; color:var(--branco); margin-bottom:6px; }
+    .step-card p { font-size:12px; color:var(--texto2); }
+
+    /* Indicados */
+    .indicado-item { display:flex; align-items:center; gap:12px; padding:12px 16px; background:var(--amarelo-bg2); border:1px solid var(--borda2); border-radius:var(--radius-sm); margin-bottom:8px; }
+    .indicado-av { width:32px; height:32px; border-radius:50%; background:var(--roxo-bg); border:1px solid var(--borda-roxo); display:flex; align-items:center; justify-content:center; font-size:14px; }
+    .indicado-info { flex:1; }
+    .indicado-info strong { display:block; font-size:13px; color:var(--branco); }
+    .indicado-info span { font-size:11px; color:var(--texto3); }
+    .indicado-earn { text-align:right; }
+    .indicado-earn strong { display:block; font-size:14px; color:var(--verde); }
+    .indicado-earn span { font-size:10px; color:var(--texto3); }
+
+    @media(max-width:900px){ .parceiros-layout{grid-template-columns:1fr;} .steps{grid-template-columns:1fr;} .ref-stats{grid-template-columns:1fr 1fr;} }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Convocando as abelhas...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link active"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <!-- Hero -->
+    <div class="ref-hero">
+      <h2><i class="fa-solid fa-handshake" style="color:var(--amarelo)"></i> Programa de Parceiros</h2>
+      <p>Indique amigos e ganhe <strong>10% do Néctar que eles produzirem para sempre</strong>. Sem limite de indicações.</p>
+      <div class="ref-link-box">
+        <input type="text" id="ref-link" value="https://nectarmine.com/ref/BIFFI" readonly/>
+        <button class="btn btn-primary" onclick="copiarLink()"><i class="fa-solid fa-copy"></i> Copiar</button>
+        <button class="btn btn-secondary" onclick="compartilhar()"><i class="fa-solid fa-share-nodes"></i> Compartilhar</button>
+      </div>
+      <div class="ref-stats">
+        <div class="ref-stat"><strong>3</strong><span>Indicados ativos</span></div>
+        <div class="ref-stat"><strong>8.420 NCT</strong><span>Ganho via referral</span></div>
+        <div class="ref-stat"><strong>10%</strong><span>Comissão permanente</span></div>
+      </div>
+    </div>
+
+    <!-- Como funciona -->
+    <h2 style="font-size:16px;color:var(--texto2);margin-bottom:14px;letter-spacing:1px;text-transform:uppercase;">Como funciona</h2>
+    <div class="steps">
+      <div class="step-card">
+        <div class="step-num">1</div>
+        <h4>Compartilhe seu link</h4>
+        <p>Envie seu link de indicação para amigos via WhatsApp, Telegram ou redes sociais.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">2</div>
+        <h4>Amigo se cadastra</h4>
+        <p>Quando seu amigo cria a conta usando seu link, ele é vinculado como seu indicado.</p>
+      </div>
+      <div class="step-card">
+        <div class="step-num">3</div>
+        <h4>Ganhe 10% para sempre</h4>
+        <p>Você recebe automaticamente 10% de todo Néctar que seu indicado produzir — sem limite de tempo.</p>
+      </div>
+    </div>
+
+    <div class="parceiros-layout">
+      <div>
+        <!-- Lista de indicados -->
+        <h2 style="font-size:16px;color:var(--branco);margin-bottom:14px;">👥 Meus Indicados</h2>
+        <div class="indicado-item">
+          <div class="indicado-av">🐝</div>
+          <div class="indicado-info">
+            <strong>FloralMaster</strong>
+            <span>Ativo desde 15/06/2026 · Nv. 8</span>
+          </div>
+          <div class="indicado-earn">
+            <strong>+3.200 NCT</strong>
+            <span>comissão total</span>
+          </div>
+        </div>
+        <div class="indicado-item">
+          <div class="indicado-av">🌸</div>
+          <div class="indicado-info">
+            <strong>HoneyNovato</strong>
+            <span>Ativo desde 20/06/2026 · Nv. 4</span>
+          </div>
+          <div class="indicado-earn">
+            <strong>+1.840 NCT</strong>
+            <span>comissão total</span>
+          </div>
+        </div>
+        <div class="indicado-item">
+          <div class="indicado-av">🌻</div>
+          <div class="indicado-info">
+            <strong>BeeginnerBR</strong>
+            <span>Ativo desde 25/06/2026 · Nv. 2</span>
+          </div>
+          <div class="indicado-earn">
+            <strong>+3.380 NCT</strong>
+            <span>comissão total</span>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-728" style="margin-top:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+        <!-- Níveis de parceria -->
+        <h2 style="font-size:16px;color:var(--branco);margin:18px 0 14px;">🌟 Níveis de Parceria</h2>
+        <div class="nm-table-wrap" style="background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--borda2);border-radius:var(--radius);overflow:hidden;">
+          <table style="width:100%;border-collapse:collapse;">
+            <thead><tr><th style="padding:10px 14px;text-align:left;font-size:11px;color:var(--texto3);border-bottom:1px solid var(--borda2);">Nível</th><th style="padding:10px 14px;font-size:11px;color:var(--texto3);border-bottom:1px solid var(--borda2);">Indicados</th><th style="padding:10px 14px;font-size:11px;color:var(--texto3);border-bottom:1px solid var(--borda2);">Comissão</th><th style="padding:10px 14px;font-size:11px;color:var(--texto3);border-bottom:1px solid var(--borda2);">Bônus</th></tr></thead>
+            <tbody>
+              <tr style="background:var(--amarelo-bg);"><td style="padding:10px 14px;font-size:13px;color:var(--amarelo);font-weight:bold;">🌱 Apicultor</td><td style="padding:10px 14px;font-size:13px;text-align:center;">1–4</td><td style="padding:10px 14px;font-size:13px;text-align:center;color:var(--verde);">10%</td><td style="padding:10px 14px;font-size:13px;text-align:center;">—</td></tr>
+              <tr><td style="padding:10px 14px;font-size:13px;color:var(--roxo2);font-weight:bold;">🐝 Mestre Apicultor</td><td style="padding:10px 14px;font-size:13px;text-align:center;">5–14</td><td style="padding:10px 14px;font-size:13px;text-align:center;color:var(--verde);">12%</td><td style="padding:10px 14px;font-size:13px;text-align:center;">+500 NCT/mês</td></tr>
+              <tr><td style="padding:10px 14px;font-size:13px;color:var(--amarelo);font-weight:bold;">👑 Rainha da Colmeia</td><td style="padding:10px 14px;font-size:13px;text-align:center;">15+</td><td style="padding:10px 14px;font-size:13px;text-align:center;color:var(--verde);">15%</td><td style="padding:10px 14px;font-size:13px;text-align:center;">+2.000 NCT/mês</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ASIDE -->
+      <div>
+        <div style="background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--borda-roxo);border-radius:var(--radius);padding:18px;margin-bottom:14px;">
+          <h3 style="font-size:14px;color:var(--branco);margin-bottom:12px;">📊 Seus ganhos de parceria</h3>
+          <div style="display:flex;flex-direction:column;gap:8px;font-size:12px;">
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto2);">Hoje</span><strong style="color:var(--verde);">+180 NCT</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto2);">Esta semana</span><strong style="color:var(--verde);">+1.240 NCT</strong></div>
+            <div style="display:flex;justify-content:space-between;"><span style="color:var(--texto2);">Este mês</span><strong style="color:var(--verde);">+3.860 NCT</strong></div>
+            <div style="display:flex;justify-content:space-between;border-top:1px solid var(--borda2);padding-top:8px;margin-top:4px;"><span style="color:var(--texto);">Total</span><strong style="color:var(--amarelo);font-size:15px;">+8.420 NCT</strong></div>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  async function copiarLink() {
+    const link = document.getElementById('ref-link').value;
+    try { await navigator.clipboard.writeText(link); } catch(e){}
+    NM_SWAL.success('Link copiado!', 'Cole em qualquer mensagem para convidar seus amigos.');
+  }
+  async function compartilhar() {
+    if (navigator.share) {
+      await navigator.share({ title: 'NectarMine', text: 'Entre em NectarMine com meu link!', url: 'https://nectarmine.com/ref/BIFFI' });
+    } else {
+      copiarLink();
+    }
+  }
+</script>
+</body>
+</html>

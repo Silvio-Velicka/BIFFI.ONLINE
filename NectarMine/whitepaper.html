@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Whitepaper Oficial</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --preto:    #02060F;
+      --preto2:   #070F18;
+      --card:     rgba(15,10,30,0.85);
+      --card2:    rgba(20,10,40,0.70);
+      --amarelo:  #FFD700;
+      --amarelo2: #FFC300;
+      --amarelo3: #FFAA00;
+      --amarelo-bg: rgba(255,215,0,0.10);
+      --roxo:     #7B2FBE;
+      --roxo2:    #9B59B6;
+      --roxo-bg:  rgba(123,47,190,0.15);
+      --texto:    #D4C9E8;
+      --texto2:   #9E8FC0;
+      --branco:   #FFFFFF;
+      --verde:    #22C55E;
+      --borda:    rgba(255,215,0,0.18);
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: var(--preto);
+      color: var(--texto);
+      font-family: Arial, sans-serif;
+      font-size: 15px;
+      line-height: 1.75;
+    }
+
+    /* ── LOADER ── */
+    #nm-loader {
+      position: fixed; inset: 0; z-index: 9999;
+      background: var(--preto);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 24px;
+      transition: opacity .4s;
+    }
+    #nm-loader.hide { opacity: 0; pointer-events: none; }
+
+    .hive-scene {
+      position: relative;
+      width: 340px;
+      display: flex; flex-direction: column;
+      align-items: center; gap: 16px;
+    }
+
+    /* Slot de anúncio DENTRO do loader — 320×100 */
+    .anuncio-loader {
+      width: 320px; height: 100px;
+      background: rgba(255,215,0,0.05);
+      border: 1px dashed rgba(255,215,0,0.2);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 11px;
+    }
+
+    .hive-tank {
+      width: 120px; height: 120px;
+      position: relative;
+      border-radius: 50%;
+      border: 3px solid var(--amarelo);
+      overflow: hidden;
+      box-shadow: 0 0 30px rgba(255,215,0,0.3);
+    }
+    .honey-fill {
+      position: absolute; bottom: 0; left: 0; right: 0;
+      height: 60%;
+      background: linear-gradient(180deg, var(--amarelo3), var(--amarelo));
+      animation: honeyRise 3s ease-in-out infinite alternate;
+    }
+    @keyframes honeyRise {
+      from { height: 45%; } to { height: 75%; }
+    }
+    .honey-wave {
+      position: absolute; top: -10px; left: -50%;
+      width: 200%; height: 20px;
+      background: rgba(255,200,0,0.6);
+      border-radius: 50%;
+      animation: waveMove 2s linear infinite;
+    }
+    @keyframes waveMove {
+      from { transform: translateX(0); }
+      to   { transform: translateX(50%); }
+    }
+    .hive-logo { font-size: 13px; color: var(--amarelo); letter-spacing: 2px; text-transform: uppercase; }
+    #loader-text { font-size: 13px; color: var(--texto2); animation: blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .loading-bar {
+      width: 260px; height: 3px;
+      background: rgba(255,215,0,0.15);
+      border-radius: 2px; overflow: hidden;
+    }
+    .loading-bar span {
+      display: block; height: 100%; width: 0%;
+      background: var(--amarelo);
+      animation: loadBar 2.2s ease-in-out forwards;
+    }
+    @keyframes loadBar { to { width: 100%; } }
+
+    /* Slot anúncio loader inferior — 320×50 */
+    .anuncio-loader-sm {
+      width: 320px; height: 50px;
+      background: rgba(255,215,0,0.04);
+      border: 1px dashed rgba(255,215,0,0.15);
+      border-radius: 4px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 11px;
+    }
+
+    /* ── HEADER ── */
+    header {
+      position: sticky; top: 0; z-index: 100;
+      background: rgba(2,6,15,0.95);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--borda);
+      padding: 0 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px;
+    }
+    .header-logo {
+      display: flex; align-items: center; gap: 10px;
+      font-size: 20px; font-weight: bold;
+      color: var(--amarelo); text-decoration: none;
+    }
+    .header-logo i { color: var(--roxo2); }
+    .header-nav { display: flex; gap: 24px; }
+    .header-nav a {
+      color: var(--texto2); text-decoration: none;
+      font-size: 13px; transition: color .2s;
+    }
+    .header-nav a:hover { color: var(--amarelo); }
+
+    /* ── ANÚNCIO TOPO (728×90) ── */
+    .anuncio-topo {
+      width: 100%; max-width: 728px;
+      height: 90px;
+      margin: 16px auto;
+      background: rgba(255,215,0,0.04);
+      border: 1px dashed rgba(255,215,0,0.15);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 12px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align: center;
+      padding: 70px 40px 50px;
+      background: radial-gradient(ellipse at top, rgba(123,47,190,0.15) 0%, transparent 70%);
+      border-bottom: 1px solid var(--borda);
+      position: relative;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--roxo-bg);
+      border: 1px solid var(--roxo);
+      color: var(--roxo2);
+      font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase;
+      padding: 4px 14px; border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(28px, 5vw, 52px);
+      color: var(--branco);
+      line-height: 1.2; margin-bottom: 16px;
+    }
+    .hero h1 span { color: var(--amarelo); }
+    .hero p {
+      max-width: 600px; margin: 0 auto 30px;
+      color: var(--texto2); font-size: 16px;
+    }
+    .hero-meta {
+      display: inline-flex; gap: 32px;
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 12px;
+      padding: 14px 32px;
+    }
+    .hero-meta span { font-size: 12px; color: var(--texto2); }
+    .hero-meta strong { display: block; color: var(--amarelo); font-size: 14px; }
+
+    /* ── LAYOUT ── */
+    .wp-layout {
+      display: flex;
+      max-width: 1200px;
+      margin: 0 auto;
+      padding: 40px 24px;
+      gap: 40px;
+    }
+
+    /* ── ÍNDICE LATERAL ── */
+    .wp-sidebar {
+      width: 240px; flex-shrink: 0;
+    }
+    .wp-sidebar-inner {
+      position: sticky; top: 80px;
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 12px;
+      padding: 20px;
+    }
+    .wp-sidebar h3 {
+      font-size: 11px; letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--amarelo);
+      margin-bottom: 14px;
+    }
+    .wp-sidebar a {
+      display: block;
+      color: var(--texto2); text-decoration: none;
+      font-size: 13px; padding: 6px 0;
+      border-left: 2px solid transparent;
+      padding-left: 10px;
+      transition: all .2s;
+    }
+    .wp-sidebar a:hover,
+    .wp-sidebar a.active {
+      color: var(--amarelo);
+      border-left-color: var(--amarelo);
+    }
+    .wp-sidebar .section-group { margin-top: 10px; }
+    .wp-sidebar .section-label {
+      font-size: 10px; color: var(--roxo2);
+      text-transform: uppercase; letter-spacing: 1px;
+      margin: 12px 0 4px 10px;
+    }
+
+    /* Slot anúncio sidebar — 160×600 */
+    .anuncio-sidebar {
+      width: 160px; height: 300px;
+      margin-top: 20px;
+      background: rgba(255,215,0,0.04);
+      border: 1px dashed rgba(255,215,0,0.15);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 11px;
+      text-align: center;
+    }
+
+    /* ── CONTEÚDO PRINCIPAL ── */
+    .wp-content { flex: 1; min-width: 0; }
+
+    .wp-section {
+      margin-bottom: 60px;
+      scroll-margin-top: 80px;
+    }
+
+    .section-tag {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--roxo-bg);
+      border: 1px solid rgba(123,47,190,0.4);
+      color: var(--roxo2);
+      font-size: 11px; padding: 3px 10px;
+      border-radius: 20px; margin-bottom: 12px;
+    }
+
+    .wp-section h2 {
+      font-size: 26px; color: var(--branco);
+      border-bottom: 1px solid var(--borda);
+      padding-bottom: 12px; margin-bottom: 20px;
+    }
+    .wp-section h2 i { color: var(--amarelo); margin-right: 8px; }
+
+    .wp-section h3 {
+      font-size: 17px; color: var(--amarelo);
+      margin: 24px 0 10px;
+    }
+
+    .wp-section p {
+      color: var(--texto); margin-bottom: 14px;
+      max-width: 720px;
+    }
+
+    /* Info boxes */
+    .info-box {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 10px;
+      padding: 20px 24px;
+      margin: 20px 0;
+    }
+    .info-box.roxo {
+      border-color: rgba(123,47,190,0.4);
+      background: var(--roxo-bg);
+    }
+    .info-box.amarelo {
+      border-color: rgba(255,215,0,0.3);
+      background: var(--amarelo-bg);
+    }
+    .info-box.verde {
+      border-color: rgba(34,197,94,0.3);
+      background: rgba(34,197,94,0.07);
+    }
+
+    /* Tabelas */
+    .wp-table {
+      width: 100%; border-collapse: collapse;
+      margin: 16px 0; font-size: 14px;
+    }
+    .wp-table th {
+      background: rgba(123,47,190,0.2);
+      color: var(--roxo2);
+      text-align: left; padding: 10px 14px;
+      font-size: 11px; letter-spacing: 1px;
+      text-transform: uppercase;
+      border-bottom: 1px solid var(--borda);
+    }
+    .wp-table td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(255,215,0,0.07);
+      color: var(--texto);
+    }
+    .wp-table tr:hover td { background: rgba(255,215,0,0.04); }
+
+    /* Pills */
+    .pill {
+      display: inline-block;
+      padding: 2px 10px; border-radius: 20px;
+      font-size: 12px; font-weight: bold;
+    }
+    .pill.amarelo { background: var(--amarelo-bg); color: var(--amarelo); border: 1px solid var(--amarelo); }
+    .pill.roxo    { background: var(--roxo-bg);    color: var(--roxo2);  border: 1px solid var(--roxo); }
+    .pill.verde   { background: rgba(34,197,94,0.1); color: var(--verde); border: 1px solid var(--verde); }
+
+    /* Mecânica cards */
+    .mecanica-grid {
+      display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+      gap: 16px; margin: 20px 0;
+    }
+    .mecanica-card {
+      background: var(--card);
+      border: 1px solid var(--borda);
+      border-radius: 10px; padding: 18px;
+      transition: border-color .2s;
+    }
+    .mecanica-card:hover { border-color: var(--amarelo); }
+    .mecanica-card i { font-size: 22px; color: var(--amarelo); margin-bottom: 8px; display: block; }
+    .mecanica-card h4 { color: var(--branco); font-size: 14px; margin-bottom: 6px; }
+    .mecanica-card p { font-size: 13px; color: var(--texto2); margin: 0; }
+
+    /* Stake tabela especial */
+    .stake-plans {
+      display: grid; grid-template-columns: repeat(3,1fr); gap: 16px; margin: 20px 0;
+    }
+    .stake-card {
+      background: var(--card); border: 1px solid var(--borda);
+      border-radius: 12px; padding: 20px; text-align: center;
+    }
+    .stake-card.elite { border-color: var(--amarelo); box-shadow: 0 0 20px rgba(255,215,0,0.15); }
+    .stake-card h4 { color: var(--roxo2); font-size: 13px; text-transform: uppercase; letter-spacing: 1px; margin-bottom: 10px; }
+    .stake-card .rendimento { font-size: 36px; font-weight: bold; color: var(--amarelo); }
+    .stake-card small { color: var(--texto2); font-size: 12px; }
+
+    /* T2 banner */
+    .t2-banner {
+      background: linear-gradient(135deg, rgba(123,47,190,0.2), rgba(2,6,15,0.8));
+      border: 1px solid var(--roxo);
+      border-radius: 14px; padding: 30px;
+      margin: 24px 0;
+      position: relative; overflow: hidden;
+    }
+    .t2-banner::before {
+      content: 'EM BREVE';
+      position: absolute; top: 14px; right: 18px;
+      font-size: 10px; letter-spacing: 2px;
+      color: var(--roxo2); opacity: .7;
+    }
+    .t2-banner h3 { color: var(--roxo2); font-size: 20px; margin-bottom: 8px; }
+    .t2-banner p { color: var(--texto2); font-size: 14px; max-width: 100%; }
+
+    /* Anúncio in-content — 728×90 */
+    .anuncio-content {
+      width: 100%; max-width: 728px;
+      height: 90px; margin: 32px 0;
+      background: rgba(255,215,0,0.04);
+      border: 1px dashed rgba(255,215,0,0.15);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 12px;
+    }
+
+    /* Anúncio in-content médio — 300×250 */
+    .anuncio-medio {
+      float: right; margin: 0 0 20px 24px;
+      width: 300px; height: 250px;
+      background: rgba(255,215,0,0.04);
+      border: 1px dashed rgba(255,215,0,0.15);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 12px;
+      flex-direction: column; gap: 4px;
+    }
+    .anuncio-medio small { font-size: 10px; opacity: .6; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top: 1px solid var(--borda);
+      padding: 40px;
+      text-align: center;
+      color: var(--texto2); font-size: 13px;
+    }
+    footer .footer-links { display: flex; gap: 24px; justify-content: center; margin-bottom: 14px; }
+    footer a { color: var(--texto2); text-decoration: none; }
+    footer a:hover { color: var(--amarelo); }
+    footer .amarelo { color: var(--amarelo); }
+
+    /* Anúncio rodapé — 728×90 */
+    .anuncio-rodape {
+      width: 100%; max-width: 728px;
+      height: 90px; margin: 0 auto 24px;
+      background: rgba(255,215,0,0.04);
+      border: 1px dashed rgba(255,215,0,0.15);
+      border-radius: 6px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--texto2); font-size: 12px;
+    }
+
+    @media(max-width:768px) {
+      .wp-layout { flex-direction: column; }
+      .wp-sidebar { width: 100%; }
+      .wp-sidebar-inner { position: static; }
+      .stake-plans { grid-template-columns: 1fr; }
+      .anuncio-medio { float: none; width: 100%; margin: 20px 0; }
+      header { padding: 0 16px; }
+      .hero { padding: 40px 16px 30px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══════════════════════════════
+     LOADER COM ANÚNCIOS
+     ══════════════════════════════ -->
+<div id="nm-loader">
+  <div class="hive-scene">
+
+    <!-- SLOT AD 1 — dentro do loader — 320×100 -->
+    <div class="anuncio-loader" id="ad-loader-top">
+      <!-- AdsTerra / Monetag: 320×100 -->
+      <span>Publicidade 320×100</span>
+    </div>
+
+    <div class="hive-tank">
+      <div class="honey-fill">
+        <div class="honey-wave"></div>
+      </div>
+    </div>
+
+    <div class="hive-logo">🍯 NectarMine</div>
+    <p id="loader-text">Aquecendo as colmeias...</p>
+    <div class="loading-bar"><span></span></div>
+
+    <!-- SLOT AD 2 — dentro do loader — 320×50 -->
+    <div class="anuncio-loader-sm" id="ad-loader-bot">
+      <!-- AdsTerra / Monetag: 320×50 -->
+      <span>Publicidade 320×50</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SLOT AD 3 — Full width topo — 970×90
+     ══════════════════════════════ -->
+<div style="width:100%;display:flex;justify-content:center;background:rgba(0,0,0,0.3);padding:8px 0;">
+  <div style="width:970px;height:90px;max-width:100%;background:rgba(255,215,0,0.04);border:1px dashed rgba(255,215,0,0.15);border-radius:6px;display:flex;align-items:center;justify-content:center;color:#9E8FC0;font-size:12px;" id="ad-topo-970">
+    <!-- AdsTerra / Google AdSense: 970×90 (Super Leaderboard) -->
+    Publicidade 970×90
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     HEADER
+     ══════════════════════════════ -->
+<header>
+  <a href="/dashboard" class="header-logo">
+    <i class="fa-solid fa-hexagon-nodes"></i>
+    NectarMine
+  </a>
+  <nav class="header-nav">
+    <a href="/whitepaper">Whitepaper</a>
+    <a href="/roadmap">Roadmap</a>
+    <a href="/dashboard">Entrar no Jogo</a>
+  </nav>
+</header>
+
+<!-- ══════════════════════════════
+     HERO
+     ══════════════════════════════ -->
+<section class="hero">
+  <div class="hero-badge">Documento Oficial — v1.0 — 2026</div>
+  <h1>NectarMine<br/><span>Whitepaper</span></h1>
+  <p>O manual técnico e econômico da maior plataforma de mineração de mel do ecossistema digital.</p>
+  <div class="hero-meta">
+    <div><span>Versão</span><strong>1.0</strong></div>
+    <div><span>Emissão</span><strong>2026</strong></div>
+    <div><span>Temporada</span><strong>T1 — Colmeia</strong></div>
+    <div><span>Moeda</span><strong>Néctar</strong></div>
+  </div>
+</section>
+
+<!-- ══════════════════════════════
+     LAYOUT PRINCIPAL
+     ══════════════════════════════ -->
+<div class="wp-layout">
+
+  <!-- ÍNDICE LATERAL -->
+  <aside class="wp-sidebar">
+    <div class="wp-sidebar-inner">
+      <h3>Índice</h3>
+      <div class="section-group">
+        <div class="section-label">Introdução</div>
+        <a href="#intro">1. O que é NectarMine</a>
+        <a href="#visao">2. Visão e Missão</a>
+      </div>
+      <div class="section-group">
+        <div class="section-label">Economia</div>
+        <a href="#nectar">3. O Token Néctar</a>
+        <a href="#geracao">4. Geração de Néctar</a>
+        <a href="#saque">5. Saque e Conversão</a>
+      </div>
+      <div class="section-group">
+        <div class="section-label">Mecânicas</div>
+        <a href="#apiarios">6. Apiários e Produção</a>
+        <a href="#colmeia">7. Colmeia e Potes</a>
+        <a href="#mercado">8. Mercado de Mel</a>
+        <a href="#stake">9. Honey Stake</a>
+        <a href="#missoes">10. Missões Diárias</a>
+        <a href="#rankings">11. Rankings Semanais</a>
+        <a href="#indicacao">12. Programa de Abelhas</a>
+      </div>
+      <div class="section-group">
+        <div class="section-label">Sustentabilidade</div>
+        <a href="#modelo">13. Modelo Econômico</a>
+        <a href="#seguranca">14. Segurança</a>
+      </div>
+      <div class="section-group">
+        <div class="section-label">Futuro</div>
+        <a href="#t2">15. Temporada 2</a>
+        <a href="#conclusao">16. Conclusão</a>
+      </div>
+    </div>
+
+    <!-- SLOT AD 4 — Sidebar — 160×300 -->
+    <div class="anuncio-sidebar" id="ad-sidebar">
+      <!-- AdsTerra / AdSense: 160×300 -->
+      Publicidade<br/>160×300
+    </div>
+  </aside>
+
+  <!-- CONTEÚDO -->
+  <main class="wp-content">
+
+    <!-- ── 1. INTRODUÇÃO ── -->
+    <section class="wp-section" id="intro">
+      <div class="section-tag"><i class="fa-solid fa-hive"></i> Introdução</div>
+      <h2><i class="fa-solid fa-circle-info"></i> 1. O que é NectarMine</h2>
+      <p>NectarMine é uma plataforma de simulação econômica digital onde os jogadores gerenciam operações de produção, armazenamento e comercialização de mel. Cada jogador constrói e expande sua própria rede de apiários, extrai mel, acumula potes e converte sua produção em <strong class="pill amarelo">Néctar</strong> — a moeda interna do ecossistema.</p>
+      <p>Diferente de plataformas puramente especulativas, o NectarMine sustenta sua economia através de um modelo transparente baseado em publicidade digital e engajamento orgânico, garantindo que os prêmios pagos aos jogadores sejam cobertos por receita real gerada dentro do próprio sistema.</p>
+
+      <div class="mecanica-grid">
+        <div class="mecanica-card">
+          <i class="fa-solid fa-industry"></i>
+          <h4>Produção Real</h4>
+          <p>Apiários produzem potes de mel continuamente, sem necessidade de ação constante do jogador.</p>
+        </div>
+        <div class="mecanica-card">
+          <i class="fa-solid fa-chart-line"></i>
+          <h4>Mercado Dinâmico</h4>
+          <p>O preço do mel flutua em tempo real com gráfico de candlestick. Venda no melhor momento.</p>
+        </div>
+        <div class="mecanica-card">
+          <i class="fa-solid fa-coins"></i>
+          <h4>Néctar Sacável</h4>
+          <p>O Néctar acumulado pode ser convertido em criptomoedas reais mediante mínimo e limites diários.</p>
+        </div>
+        <div class="mecanica-card">
+          <i class="fa-solid fa-bullseye"></i>
+          <h4>Missões Diárias</h4>
+          <p>Complete 7 missões diárias para ganhar bônus de Néctar, XP e flores (energia).</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 2. VISÃO ── -->
+    <section class="wp-section" id="visao">
+      <div class="section-tag"><i class="fa-solid fa-eye"></i> Missão</div>
+      <h2><i class="fa-solid fa-star"></i> 2. Visão e Missão</h2>
+      <p><strong>Visão:</strong> Ser a plataforma de gamificação econômica mais acessível e sustentável do mercado de língua portuguesa, conectando jogadores à economia digital através de uma experiência intuitiva e recompensadora.</p>
+      <p><strong>Missão:</strong> Criar um ecossistema onde qualquer pessoa — independentemente de conhecimento técnico — possa participar da economia digital, gerar renda passiva e se divertir ao mesmo tempo.</p>
+      <div class="info-box roxo">
+        <strong style="color:var(--roxo2);">💡 Princípio Central</strong><br/>
+        <span style="font-size:14px;color:var(--texto2);">O NectarMine não promete enriquecimento rápido. Promete um sistema honesto onde o esforço e a estratégia são recompensados de forma consistente e sustentável.</span>
+      </div>
+    </section>
+
+    <!-- SLOT AD 5 — In-content — 728×90 -->
+    <div class="anuncio-content" id="ad-content-1">
+      <!-- AdsTerra / AdSense: 728×90 (Leaderboard) -->
+      Publicidade 728×90
+    </div>
+
+    <!-- ── 3. NÉCTAR ── -->
+    <section class="wp-section" id="nectar">
+      <div class="section-tag"><i class="fa-solid fa-droplet"></i> Economia</div>
+      <h2><i class="fa-solid fa-honey-pot"></i> 3. O Token Néctar</h2>
+
+      <!-- SLOT AD 6 — Float direita — 300×250 -->
+      <div class="anuncio-medio" id="ad-medio-1">
+        <!-- AdsTerra / AdSense: 300×250 (Medium Rectangle) -->
+        Publicidade<br/>300×250
+        <small>Medium Rectangle</small>
+      </div>
+
+      <p>O <strong>Néctar</strong> é a unidade econômica central do NectarMine. Ele não é uma criptomoeda independente — é uma moeda interna do jogo que pode ser convertida em criptomoedas reais no momento do saque, respeitando as regras e limites da plataforma.</p>
+      <h3>Características do Néctar</h3>
+      <table class="wp-table">
+        <thead><tr><th>Propriedade</th><th>Valor</th></tr></thead>
+        <tbody>
+          <tr><td>Nome</td><td>Néctar</td></tr>
+          <tr><td>Símbolo</td><td>NCT</td></tr>
+          <tr><td>Tipo</td><td>Moeda interna de plataforma</td></tr>
+          <tr><td>Mínimo para saque</td><td>20.000 Néctar</td></tr>
+          <tr><td>Saques por dia</td><td>Até 3 saques diários</td></tr>
+          <tr><td>Moedas de conversão</td><td>USDT, DOGE, LTC, TRX, DGB</td></tr>
+          <tr><td>Emissão</td><td>Gerado por produção, missões, anúncios e indicações</td></tr>
+        </tbody>
+      </table>
+      <div style="clear:both;"></div>
+    </section>
+
+    <!-- ── 4. GERAÇÃO ── -->
+    <section class="wp-section" id="geracao">
+      <h2><i class="fa-solid fa-plus"></i> 4. Geração de Néctar</h2>
+      <p>O Néctar pode ser gerado por quatro fontes principais:</p>
+      <h3>4.1 Venda de Potes no Mercado</h3>
+      <p>A principal fonte de Néctar. O jogador produz potes de mel com seus apiários, envasila-os e os vende no mercado interno. O preço varia dinamicamente — a estratégia de saber quando vender faz diferença real nos ganhos.</p>
+      <h3>4.2 Missões Diárias</h3>
+      <p>7 missões diárias concedem entre 300 e 2.000 Néctar cada, totalizando até <strong style="color:var(--amarelo);">5.300 Néctar por dia</strong> para quem completar todas.</p>
+      <h3>4.3 Anúncios PTC (Pay-to-Click)</h3>
+      <p>Via sistema ZerAds integrado. O jogador assiste anúncios patrocinados, resolve um captcha simples e recebe Néctar automaticamente em até 5 minutos. Fonte ideal para jogadores que desejam acelerar sem investimento.</p>
+      <h3>4.4 Programa de Abelhas (Indicação)</h3>
+      <p>Ao indicar novos jogadores, o indicante recebe <strong style="color:var(--amarelo);">10% contínuo</strong> dos potes produzidos pelo indicado, mais um bônus único de <strong style="color:var(--amarelo);">25.000 potes</strong> ao validar cada parceiro.</p>
+    </section>
+
+    <!-- ── 5. SAQUE ── -->
+    <section class="wp-section" id="saque">
+      <h2><i class="fa-solid fa-money-bill-transfer"></i> 5. Saque e Conversão</h2>
+      <p>Quando o jogador acumular o mínimo de <strong style="color:var(--amarelo);">20.000 Néctar</strong>, pode solicitar a conversão para uma das criptomoedas suportadas:</p>
+      <table class="wp-table">
+        <thead><tr><th>Moeda</th><th>Rede</th><th>Processamento</th></tr></thead>
+        <tbody>
+          <tr><td><strong>USDT</strong></td><td>TRC-20 / BEP-20</td><td>Até 72h úteis</td></tr>
+          <tr><td><strong>DOGE</strong></td><td>Dogecoin</td><td>Até 72h úteis</td></tr>
+          <tr><td><strong>LTC</strong></td><td>Litecoin</td><td>Até 72h úteis</td></tr>
+          <tr><td><strong>TRX</strong></td><td>TRON</td><td>Até 72h úteis</td></tr>
+          <tr><td><strong>DGB</strong></td><td>DigiByte</td><td>Até 72h úteis</td></tr>
+        </tbody>
+      </table>
+      <div class="info-box amarelo">
+        <strong style="color:var(--amarelo);">⚠️ Regra Anti-Abuso</strong><br/>
+        <span style="font-size:14px;">Contas com comportamento suspeito, uso de bots ou violação dos termos terão saques suspensos automaticamente. O sistema monitora padrões atípicos de produção e cliques em anúncios.</span>
+      </div>
+    </section>
+
+    <!-- SLOT AD 7 — In-content — 728×90 -->
+    <div class="anuncio-content" id="ad-content-2">
+      <!-- AdsTerra / AdSense: 728×90 (Leaderboard) -->
+      Publicidade 728×90
+    </div>
+
+    <!-- ── 6. APIÁRIOS ── -->
+    <section class="wp-section" id="apiarios">
+      <div class="section-tag"><i class="fa-solid fa-gears"></i> Mecânicas</div>
+      <h2><i class="fa-solid fa-industry"></i> 6. Apiários e Produção</h2>
+      <p>Os Apiários são as máquinas de produção do NectarMine. Cada apiário produz potes de mel por hora e consome flores (energia) continuamente. Os apiários são contratados em <strong>lotes com validade definida</strong> — ao vencer, o lote para de produzir e precisa ser renovado.</p>
+      <h3>Linha de Equipamentos — Temporada 1</h3>
+      <table class="wp-table">
+        <thead><tr><th>Apiário</th><th>Potes/h</th><th>Flores/h</th><th>Validade</th><th>Custo (Néctar)</th></tr></thead>
+        <tbody>
+          <tr><td>Colmeia Básica</td><td>5</td><td>2</td><td>120 dias</td><td>1.650</td></tr>
+          <tr><td>Apiário Industrial</td><td>10</td><td>4</td><td>100 dias</td><td>3.438</td></tr>
+          <tr><td>Colmeia Refinada</td><td>15</td><td>10</td><td>120 dias</td><td>4.400</td></tr>
+          <tr><td>Bomba Osmarium</td><td>22</td><td>12</td><td>80 dias</td><td>5.500</td></tr>
+          <tr><td>Estação Apícola</td><td>25</td><td>15</td><td>120 dias</td><td>7.150</td></tr>
+          <tr><td>Plataforma Abissal</td><td>35</td><td>20</td><td>120 dias</td><td>11.000</td></tr>
+          <tr><td>Extratora Industrial</td><td>30</td><td>18</td><td>120 dias</td><td>9.900</td></tr>
+          <tr><td>Extratora Ômega</td><td>45</td><td>28</td><td>120 dias</td><td>24.200</td></tr>
+          <tr><td>Extratora Colossal</td><td>60</td><td>40</td><td>90 dias</td><td>27.500</td></tr>
+          <tr><td>Colmeia Quântica</td><td>60</td><td>45</td><td>100 dias</td><td>16.500</td></tr>
+        </tbody>
+      </table>
+      <h3>Upgrades de Infraestrutura</h3>
+      <table class="wp-table">
+        <thead><tr><th>Upgrade</th><th>Efeito</th><th>Custo</th></tr></thead>
+        <tbody>
+          <tr><td>Capacidade de Flores</td><td>+5 de energia máxima</td><td>30.000 Néctar</td></tr>
+          <tr><td>Capacidade da Colmeia</td><td>+5 de armazenamento de potes</td><td>20.000 Néctar</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- ── 7. COLMEIA E POTES ── -->
+    <section class="wp-section" id="colmeia">
+      <h2><i class="fa-solid fa-warehouse"></i> 7. Colmeia e Potes</h2>
+      <p>O mel produzido pelos apiários vai direto para a <strong>Colmeia Principal</strong> — o reservatório central do jogador. A colmeia tem capacidade limitada. Quando enche, a produção para automaticamente.</p>
+      <p>Para retomar a produção e liberar os potes para venda, o jogador deve acessar a página <strong>/envasar</strong> e transferir o mel da colmeia para potes individuais. Esse processo simples é também onde um anúncio é exibido, gerando receita para o sistema.</p>
+      <div class="info-box verde">
+        <strong style="color:var(--verde);">💡 Dica Estratégica</strong><br/>
+        <span style="font-size:14px;">Envasar antes da colmeia lotar é fundamental para manter a produção ativa. Jogadores que monitoram mais frequentemente produzem mais potes por dia.</span>
+      </div>
+    </section>
+
+    <!-- ── 8. MERCADO ── -->
+    <section class="wp-section" id="mercado">
+      <h2><i class="fa-solid fa-chart-candlestick"></i> 8. Mercado de Mel</h2>
+
+      <!-- SLOT AD 8 — Float direita — 300×250 -->
+      <div class="anuncio-medio" id="ad-medio-2">
+        <!-- AdsTerra / AdSense: 300×250 -->
+        Publicidade<br/>300×250
+        <small>Medium Rectangle</small>
+      </div>
+
+      <p>O Mercado é onde potes de mel são comprados e vendidos. O preço do pote é dinâmico e varia com base em oferta, demanda e eventos internos da plataforma.</p>
+      <h3>Funcionalidades do Mercado</h3>
+      <p><strong>Gráfico Candlestick</strong> em tempo real com suporte a múltiplos timeframes: 1m, 5m, 15m, 1h, 4h, 1d, 1M. Quantidade de candles ajustável: 30, 50, 100, 200.</p>
+      <p><strong>Indicador de Risco Operacional</strong>: alerta o jogador sobre condições de mercado desfavoráveis (ex: queda brusca de preço).</p>
+      <p><strong>Ordens Pendentes e Histórico</strong>: o jogador acompanha suas ordens em aberto e todo o histórico de compras e vendas.</p>
+      <p><strong>Compra e Venda</strong>: é possível tanto vender potes produzidos quanto comprar potes de outros jogadores para estratégias de acumulação antes de uma alta.</p>
+      <div style="clear:both;"></div>
+    </section>
+
+    <!-- ── 9. STAKE ── -->
+    <section class="wp-section" id="stake">
+      <h2><i class="fa-solid fa-lock"></i> 9. Honey Stake</h2>
+      <p>O Honey Stake permite que o jogador bloqueie potes de mel por um período determinado e receba rendimento ao final do prazo. É a opção de renda passiva mais previsível do ecossistema.</p>
+      <div class="stake-plans">
+        <div class="stake-card">
+          <h4>🍯 Plano Inicial</h4>
+          <div class="rendimento">5%</div>
+          <small>de rendimento</small>
+          <hr style="border-color:rgba(255,215,0,0.1);margin:12px 0;"/>
+          <small>100 – 500 potes<br/>Prazo: 10 dias</small>
+        </div>
+        <div class="stake-card">
+          <h4>🐝 Plano Avançado</h4>
+          <div class="rendimento">10%</div>
+          <small>de rendimento</small>
+          <hr style="border-color:rgba(255,215,0,0.1);margin:12px 0;"/>
+          <small>500 – 2.000 potes<br/>Prazo: 20 dias</small>
+        </div>
+        <div class="stake-card elite">
+          <h4>👑 Plano Elite</h4>
+          <div class="rendimento">20%</div>
+          <small>de rendimento</small>
+          <hr style="border-color:rgba(255,215,0,0.1);margin:12px 0;"/>
+          <small>2.000 – 10.000 potes<br/>Prazo: 30 dias</small>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 10. MISSÕES ── -->
+    <section class="wp-section" id="missoes">
+      <h2><i class="fa-solid fa-bullseye"></i> 10. Missões Diárias</h2>
+      <p>O sistema de missões renova-se todo dia e contém 7 tarefas que guiam o jogador pelas principais mecânicas do jogo. Completar todas as missões do dia libera o máximo de bônus diários disponíveis.</p>
+      <table class="wp-table">
+        <thead><tr><th>Missão</th><th>Objetivo</th><th>Néctar</th><th>XP</th><th>Extra</th></tr></thead>
+        <tbody>
+          <tr><td>Login Diário</td><td>Acessar o jogo</td><td>300</td><td>100</td><td>+Flores</td></tr>
+          <tr><td>Envasar Potes</td><td>Transferir 100 potes da colmeia</td><td>500</td><td>250</td><td>—</td></tr>
+          <tr><td>Recarregar Flores</td><td>Recarregar energia das máquinas</td><td>—</td><td>150</td><td>+Flores</td></tr>
+          <tr><td>Comprar no Mercado</td><td>Comprar potes no mercado</td><td>750</td><td>300</td><td>—</td></tr>
+          <tr><td>Vender no Mercado</td><td>Vender potes no mercado</td><td>750</td><td>300</td><td>—</td></tr>
+          <tr><td>Produção Industrial</td><td>Produzir 1.000 potes</td><td>2.000</td><td>900</td><td>—</td></tr>
+          <tr><td>Consumo de Flores</td><td>Gastar 500 de energia</td><td>1.000</td><td>450</td><td>—</td></tr>
+        </tbody>
+      </table>
+      <p><strong style="color:var(--amarelo);">Total diário máximo: 5.300 Néctar + 2.450 XP</strong></p>
+    </section>
+
+    <!-- SLOT AD 9 — In-content — 728×90 -->
+    <div class="anuncio-content" id="ad-content-3">
+      <!-- AdsTerra / AdSense: 728×90 -->
+      Publicidade 728×90
+    </div>
+
+    <!-- ── 11. RANKINGS ── -->
+    <section class="wp-section" id="rankings">
+      <h2><i class="fa-solid fa-trophy"></i> 11. Rankings Semanais</h2>
+      <p>Dois rankings independentes são reiniciados toda semana, premiando os jogadores mais ativos com recompensas automáticas.</p>
+      <h3>Ranking de Produção</h3>
+      <p>Baseado no volume total de potes produzidos na semana. Os 10 primeiros recebem:</p>
+      <table class="wp-table">
+        <thead><tr><th>Posição</th><th>Prêmio</th></tr></thead>
+        <tbody>
+          <tr><td>🥇 1º lugar</td><td>5.000 Potes</td></tr>
+          <tr><td>🥈 2º lugar</td><td>2.000 Potes</td></tr>
+          <tr><td>🥉 3º lugar</td><td>1.000 Potes</td></tr>
+          <tr><td>🏅 4º lugar</td><td>700 Potes</td></tr>
+          <tr><td>🏅 5º lugar</td><td>500 Potes</td></tr>
+          <tr><td>💎 6º ao 10º</td><td>100–500 Néctar</td></tr>
+        </tbody>
+      </table>
+      <h3>Ranking de Entregas <span class="pill roxo">Temporada 2</span></h3>
+      <p>Este ranking será ativado na Temporada 2, quando o sistema de logística e entregas for lançado. Premiará apiários especiais e Néctar para os maiores entregadores da semana.</p>
+    </section>
+
+    <!-- ── 12. INDICAÇÃO ── -->
+    <section class="wp-section" id="indicacao">
+      <h2><i class="fa-solid fa-handshake"></i> 12. Programa de Abelhas (Indicação)</h2>
+      <p>Cada jogador possui um link único de convite. Quando um novo jogador se cadastra por esse link e começa a produzir, o indicante recebe benefícios continuamente:</p>
+      <div class="mecanica-grid">
+        <div class="mecanica-card">
+          <i class="fa-solid fa-percent"></i>
+          <h4>10% Contínuo</h4>
+          <p>10% dos potes produzidos por cada indicado são creditados automaticamente ao indicante.</p>
+        </div>
+        <div class="mecanica-card">
+          <i class="fa-solid fa-gift"></i>
+          <h4>25.000 Potes</h4>
+          <p>Bônus único por parceiro validado. Liberado após o indicado completar seus primeiros dias de produção.</p>
+        </div>
+        <div class="mecanica-card">
+          <i class="fa-solid fa-infinity"></i>
+          <h4>Sem Limite</h4>
+          <p>Não há limite de indicações. Quanto mais jogadores convidar, maior a renda passiva de indicação.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ── 13. MODELO ECONÔMICO ── -->
+    <section class="wp-section" id="modelo">
+      <div class="section-tag"><i class="fa-solid fa-chart-pie"></i> Sustentabilidade</div>
+      <h2><i class="fa-solid fa-scale-balanced"></i> 13. Modelo Econômico</h2>
+      <p>A sustentabilidade do NectarMine depende de um equilíbrio entre receita gerada e prêmios pagos. O modelo é baseado em publicidade digital — sem cobrança de taxas dos jogadores.</p>
+
+      <!-- SLOT AD 10 — Float direita — 300×250 -->
+      <div class="anuncio-medio" id="ad-medio-3">
+        <!-- AdsTerra / AdSense: 300×250 -->
+        Publicidade<br/>300×250
+        <small>Medium Rectangle</small>
+      </div>
+
+      <h3>Fontes de Receita da Plataforma</h3>
+      <table class="wp-table">
+        <thead><tr><th>Fonte</th><th>Mecanismo</th></tr></thead>
+        <tbody>
+          <tr><td>Banners AdsTerra</td><td>CPM — receita por impressão nas páginas</td></tr>
+          <tr><td>Ads no Loader</td><td>Exibição durante animação de carregamento</td></tr>
+          <tr><td>Anúncios Interstitial</td><td>Exibidos antes de ações de recompensa (missões, prêmios)</td></tr>
+          <tr><td>PTC ZerAds</td><td>Receita por clique compartilhada com jogadores</td></tr>
+          <tr><td>Push Notifications</td><td>Monetização de notificações com redes parceiras</td></tr>
+          <tr><td>Rewarded Ads</td><td>Jogador opta por ver anúncio em troca de bônus</td></tr>
+        </tbody>
+      </table>
+      <div class="info-box roxo">
+        <strong style="color:var(--roxo2);">🔒 Comprometimento de Transparência</strong><br/>
+        <span style="font-size:14px;color:var(--texto2);">O NectarMine se compromete a manter o equilíbrio entre receita publicitária e prêmios pagos, revisando os valores de Néctar gerado periodicamente para garantir a saúde do ecossistema no longo prazo.</span>
+      </div>
+      <div style="clear:both;"></div>
+    </section>
+
+    <!-- ── 14. SEGURANÇA ── -->
+    <section class="wp-section" id="seguranca">
+      <h2><i class="fa-solid fa-shield-halved"></i> 14. Segurança e Anti-Abuso</h2>
+      <table class="wp-table">
+        <thead><tr><th>Proteção</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td>Detecção de Bots</td><td>Padrões atípicos de produção e cliques são bloqueados automaticamente</td></tr>
+          <tr><td>Limite de Saques</td><td>Máximo de 3 saques por dia por conta</td></tr>
+          <tr><td>Mínimo de Saque</td><td>20.000 Néctar — reduz tentativas de micro-fraude</td></tr>
+          <tr><td>Sessões Monitoradas</td><td>Atividade suspeita é sinalizada e revisada manualmente</td></tr>
+          <tr><td>1 Conta por Pessoa</td><td>Múltiplas contas do mesmo IP são desativadas</td></tr>
+          <tr><td>Captcha PTC</td><td>Obrigatório em cada anúncio assistido para receber Néctar</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- SLOT AD 11 — In-content — 728×90 -->
+    <div class="anuncio-content" id="ad-content-4">
+      <!-- AdsTerra / AdSense: 728×90 -->
+      Publicidade 728×90
+    </div>
+
+    <!-- ── 15. TEMPORADA 2 ── -->
+    <section class="wp-section" id="t2">
+      <div class="section-tag"><i class="fa-solid fa-rocket"></i> Futuro</div>
+      <h2><i class="fa-solid fa-truck-fast"></i> 15. Temporada 2 — Sistema de Entregas</h2>
+
+      <div class="t2-banner">
+        <h3>🚚 Logística e Refinadoras — Em breve</h3>
+        <p>A Temporada 2 introduzirá um sistema completo de logística onde os jogadores poderão firmar contratos com grandes refinadoras de mel, enviando potes em troca de bônus superiores aos do mercado direto.</p>
+      </div>
+
+      <h3>O que a Temporada 2 vai incluir</h3>
+      <p><strong>Contratos de Entrega:</strong> Escolha entre refinadoras locais, regionais e globais. Cada contrato exige uma quantidade de potes, tem um tempo de entrega e paga um multiplicador acima do preço de mercado (x1.10 até x1.75).</p>
+      <p><strong>Ranking de Entregadores:</strong> Um ranking semanal exclusivo para entregadores, com prêmio de apiários especiais para os top 10 da semana.</p>
+      <p><strong>Novas Refinadoras:</strong> Empresas fictícias em diferentes regiões e categorias, cada uma com características únicas de contrato.</p>
+      <p><strong>EXP por Entrega:</strong> Cada entrega concede experiência adicional, acelerando a progressão de nível.</p>
+
+      <div class="info-box roxo">
+        <strong style="color:var(--roxo2);">📅 Previsão de Lançamento</strong><br/>
+        <span style="font-size:14px;color:var(--texto2);">A Temporada 2 será lançada após a estabilização da Temporada 1. A data exata será anunciada no Roadmap oficial e via notificações dentro do jogo. Os jogadores da T1 receberão vantagens exclusivas no início da T2.</span>
+      </div>
+    </section>
+
+    <!-- ── 16. CONCLUSÃO ── -->
+    <section class="wp-section" id="conclusao">
+      <h2><i class="fa-solid fa-flag-checkered"></i> 16. Conclusão</h2>
+      <p>O NectarMine foi construído sobre um modelo econômico honesto, mecânicas acessíveis e um ecossistema pensado para crescer com sua comunidade. Não prometemos lucros garantidos — prometemos um sistema bem estruturado onde o esforço, a estratégia e a consistência são recompensados.</p>
+      <p>Seja bem-vindo à colmeia. 🍯</p>
+      <div class="info-box amarelo" style="text-align:center;margin-top:30px;">
+        <strong style="color:var(--amarelo);font-size:18px;">Comece agora → nectar-mine.com</strong><br/>
+        <span style="font-size:13px;color:var(--texto2);">Whitepaper v1.0 — Todos os direitos reservados © 2026 NectarMine</span>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<!-- ══════════════════════════════
+     FOOTER
+     ══════════════════════════════ -->
+<footer>
+  <!-- SLOT AD 12 — Rodapé — 728×90 -->
+  <div class="anuncio-rodape" id="ad-rodape">
+    <!-- AdsTerra / AdSense: 728×90 (Leaderboard) -->
+    Publicidade 728×90
+  </div>
+  <div class="footer-links">
+    <a href="/dashboard">Jogar</a>
+    <a href="/whitepaper">Whitepaper</a>
+    <a href="/roadmap">Roadmap</a>
+    <a href="/parceiros">Indicação</a>
+    <a href="/transferencias">Saques</a>
+  </div>
+  <p>© 2026 <span class="amarelo">NectarMine</span>. Todos os direitos reservados.</p>
+</footer>
+
+<script>
+  // Loader: textos rotativos temáticos
+  const loaderTexts = [
+    'Aquecendo as colmeias...',
+    'Convocando as abelhas...',
+    'Calculando produção de mel...',
+    'Sincronizando apiários...',
+    'Preparando o mercado...'
+  ];
+  let ti = 0;
+  const lt = document.getElementById('loader-text');
+  setInterval(() => { ti = (ti+1)%loaderTexts.length; lt.textContent = loaderTexts[ti]; }, 900);
+
+  // Esconder loader após carregamento
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('nm-loader').classList.add('hide');
+      setTimeout(() => document.getElementById('nm-loader').remove(), 500);
+    }, 2400);
+  });
+
+  // Índice ativo conforme scroll
+  const sections = document.querySelectorAll('.wp-section');
+  const links = document.querySelectorAll('.wp-sidebar a');
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        links.forEach(l => l.classList.remove('active'));
+        const link = document.querySelector(`.wp-sidebar a[href="#${e.target.id}"]`);
+        if (link) link.classList.add('active');
+      }
+    });
+  }, { threshold: 0.3 });
+  sections.forEach(s => observer.observe(s));
+</script>
+</body>
+</html>

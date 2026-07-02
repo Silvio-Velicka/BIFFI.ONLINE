@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Recarregar Flores</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .flores-layout { display:grid; grid-template-columns:1fr 320px; gap:20px; }
+
+    /* Status atual de flores */
+    .flores-status {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius); padding:22px; margin-bottom:16px;
+    }
+    .flores-gauge {
+      display:flex; align-items:center; gap:22px; margin-bottom:16px;
+    }
+    .flores-icon { font-size:48px; }
+    .flores-gauge-info h2 { font-size:28px; color:var(--branco); }
+    .flores-gauge-info span { font-size:14px; color:var(--verde); }
+    .flores-gauge-bar { flex:1; }
+    .flores-bar-label { display:flex; justify-content:space-between; margin-bottom:6px; font-size:12px; color:var(--texto2); }
+
+    /* Consumo por hora */
+    .consumo-grid { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; }
+    .consumo-item { background:var(--amarelo-bg2); border:1px solid var(--borda2); border-radius:var(--radius-sm); padding:10px; text-align:center; }
+    .consumo-item .emoji { font-size:20px; margin-bottom:4px; }
+    .consumo-item strong { display:block; font-size:14px; color:var(--amarelo); }
+    .consumo-item span { font-size:10px; color:var(--texto3); }
+
+    /* Pacotes de flores */
+    .pacotes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:14px; margin-bottom:20px; }
+    .pacote-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius);
+      padding:18px; text-align:center; transition:all .2s; position:relative; overflow:hidden;
+    }
+    .pacote-card:hover { border-color:var(--borda); transform:translateY(-3px); }
+    .pacote-card.destaque { border-color:var(--amarelo); }
+    .pacote-card .badge-destaque {
+      position:absolute; top:10px; right:10px;
+      background:var(--amarelo); color:#000; font-size:9px; font-weight:bold;
+      padding:2px 8px; border-radius:10px;
+    }
+    .pacote-card .emoji { font-size:32px; margin-bottom:8px; }
+    .pacote-card h3 { font-size:15px; color:var(--branco); margin-bottom:4px; }
+    .pacote-card .flores-qty { font-size:22px; color:var(--verde); font-weight:bold; margin:6px 0; }
+    .pacote-card .duracao { font-size:11px; color:var(--texto3); margin-bottom:10px; }
+    .pacote-card .preco { font-size:18px; color:var(--amarelo); font-weight:bold; margin-bottom:12px; }
+    .pacote-card .old-preco { font-size:12px; color:var(--texto3); text-decoration:line-through; }
+
+    /* Cronômetro */
+    .tempo-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius); padding:18px; margin-bottom:14px;
+    }
+    .tempo-card h3 { font-size:14px; color:var(--branco); margin-bottom:10px; }
+    .clock-display { font-size:32px; color:var(--amarelo); font-family:monospace; text-align:center; padding:12px; }
+    .clock-sub { text-align:center; font-size:11px; color:var(--texto3); }
+
+    @media(max-width:900px){ .flores-layout{grid-template-columns:1fr;} .consumo-grid{grid-template-columns:1fr 1fr;} }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Monitorando florais...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link active"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <div class="flores-layout">
+      <!-- MAIN -->
+      <div>
+        <!-- Status atual -->
+        <div class="flores-status">
+          <div class="flores-gauge">
+            <div class="flores-icon">🌸</div>
+            <div class="flores-gauge-info">
+              <h2>4.800 flores</h2>
+              <span>80% do tanque</span>
+            </div>
+            <div class="flores-gauge-bar">
+              <div class="flores-bar-label"><span>Flores (Energia)</span><strong style="color:var(--verde)">4.800 / 6.000</strong></div>
+              <div class="progress-bar progress-bar-verde" style="height:12px;">
+                <div class="progress-fill progress-fill-verde" id="flores-fill" style="width:0%"></div>
+              </div>
+              <div style="font-size:11px;color:var(--texto3);margin-top:6px;">
+                Duração estimada: <strong style="color:var(--branco);">80 horas</strong> · Consumo: 60/h (total)
+              </div>
+            </div>
+          </div>
+
+          <h4 style="font-size:12px;color:var(--texto2);margin-bottom:8px;letter-spacing:.5px;">CONSUMO POR APIÁRIO</h4>
+          <div class="consumo-grid">
+            <div class="consumo-item"><div class="emoji">🏭</div><strong>24/h</strong><span>Colmeia Industrial</span></div>
+            <div class="consumo-item"><div class="emoji">🐝</div><strong>18/h</strong><span>Apiário Avançado</span></div>
+            <div class="consumo-item"><div class="emoji">🌺</div><strong>10/h</strong><span>Apiário Floral</span></div>
+            <div class="consumo-item"><div class="emoji">🔬</div><strong>8/h</strong><span>Plat. Quântica</span></div>
+          </div>
+        </div>
+
+        <!-- Pacotes -->
+        <h2 style="font-size:17px;color:var(--branco);margin-bottom:14px;"><i class="fa-solid fa-bolt" style="color:var(--amarelo)"></i> Recarregar Flores</h2>
+        <div class="pacotes-grid">
+          <div class="pacote-card">
+            <div class="emoji">🌸</div>
+            <h3>Pacote Básico</h3>
+            <div class="flores-qty">+1.000</div>
+            <div class="duracao">≈ 16h de produção</div>
+            <div class="preco">500 NCT</div>
+            <button class="btn btn-sm btn-secondary btn-block" onclick="comprarFlores('Pacote Básico',1000,500)">Comprar</button>
+          </div>
+          <div class="pacote-card destaque">
+            <span class="badge-destaque">POPULAR</span>
+            <div class="emoji">🌺</div>
+            <h3>Pacote Padrão</h3>
+            <div class="flores-qty">+3.000</div>
+            <div class="duracao">≈ 50h de produção</div>
+            <div class="preco">1.200 NCT</div>
+            <button class="btn btn-sm btn-primary btn-block" onclick="comprarFlores('Pacote Padrão',3000,1200)">Comprar</button>
+          </div>
+          <div class="pacote-card">
+            <div class="emoji">🌻</div>
+            <h3>Pacote Grande</h3>
+            <div class="flores-qty">+6.000</div>
+            <div class="duracao">≈ 100h de produção</div>
+            <div class="preco">2.000 NCT</div>
+            <div class="old-preco">Era 2.400 NCT</div>
+            <button class="btn btn-sm btn-secondary btn-block" onclick="comprarFlores('Pacote Grande',6000,2000)">Comprar</button>
+          </div>
+          <div class="pacote-card" style="border-color:var(--borda-roxo);">
+            <div class="emoji">🌴</div>
+            <h3>Pacote Elite</h3>
+            <div class="flores-qty" style="color:var(--roxo2);">+15.000</div>
+            <div class="duracao">≈ 250h · Estoque máximo</div>
+            <div class="preco" style="color:var(--roxo2);">4.500 NCT</div>
+            <div class="old-preco">Era 6.000 NCT</div>
+            <button class="btn btn-sm btn-roxo btn-block" onclick="comprarFlores('Pacote Elite',15000,4500)">Comprar</button>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-728"><!-- AD 728×90 -->Publicidade 728×90</div>
+      </div>
+
+      <!-- ASIDE -->
+      <div>
+        <div class="tempo-card">
+          <h3>⏳ Flores se esgotam em</h3>
+          <div class="clock-display" id="clock">80:00:00</div>
+          <div class="clock-sub">Baseado no consumo atual de 60/h</div>
+        </div>
+
+        <div class="aside-card" style="background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--borda2);border-radius:var(--radius);padding:18px;margin-bottom:14px;">
+          <h3 style="font-size:14px;color:var(--branco);margin-bottom:12px;">💡 Dicas</h3>
+          <div style="display:flex;flex-direction:column;gap:10px;font-size:12px;color:var(--texto2);">
+            <div style="display:flex;gap:8px;"><i class="fa-solid fa-lightbulb" style="color:var(--amarelo);margin-top:2px;"></i><span>Quando flores chegam a 0%, seus apiários <strong>param de produzir</strong>.</span></div>
+            <div style="display:flex;gap:8px;"><i class="fa-solid fa-lightbulb" style="color:var(--amarelo);margin-top:2px;"></i><span>O Pacote Grande oferece o melhor custo-benefício por flor.</span></div>
+            <div style="display:flex;gap:8px;"><i class="fa-solid fa-lightbulb" style="color:var(--amarelo);margin-top:2px;"></i><span>Upgrades reduzem o consumo de flores por apiário.</span></div>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  // Countdown clock
+  let seconds = 80 * 3600;
+  function updateClock() {
+    const h = Math.floor(seconds/3600);
+    const m = Math.floor((seconds%3600)/60);
+    const s = seconds%60;
+    document.getElementById('clock').textContent =
+      `${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if (seconds > 0) seconds--;
+  }
+  setInterval(updateClock, 1000);
+
+  async function comprarFlores(nome, qtd, preco) {
+    const {isConfirmed} = await NM_SWAL.withAd(
+      `🌸 Comprar ${nome}`,
+      `Você receberá <strong>+${nmFormatInt(qtd)} flores</strong><br/>Custo: <strong>${nmFormatInt(preco)} NCT</strong>`,
+      'Confirmar compra', 'ad-flores-modal'
+    );
+    if (isConfirmed) NM_SWAL.success('Flores recarregadas!', `<strong>+${nmFormatInt(qtd)} flores</strong> adicionadas. Seus apiários continuam produzindo!`);
+  }
+
+  window.addEventListener('load', () => {
+    setTimeout(() => nmAnimateProgress('#flores-fill', 80), 2600);
+  });
+</script>
+</body>
+</html>

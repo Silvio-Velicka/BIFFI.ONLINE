@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Desafios</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* Tabs */
+    .desafio-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .dtab { padding:8px 20px; border-radius:8px; border:1px solid var(--borda2); background:transparent; color:var(--texto2); font-size:13px; font-weight:bold; transition:all .2s; }
+    .dtab.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+    .desafio-panel { display:none; }
+    .desafio-panel.active { display:block; }
+
+    /* Layout */
+    .desafio-layout { display:grid; grid-template-columns:1fr 300px; gap:18px; }
+
+    /* Card de missão */
+    .missao-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius);
+      padding:16px 18px; margin-bottom:12px; transition:border-color .2s;
+    }
+    .missao-card:hover { border-color:var(--borda); }
+    .missao-card.completed { border-color:rgba(34,197,94,.3); opacity:.75; }
+    .missao-card.claimed   { border-color:var(--borda2); opacity:.5; }
+
+    .missao-top { display:flex; align-items:flex-start; gap:12px; margin-bottom:10px; }
+    .missao-icon { font-size:24px; flex-shrink:0; margin-top:2px; }
+    .missao-info { flex:1; }
+    .missao-info h4 { font-size:14px; color:var(--branco); margin-bottom:3px; }
+    .missao-info p  { font-size:12px; color:var(--texto2); }
+    .missao-right { text-align:right; flex-shrink:0; }
+    .missao-reward { font-size:16px; color:var(--amarelo); font-weight:bold; }
+    .missao-reward small { font-size:10px; color:var(--texto3); display:block; }
+    .missao-bottom { display:flex; align-items:center; gap:10px; }
+    .missao-bottom .progress-bar { flex:1; }
+    .missao-pct { font-size:11px; color:var(--texto2); white-space:nowrap; min-width:60px; text-align:right; }
+    .btn-coletar {
+      padding:4px 14px; border-radius:20px; border:none;
+      background:var(--verde); color:#fff; font-size:11px; font-weight:bold;
+      white-space:nowrap; transition:all .2s;
+    }
+    .btn-coletar:hover { filter:brightness(1.1); }
+    .done-tag { color:var(--texto3); font-size:11px; }
+
+    /* Aside: resumo diário */
+    .daily-summary {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius); padding:18px; margin-bottom:14px;
+    }
+    .daily-summary h3 { font-size:14px; color:var(--branco); margin-bottom:12px; }
+    .daily-progress { text-align:center; padding:10px 0; }
+    .daily-fraction { font-size:32px; color:var(--amarelo); font-weight:bold; }
+    .daily-label { font-size:12px; color:var(--texto2); margin-bottom:10px; }
+    .reward-pool { background:var(--amarelo-bg); border:1px solid var(--borda); border-radius:var(--radius-sm); padding:10px; text-align:center; margin-top:8px; }
+    .reward-pool label { font-size:10px; color:var(--texto3); display:block; }
+    .reward-pool strong { font-size:18px; color:var(--amarelo); }
+
+    /* Ranking mensal */
+    .rank-month-item { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.03); }
+    .rank-month-pos { width:22px; font-size:12px; font-weight:bold; color:var(--texto3); flex-shrink:0; }
+    .rank-month-pos.g { color:var(--amarelo); }
+    .rank-month-name { flex:1; font-size:13px; color:var(--texto); }
+    .rank-month-name.me { color:var(--amarelo); font-weight:bold; }
+    .rank-month-pts { font-size:12px; color:var(--texto2); }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Carregando desafios...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link active"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h1 style="font-size:22px;color:var(--branco);"><i class="fa-solid fa-trophy" style="color:var(--amarelo)"></i> Desafios</h1>
+      <span class="badge badge-yellow">Reset em: <strong id="reset-timer">08:43:12</strong></span>
+    </div>
+
+    <div class="desafio-tabs">
+      <button class="dtab active" onclick="switchD('diarias',this)">📅 Diárias</button>
+      <button class="dtab" onclick="switchD('semanais',this)">🗓️ Semanais</button>
+      <button class="dtab" onclick="switchD('conquistas',this)">🏆 Conquistas</button>
+    </div>
+
+    <div class="desafio-layout">
+      <!-- MISSÕES -->
+      <div>
+
+        <!-- PAINEL DIÁRIAS -->
+        <div class="desafio-panel active" id="panel-diarias">
+
+          <div class="missao-card completed">
+            <div class="missao-top">
+              <div class="missao-icon">💧</div>
+              <div class="missao-info">
+                <h4>Envasar potes</h4>
+                <p>Envase pelo menos 100 potes de mel hoje.</p>
+              </div>
+              <div class="missao-right">
+                <div class="missao-reward">+200 NCT<small>RECOMPENSA</small></div>
+              </div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
+              <span class="missao-pct">100 / 100</span>
+              <button class="btn-coletar" onclick="coletarMissao('Envasar potes',200)">Coletar</button>
+            </div>
+          </div>
+
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">🍯</div>
+              <div class="missao-info">
+                <h4>Produzir potes</h4>
+                <p>Produza 500 potes com seus apiários.</p>
+              </div>
+              <div class="missao-right">
+                <div class="missao-reward">+200 NCT<small>RECOMPENSA</small></div>
+              </div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-prod" style="width:0%"></div></div>
+              <span class="missao-pct">347 / 500</span>
+            </div>
+          </div>
+
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">🌸</div>
+              <div class="missao-info">
+                <h4>Recarregar flores</h4>
+                <p>Compre pelo menos 1 pacote de flores.</p>
+              </div>
+              <div class="missao-right">
+                <div class="missao-reward">+100 NCT<small>RECOMPENSA</small></div>
+              </div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+              <span class="missao-pct">0 / 1</span>
+            </div>
+          </div>
+
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">👥</div>
+              <div class="missao-info">
+                <h4>Convidar um amigo</h4>
+                <p>Convide 1 amigo usando seu link de indicação.</p>
+              </div>
+              <div class="missao-right">
+                <div class="missao-reward">+500 NCT<small>RECOMPENSA</small></div>
+              </div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
+              <span class="missao-pct">0 / 1</span>
+            </div>
+          </div>
+
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">📺</div>
+              <div class="missao-info">
+                <h4>Assistir anúncios</h4>
+                <p>Assista 5 anúncios na seção "Ganhar Néctar".</p>
+              </div>
+              <div class="missao-right">
+                <div class="missao-reward">+150 NCT<small>RECOMPENSA</small></div>
+              </div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-ads" style="width:0%"></div></div>
+              <span class="missao-pct">2 / 5</span>
+            </div>
+          </div>
+
+          <div class="anuncio anuncio-728" style="margin-top:16px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+        </div>
+
+        <!-- PAINEL SEMANAIS -->
+        <div class="desafio-panel" id="panel-semanais">
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">🏭</div>
+              <div class="missao-info"><h4>Grande Produtor</h4><p>Produza 5.000 potes em 7 dias.</p></div>
+              <div class="missao-right"><div class="missao-reward">+2.000 NCT<small>SEMANAL</small></div></div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-w1" style="width:0%"></div></div>
+              <span class="missao-pct">2.430 / 5.000</span>
+            </div>
+          </div>
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">💰</div>
+              <div class="missao-info"><h4>Envasador Elite</h4><p>Envase 2.000 potes durante a semana.</p></div>
+              <div class="missao-right"><div class="missao-reward">+1.500 NCT<small>SEMANAL</small></div></div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-w2" style="width:0%"></div></div>
+              <span class="missao-pct">800 / 2.000</span>
+            </div>
+          </div>
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">⬆️</div>
+              <div class="missao-info"><h4>Em Ascensão</h4><p>Faça 3 upgrades em qualquer apiário.</p></div>
+              <div class="missao-right"><div class="missao-reward">+1.000 NCT<small>SEMANAL</small></div></div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-w3" style="width:0%"></div></div>
+              <span class="missao-pct">1 / 3</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL CONQUISTAS -->
+        <div class="desafio-panel" id="panel-conquistas">
+          <div class="missao-card claimed">
+            <div class="missao-top">
+              <div class="missao-icon">🎖️</div>
+              <div class="missao-info"><h4>Primeiro Pote</h4><p>Produza seu primeiro pote de mel.</p></div>
+              <div class="missao-right"><div class="missao-reward">+50 NCT<small>OBTIDA</small></div></div>
+            </div>
+            <div class="missao-bottom"><div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div><span class="done-tag">✓ Coletado</span></div>
+          </div>
+          <div class="missao-card claimed">
+            <div class="missao-top">
+              <div class="missao-icon">🐝</div>
+              <div class="missao-info"><h4>Apicultor Iniciante</h4><p>Alcance 1.000 potes produzidos no total.</p></div>
+              <div class="missao-right"><div class="missao-reward">+200 NCT<small>OBTIDA</small></div></div>
+            </div>
+            <div class="missao-bottom"><div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div><span class="done-tag">✓ Coletado</span></div>
+          </div>
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">🏭</div>
+              <div class="missao-info"><h4>Apicultor Profissional</h4><p>Alcance 10.000 potes produzidos no total.</p></div>
+              <div class="missao-right"><div class="missao-reward">+1.000 NCT<small>CONQUISTA</small></div></div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-c1" style="width:0%"></div></div>
+              <span class="missao-pct">5.430 / 10.000</span>
+            </div>
+          </div>
+          <div class="missao-card">
+            <div class="missao-top">
+              <div class="missao-icon">💎</div>
+              <div class="missao-info"><h4>Milionário de Néctar</h4><p>Acumule 1.000.000 NCT no total (todas as transações).</p></div>
+              <div class="missao-right"><div class="missao-reward">+5.000 NCT<small>CONQUISTA</small></div></div>
+            </div>
+            <div class="missao-bottom">
+              <div class="progress-bar"><div class="progress-fill" id="m-c2" style="width:0%"></div></div>
+              <span class="missao-pct">48.320 / 1.000.000</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- ASIDE -->
+      <div>
+        <div class="daily-summary">
+          <h3>📅 Resumo Diário</h3>
+          <div class="daily-progress">
+            <div class="daily-fraction">1/5</div>
+            <div class="daily-label">missões concluídas hoje</div>
+            <div class="progress-bar"><div class="progress-fill" id="daily-prog" style="width:0%"></div></div>
+          </div>
+          <div class="reward-pool">
+            <label>BÔNUS DIÁRIO COMPLETO</label>
+            <strong>+1.500 NCT</strong>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+
+        <div class="daily-summary">
+          <h3>🏆 Ranking de Desafios</h3>
+          <div style="margin-top:8px;">
+            <div class="rank-month-item"><div class="rank-month-pos g">1</div><div class="rank-month-name">MelRainha</div><div class="rank-month-pts">980 pts</div></div>
+            <div class="rank-month-item"><div class="rank-month-pos">2</div><div class="rank-month-name">AbelhaFuriosa</div><div class="rank-month-pts">870 pts</div></div>
+            <div class="rank-month-item"><div class="rank-month-pos">3</div><div class="rank-month-name">NectarKing</div><div class="rank-month-pts">760 pts</div></div>
+            <div class="rank-month-item" style="background:var(--amarelo-bg);border-radius:6px;padding:6px 4px;margin-top:4px;"><div class="rank-month-pos" style="color:var(--amarelo)">28</div><div class="rank-month-name me">BIFFI</div><div class="rank-month-pts">120 pts</div></div>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-300" style="margin-top:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  function switchD(id, btn) {
+    document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.desafio-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+id).classList.add('active');
+  }
+
+  async function coletarMissao(nome, recompensa) {
+    const {isConfirmed} = await NM_SWAL.withAd(
+      '🏆 Coletar Recompensa',
+      `Missão: <strong>${nome}</strong><br/>Recompensa: <strong>+${nmFormatInt(recompensa)} NCT</strong>`,
+      'Coletar agora', 'ad-missao-modal'
+    );
+    if (isConfirmed) NM_SWAL.success('Recompensa coletada!', `<strong>+${nmFormatInt(recompensa)} NCT</strong> adicionados ao seu saldo.`);
+  }
+
+  // Timer de reset
+  let t = 8*3600+43*60+12;
+  function updateTimer() {
+    const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
+    document.getElementById('reset-timer').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
+    if(t>0)t--;
+  }
+  setInterval(updateTimer,1000);
+
+  window.addEventListener('load',()=>{
+    setTimeout(()=>{
+      nmAnimateProgress('#m-prod',69.4);
+      nmAnimateProgress('#m-ads',40);
+      nmAnimateProgress('#m-w1',48.6);
+      nmAnimateProgress('#m-w2',40);
+      nmAnimateProgress('#m-w3',33.3);
+      nmAnimateProgress('#m-c1',54.3);
+      nmAnimateProgress('#m-c2',4.8);
+      nmAnimateProgress('#daily-prog',20);
+    },2600);
+  });
+</script>
+</body>
+</html>

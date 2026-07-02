@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Transferências</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .transf-layout { display:grid; grid-template-columns:1fr 320px; gap:18px; }
+
+    /* Saldo NCT */
+    .nectar-balance {
+      background:linear-gradient(135deg,var(--amarelo-bg),rgba(123,47,190,.06));
+      border:1px solid var(--borda); border-radius:var(--radius); padding:22px;
+      display:flex; align-items:center; gap:20px; margin-bottom:20px;
+    }
+    .balance-big { font-size:36px; font-weight:bold; color:var(--amarelo); }
+    .balance-info span { font-size:12px; color:var(--texto3); }
+    .balance-extra { margin-left:auto; text-align:right; }
+    .balance-extra strong { display:block; color:var(--texto3); font-size:12px; }
+    .balance-extra span { color:var(--verde); font-weight:bold; font-size:13px; }
+
+    /* Crypto grid */
+    .crypto-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:12px; margin-bottom:20px; }
+    .crypto-btn {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius-sm); padding:12px;
+      text-align:center; transition:all .2s; cursor:pointer;
+    }
+    .crypto-btn:hover { border-color:var(--borda); }
+    .crypto-btn.selected { border-color:var(--amarelo); background:var(--amarelo-bg); }
+    .crypto-btn .csymbol { font-size:22px; font-weight:bold; margin-bottom:4px; color:var(--branco); }
+    .crypto-btn .cname { font-size:10px; color:var(--texto3); }
+    .crypto-btn .crate { font-size:12px; color:var(--amarelo); margin-top:4px; }
+
+    /* Form saque */
+    .saque-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius); padding:22px; margin-bottom:16px;
+    }
+    .saque-card h3 { font-size:16px; color:var(--branco); margin-bottom:16px; }
+    .input-label { font-size:12px; color:var(--texto2); display:block; margin-bottom:6px; margin-top:14px; }
+    .saque-input {
+      width:100%; background:rgba(255,255,255,.06); border:1px solid var(--borda2);
+      border-radius:var(--radius-sm); padding:11px 14px; color:var(--branco); font-size:14px; outline:none;
+    }
+    .saque-input:focus { border-color:var(--amarelo); }
+    .conversion-box {
+      background:var(--amarelo-bg2); border:1px solid var(--borda2); border-radius:var(--radius-sm);
+      padding:12px 16px; margin:14px 0; display:flex; justify-content:space-between; align-items:center;
+    }
+    .conversion-box .from { font-size:16px; color:var(--texto2); }
+    .conversion-box .arrow { font-size:18px; color:var(--amarelo); }
+    .conversion-box .to { font-size:18px; color:var(--amarelo); font-weight:bold; }
+
+    /* Histórico */
+    .hist-table { width:100%; border-collapse:collapse; }
+    .hist-table th { font-size:10px; color:var(--texto3); letter-spacing:1px; text-transform:uppercase; padding:8px 12px; border-bottom:1px solid var(--borda2); text-align:left; }
+    .hist-table td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.03); font-size:13px; }
+    .hist-table tr:hover td { background:var(--amarelo-bg2); }
+    .status-tag { font-size:10px; font-weight:bold; padding:2px 8px; border-radius:10px; }
+    .status-tag.ok { background:var(--verde-bg); color:var(--verde); }
+    .status-tag.pend { background:rgba(255,215,0,.1); color:var(--amarelo); }
+
+    /* Regras aside */
+    .rules-card { background:var(--card); backdrop-filter:blur(10px); border:1px solid var(--borda2); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+    .rule-item { display:flex; gap:8px; margin-bottom:10px; font-size:12px; color:var(--texto2); }
+    .rule-item i { color:var(--amarelo); margin-top:2px; flex-shrink:0; }
+
+    @media(max-width:900px){ .transf-layout{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Verificando estoque de mel...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link active"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <!-- Saldo -->
+    <div class="nectar-balance">
+      <div class="balance-icon" style="font-size:40px;">💎</div>
+      <div>
+        <div class="balance-big">48.320 NCT</div>
+        <span>Saldo disponível para saque</span>
+      </div>
+      <div class="balance-extra">
+        <strong>Mínimo para saque:</strong>
+        <span>20.000 NCT</span>
+      </div>
+    </div>
+
+    <div class="transf-layout">
+      <!-- FORM -->
+      <div>
+        <div class="saque-card">
+          <h3><i class="fa-solid fa-money-bill-transfer" style="color:var(--amarelo)"></i> Sacar em Criptomoeda</h3>
+          <p style="font-size:12px;color:var(--texto2);margin-bottom:16px;">Selecione a criptomoeda e informe o endereço para recebimento.</p>
+
+          <label class="input-label">Criptomoeda</label>
+          <div class="crypto-grid">
+            <div class="crypto-btn selected" id="crypto-USDT" onclick="selectCrypto('USDT',0.000038)">
+              <div class="csymbol">₮ USDT</div>
+              <div class="cname">Tether (TRC20)</div>
+              <div class="crate">1 NCT = $0.000038</div>
+            </div>
+            <div class="crypto-btn" id="crypto-DOGE" onclick="selectCrypto('DOGE',0.00052)">
+              <div class="csymbol">Ð DOGE</div>
+              <div class="cname">Dogecoin</div>
+              <div class="crate">1 NCT = 0.00052 DOGE</div>
+            </div>
+            <div class="crypto-btn" id="crypto-LTC" onclick="selectCrypto('LTC',0.0000024)">
+              <div class="csymbol">Ł LTC</div>
+              <div class="cname">Litecoin</div>
+              <div class="crate">1 NCT = 0.0000024 LTC</div>
+            </div>
+            <div class="crypto-btn" id="crypto-TRX" onclick="selectCrypto('TRX',0.0048)">
+              <div class="csymbol">⚡ TRX</div>
+              <div class="cname">TRON</div>
+              <div class="crate">1 NCT = 0.0048 TRX</div>
+            </div>
+            <div class="crypto-btn" id="crypto-DGB" onclick="selectCrypto('DGB',0.032)">
+              <div class="csymbol">◆ DGB</div>
+              <div class="cname">DigiByte</div>
+              <div class="crate">1 NCT = 0.032 DGB</div>
+            </div>
+          </div>
+
+          <label class="input-label">Quantidade de NCT para sacar</label>
+          <input type="number" class="saque-input" id="saque-qty" value="20000" min="20000" max="48320" oninput="calcSaque()"/>
+
+          <div class="conversion-box">
+            <span class="from" id="from-val">20.000 NCT</span>
+            <span class="arrow">→</span>
+            <span class="to" id="to-val">$0.76 USDT</span>
+          </div>
+
+          <label class="input-label">Endereço da carteira <span id="crypto-label">(USDT TRC20)</span></label>
+          <input type="text" class="saque-input" id="wallet-addr" placeholder="Informe o endereço da sua carteira"/>
+
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-sm btn-secondary" onclick="setSaqueQty(20000)">20k</button>
+            <button class="btn btn-sm btn-secondary" onclick="setSaqueQty(30000)">30k</button>
+            <button class="btn btn-sm btn-secondary" onclick="setSaqueQty(48320)">Tudo</button>
+          </div>
+
+          <button class="btn btn-primary btn-lg btn-block" onclick="sacar()" style="margin-top:16px;">
+            <i class="fa-solid fa-paper-plane"></i> Solicitar Saque
+          </button>
+          <p style="font-size:11px;color:var(--texto3);text-align:center;margin-top:8px;">Processamento: até 24h · Limite: 3 saques/dia</p>
+        </div>
+
+        <!-- Histórico -->
+        <div style="background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--borda2);border-radius:var(--radius);overflow:hidden;">
+          <div style="padding:14px 18px;border-bottom:1px solid var(--borda2);">
+            <h3 style="font-size:14px;color:var(--branco);">📋 Histórico de Saques</h3>
+          </div>
+          <div style="overflow-x:auto;padding:4px;">
+            <table class="hist-table">
+              <thead><tr><th>Data</th><th>Crypto</th><th>NCT</th><th>Valor</th><th>Status</th></tr></thead>
+              <tbody>
+                <tr><td>25/06/2026</td><td>USDT</td><td>25.000</td><td>$0.95</td><td><span class="status-tag ok">Confirmado</span></td></tr>
+                <tr><td>18/06/2026</td><td>DOGE</td><td>30.000</td><td>15.6 DOGE</td><td><span class="status-tag ok">Confirmado</span></td></tr>
+                <tr><td>10/06/2026</td><td>USDT</td><td>20.000</td><td>$0.76</td><td><span class="status-tag ok">Confirmado</span></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <div class="anuncio anuncio-728" style="margin-top:16px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+      </div>
+
+      <!-- ASIDE -->
+      <div>
+        <div class="rules-card">
+          <h3 style="font-size:14px;color:var(--branco);margin-bottom:12px;">📋 Regras de Saque</h3>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Mínimo: <strong style="color:var(--amarelo)">20.000 NCT</strong> por saque.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Máximo: <strong>3 saques</strong> por dia.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Processamento: <strong>até 24 horas</strong> úteis.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Taxa de saque: <strong style="color:var(--verde)">0%</strong> (grátis).</span></div>
+          <div class="rule-item"><i class="fa-solid fa-triangle-exclamation" style="color:var(--vermelho);"></i><span>Verifique o endereço — transações não são reversíveis.</span></div>
+        </div>
+
+        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  let currentCrypto = 'USDT', currentRate = 0.000038;
+
+  function selectCrypto(symbol, rate) {
+    document.querySelectorAll('.crypto-btn').forEach(b=>b.classList.remove('selected'));
+    document.getElementById('crypto-'+symbol).classList.add('selected');
+    currentCrypto = symbol; currentRate = rate;
+    document.getElementById('crypto-label').textContent = '('+symbol+')';
+    calcSaque();
+  }
+
+  function calcSaque() {
+    const qty = parseInt(document.getElementById('saque-qty').value)||0;
+    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
+    document.getElementById('from-val').textContent = nmFormatInt(qty)+' NCT';
+    document.getElementById('to-val').textContent   = converted+' '+currentCrypto;
+  }
+
+  function setSaqueQty(n) { document.getElementById('saque-qty').value=n; calcSaque(); }
+
+  async function sacar() {
+    const qty = parseInt(document.getElementById('saque-qty').value)||0;
+    const addr = document.getElementById('wallet-addr').value.trim();
+    if (!addr) { NM_SWAL.error('Endereço inválido','Informe o endereço da sua carteira.'); return; }
+    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
+    const {isConfirmed} = await NM_SWAL.withAd(
+      '💸 Confirmar Saque',
+      `Sacar <strong>${nmFormatInt(qty)} NCT</strong> → <strong>${converted} ${currentCrypto}</strong><br/>Para: <code style="font-size:11px;color:var(--texto2);">${addr.substring(0,20)}...</code>`,
+      'Confirmar Saque', 'ad-saque-modal'
+    );
+    if (isConfirmed) NM_SWAL.success('Saque solicitado!', `Seu saque de <strong>${converted} ${currentCrypto}</strong> foi registrado e será processado em até 24h.`);
+  }
+</script>
+</body>
+</html>

@@ -52,13 +52,16 @@
       display: flex;
       flex-direction: column;
       align-items: center;
+      justify-content: center;
       gap: 3px;
       text-decoration: none;
-      padding: 8px 16px;
+      width: 104px;
+      padding: 8px 6px;
       border: 2px solid var(--roxo);
       border-radius: 12px;
       background: rgba(255,255,255,0.3);
       transition: background 0.2s, transform 0.2s;
+      box-sizing: border-box;
     }
 
     nav a.active,
@@ -72,9 +75,10 @@
       font-size: 10px;
       font-weight: 700;
       color: var(--roxo);
-      letter-spacing: 1px;
+      letter-spacing: 0.5px;
       text-transform: uppercase;
       font-family: Arial, sans-serif;
+      white-space: nowrap;
     }
 
     .bee {
@@ -407,7 +411,7 @@
     @media (max-width: 700px) {
       header { padding: 12px 16px; }
       .logo { font-size: 17px; }
-      nav a { padding: 6px 10px; }
+      nav a { width: 44px; padding: 6px; }
       nav a .label { display: none; }
       .page { padding: 90px 16px 60px; }
       .ritual-banner { padding: 24px 16px; }
@@ -449,6 +453,10 @@
       <a href="cafe.html" class="active">
         <span class="icon">☕</span>
         <span class="label">Café</span>
+      </a>
+      <a href="NectarMine/index.html">
+        <span class="icon">🎮</span>
+        <span class="label">Game Relax</span>
       </a>
     </nav>
   </header>

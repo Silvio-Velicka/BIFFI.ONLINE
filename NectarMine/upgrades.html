@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Upgrades</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    /* Tabs de tipo de upgrade */
+    .upgrade-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
+    .utab { padding:8px 20px; border-radius:8px; border:1px solid var(--borda2); background:transparent; color:var(--texto2); font-size:13px; font-weight:bold; transition:all .2s; }
+    .utab.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+
+    /* Grid upgrades */
+    .upgrades-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(280px,1fr)); gap:16px; }
+
+    .upgrade-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius); overflow:hidden;
+      transition:border-color .2s, transform .2s;
+    }
+    .upgrade-card:hover { border-color:var(--borda); transform:translateY(-2px); }
+    .upgrade-card.maxed { border-color:var(--amarelo); opacity:.8; }
+
+    .upgrade-head {
+      padding:14px 16px; display:flex; align-items:center; gap:12px;
+      background:linear-gradient(135deg, var(--amarelo-bg2), transparent);
+      border-bottom:1px solid var(--borda2);
+    }
+    .upgrade-emoji { font-size:26px; }
+    .upgrade-head-info h3 { font-size:14px; color:var(--branco); }
+    .upgrade-head-info .level-badge {
+      font-size:10px; font-weight:bold; padding:2px 8px; border-radius:10px;
+      background:var(--roxo-bg); color:var(--roxo2); border:1px solid var(--roxo); display:inline-block; margin-top:3px;
+    }
+    .upgrade-head-info .level-badge.gold { background:var(--amarelo-bg); color:var(--amarelo); border-color:var(--amarelo3); }
+    .upgrade-body { padding:14px 16px; }
+    .upgrade-comparison {
+      display:grid; grid-template-columns:1fr auto 1fr; gap:6px;
+      align-items:center; margin-bottom:12px;
+    }
+    .upgrade-stat { background:var(--amarelo-bg2); border-radius:var(--radius-sm); padding:8px; text-align:center; }
+    .upgrade-stat label { font-size:9px; color:var(--texto3); display:block; letter-spacing:.5px; }
+    .upgrade-stat strong { font-size:15px; }
+    .upgrade-stat.current strong { color:var(--texto2); }
+    .upgrade-stat.next strong { color:var(--amarelo); }
+    .upgrade-arrow { font-size:16px; color:var(--amarelo); text-align:center; }
+
+    .upgrade-benefits { font-size:11px; color:var(--verde); margin-bottom:12px; display:flex; flex-direction:column; gap:3px; }
+    .upgrade-benefits span::before { content:'✓ '; }
+
+    .upgrade-footer { display:flex; align-items:center; justify-content:space-between; }
+    .upgrade-cost { color:var(--amarelo); font-size:15px; font-weight:bold; }
+    .upgrade-cost small { font-size:10px; color:var(--texto3); display:block; }
+
+    /* Maxed tag */
+    .maxed-tag { background:var(--amarelo); color:#000; font-size:11px; font-weight:bold; padding:4px 12px; border-radius:20px; }
+
+    .upgrade-panel { display:none; }
+    .upgrade-panel.active { display:block; }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Verificando upgrades disponíveis...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link active"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h1 style="font-size:22px;color:var(--branco);"><i class="fa-solid fa-arrow-trend-up" style="color:var(--amarelo)"></i> Upgrades</h1>
+      <span class="badge badge-yellow">Saldo: 48.320 NCT</span>
+    </div>
+
+    <div class="upgrade-tabs">
+      <button class="utab active" onclick="switchPanel('apiarios',this)">🏭 Apiários</button>
+      <button class="utab" onclick="switchPanel('producao',this)">⚙️ Produção</button>
+      <button class="utab" onclick="switchPanel('flores',this)">🌸 Flores</button>
+      <button class="utab" onclick="switchPanel('especiais',this)">✨ Especiais</button>
+    </div>
+
+    <!-- PAINEL: APIÁRIOS -->
+    <div class="upgrade-panel active" id="panel-apiarios">
+      <div class="anuncio anuncio-300" style="float:right;margin:0 0 16px 16px;"><!-- AD 300×250 -->Pub 300×250</div>
+      <div class="upgrades-grid" style="clear:both;">
+
+        <div class="upgrade-card">
+          <div class="upgrade-head">
+            <div class="upgrade-emoji">🏭</div>
+            <div class="upgrade-head-info">
+              <h3>Colmeia Industrial</h3>
+              <span class="level-badge gold">NÍVEL 3 / 10</span>
+            </div>
+          </div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>120/h</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 4</label><strong>150/h</strong></div>
+            </div>
+            <div class="upgrade-benefits">
+              <span>+30 potes/hora</span>
+              <span>Capacidade: 800 → 1.000 potes</span>
+              <span>Consumo flores: 24/h → 28/h</span>
+            </div>
+            <div class="upgrade-footer">
+              <div class="upgrade-cost">5.000 NCT<small>Upgrade para Nível 4</small></div>
+              <button class="btn btn-sm btn-primary" onclick="upgrade('Colmeia Industrial', 4, 5000)">Fazer Upgrade</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-card">
+          <div class="upgrade-head">
+            <div class="upgrade-emoji">🐝</div>
+            <div class="upgrade-head-info">
+              <h3>Apiário Avançado</h3>
+              <span class="level-badge">NÍVEL 2 / 10</span>
+            </div>
+          </div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>96/h</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 3</label><strong>120/h</strong></div>
+            </div>
+            <div class="upgrade-benefits">
+              <span>+24 potes/hora</span>
+              <span>Capacidade: 500 → 650 potes</span>
+            </div>
+            <div class="upgrade-footer">
+              <div class="upgrade-cost">3.000 NCT<small>Upgrade para Nível 3</small></div>
+              <button class="btn btn-sm btn-primary" onclick="upgrade('Apiário Avançado', 3, 3000)">Fazer Upgrade</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-card">
+          <div class="upgrade-head">
+            <div class="upgrade-emoji">🌺</div>
+            <div class="upgrade-head-info">
+              <h3>Apiário Floral</h3>
+              <span class="level-badge">NÍVEL 1 / 10</span>
+            </div>
+          </div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>56/h</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 2</label><strong>72/h</strong></div>
+            </div>
+            <div class="upgrade-benefits">
+              <span>+16 potes/hora</span>
+              <span>Capacidade: 300 → 400 potes</span>
+            </div>
+            <div class="upgrade-footer">
+              <div class="upgrade-cost">1.500 NCT<small>Upgrade para Nível 2</small></div>
+              <button class="btn btn-sm btn-primary" onclick="upgrade('Apiário Floral', 2, 1500)">Fazer Upgrade</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="upgrade-card">
+          <div class="upgrade-head">
+            <div class="upgrade-emoji">🔬</div>
+            <div class="upgrade-head-info">
+              <h3>Plataforma Quântica</h3>
+              <span class="level-badge">NÍVEL 1 / 5</span>
+            </div>
+          </div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>40/h</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 2</label><strong>55/h</strong></div>
+            </div>
+            <div class="upgrade-benefits">
+              <span>+15 potes/hora</span>
+              <span>Bônus extra: +2% global</span>
+            </div>
+            <div class="upgrade-footer">
+              <div class="upgrade-cost">2.000 NCT<small>Upgrade para Nível 2</small></div>
+              <button class="btn btn-sm btn-primary" onclick="upgrade('Plataforma Quântica', 2, 2000)">Fazer Upgrade</button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- PAINEL: PRODUÇÃO -->
+    <div class="upgrade-panel" id="panel-producao">
+      <div class="upgrades-grid">
+        <div class="upgrade-card">
+          <div class="upgrade-head"><div class="upgrade-emoji">⚡</div><div class="upgrade-head-info"><h3>Eficiência Global</h3><span class="level-badge">NÍVEL 2 / 5</span></div></div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>+4%</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 3</label><strong>+6%</strong></div>
+            </div>
+            <div class="upgrade-benefits"><span>+2% produção em todos os apiários</span></div>
+            <div class="upgrade-footer"><div class="upgrade-cost">4.000 NCT</div><button class="btn btn-sm btn-primary" onclick="upgrade('Eficiência Global',3,4000)">Fazer Upgrade</button></div>
+          </div>
+        </div>
+        <div class="upgrade-card maxed">
+          <div class="upgrade-head"><div class="upgrade-emoji">🔧</div><div class="upgrade-head-info"><h3>Manutenção Automática</h3><span class="level-badge gold">MÁXIMO</span></div></div>
+          <div class="upgrade-body">
+            <p style="font-size:12px;color:var(--texto2);margin-bottom:12px;">Reduz paradas de 30min para 0. Todos os apiários 100% uptime.</p>
+            <div class="upgrade-footer"><div class="upgrade-cost" style="color:var(--verde);">Ativo</div><span class="maxed-tag">✓ MAX</span></div>
+          </div>
+        </div>
+        <div class="upgrade-card">
+          <div class="upgrade-head"><div class="upgrade-emoji">📦</div><div class="upgrade-head-info"><h3>Capacidade de Armazenamento</h3><span class="level-badge">NÍVEL 1 / 5</span></div></div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>2.000</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 2</label><strong>3.500</strong></div>
+            </div>
+            <div class="upgrade-benefits"><span>+1.500 capacidade de estoque total</span></div>
+            <div class="upgrade-footer"><div class="upgrade-cost">2.500 NCT</div><button class="btn btn-sm btn-primary" onclick="upgrade('Armazenamento',2,2500)">Fazer Upgrade</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAINEL: FLORES -->
+    <div class="upgrade-panel" id="panel-flores">
+      <div class="upgrades-grid">
+        <div class="upgrade-card">
+          <div class="upgrade-head"><div class="upgrade-emoji">🌸</div><div class="upgrade-head-info"><h3>Tanque de Flores</h3><span class="level-badge gold">NÍVEL 3 / 5</span></div></div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>ATUAL</label><strong>6.000</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 4</label><strong>9.000</strong></div>
+            </div>
+            <div class="upgrade-benefits"><span>+3.000 capacidade do tanque de flores</span></div>
+            <div class="upgrade-footer"><div class="upgrade-cost">3.500 NCT</div><button class="btn btn-sm btn-primary" onclick="upgrade('Tanque de Flores',4,3500)">Fazer Upgrade</button></div>
+          </div>
+        </div>
+        <div class="upgrade-card">
+          <div class="upgrade-head"><div class="upgrade-emoji">💧</div><div class="upgrade-head-info"><h3>Economia de Flores</h3><span class="level-badge">NÍVEL 1 / 5</span></div></div>
+          <div class="upgrade-body">
+            <div class="upgrade-comparison">
+              <div class="upgrade-stat current"><label>REDUÇÃO</label><strong>0%</strong></div>
+              <div class="upgrade-arrow">→</div>
+              <div class="upgrade-stat next"><label>NÍVEL 2</label><strong>-5%</strong></div>
+            </div>
+            <div class="upgrade-benefits"><span>-5% consumo de flores em todos apiários</span></div>
+            <div class="upgrade-footer"><div class="upgrade-cost">2.000 NCT</div><button class="btn btn-sm btn-primary" onclick="upgrade('Economia de Flores',2,2000)">Fazer Upgrade</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- PAINEL: ESPECIAIS -->
+    <div class="upgrade-panel" id="panel-especiais">
+      <div class="upgrades-grid">
+        <div class="upgrade-card" style="border-color:var(--borda-roxo);">
+          <div class="upgrade-head" style="background:linear-gradient(135deg,var(--roxo-bg2),transparent);"><div class="upgrade-emoji">🌌</div><div class="upgrade-head-info"><h3>Mega Colmeia Quântica</h3><span class="level-badge">BLOQUEADO</span></div></div>
+          <div class="upgrade-body">
+            <p style="font-size:12px;color:var(--texto2);margin-bottom:12px;">+500 potes/h · Bônus +15% global · Requer todos os apiários Nível 5+</p>
+            <div class="upgrade-footer"><div class="upgrade-cost" style="color:var(--roxo2);">25.000 NCT</div><button class="btn btn-sm btn-roxo" disabled>🔒 Bloqueado</button></div>
+          </div>
+        </div>
+        <div class="upgrade-card" style="border-color:var(--borda-roxo);">
+          <div class="upgrade-head" style="background:linear-gradient(135deg,var(--roxo-bg2),transparent);"><div class="upgrade-emoji">🤖</div><div class="upgrade-head-info"><h3>Coleta Automática</h3><span class="level-badge">NÍVEL 1 / 1</span></div></div>
+          <div class="upgrade-body">
+            <p style="font-size:12px;color:var(--texto2);margin-bottom:12px;">Coleta automaticamente potes a cada 6h sem precisar entrar no jogo.</p>
+            <div class="upgrade-footer"><div class="upgrade-cost">8.000 NCT</div><button class="btn btn-sm btn-roxo" onclick="upgrade('Coleta Automática',1,8000)">Ativar</button></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="anuncio anuncio-728" style="margin-top:24px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  function switchPanel(id, btn) {
+    document.querySelectorAll('.utab').forEach(b=>b.classList.remove('active'));
+    document.querySelectorAll('.upgrade-panel').forEach(p=>p.classList.remove('active'));
+    btn.classList.add('active');
+    document.getElementById('panel-'+id).classList.add('active');
+  }
+
+  async function upgrade(nome, nivel, custo) {
+    const {isConfirmed} = await NM_SWAL.withAd(
+      `⬆️ Upgrade: ${nome}`,
+      `Evoluir para <strong>Nível ${nivel}</strong><br/>Custo: <strong>${nmFormatInt(custo)} NCT</strong>`,
+      'Confirmar Upgrade', 'ad-upgrade-modal'
+    );
+    if (isConfirmed) NM_SWAL.success('Upgrade realizado!', `<strong>${nome}</strong> evoluiu para o <strong>Nível ${nivel}</strong>!`);
+  }
+</script>
+</body>
+</html>

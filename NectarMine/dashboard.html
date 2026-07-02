@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Dashboard</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    /* ── DASHBOARD ── */
+
+    /* Ticker topo */
+    .ticker-wrap {
+      position: fixed; top: 0; left: var(--sidebar-w); right: 0; z-index: 100;
+      background: rgba(2,6,15,.95); backdrop-filter: blur(6px);
+      border-bottom: 1px solid var(--borda2);
+    }
+    .ticker-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 20px; height: var(--header-h);
+      border-bottom: 1px solid var(--borda2);
+    }
+    .ticker-header h2 { font-size: 16px; color: var(--branco); }
+    .ticker-header .header-actions { display: flex; align-items: center; gap: 10px; }
+    .ticker-header .time-badge {
+      background: var(--amarelo-bg); border: 1px solid var(--borda);
+      color: var(--amarelo); border-radius: 20px; padding: 4px 12px; font-size: 12px;
+    }
+
+    .page-content { padding-top: calc(var(--header-h) + 44px + 20px); }
+
+    /* AD topo (970×90) */
+    .ad-topo {
+      left: var(--sidebar-w); right: 0;
+      position: fixed; top: var(--header-h); z-index: 99;
+    }
+
+    /* Grid principal */
+    .dashboard-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      grid-template-rows: auto;
+      gap: 18px;
+    }
+    .col-full  { grid-column: 1 / -1; }
+    .col-left  { grid-column: 1; }
+    .col-right { grid-column: 2; }
+
+    /* Card de estatísticas */
+    .stat-row {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 14px;
+    }
+    .stat-card {
+      background: var(--card); border: 1px solid var(--borda2);
+      border-radius: var(--radius); padding: 18px 16px;
+      display: flex; align-items: center; gap: 14px;
+      transition: transform .2s, border-color .2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: var(--borda); }
+    .stat-icon {
+      width: 44px; height: 44px; border-radius: 10px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 20px; flex-shrink: 0;
+    }
+    .stat-icon.yellow { background: var(--amarelo-bg); }
+    .stat-icon.roxo   { background: var(--roxo-bg); }
+    .stat-icon.verde  { background: var(--verde-bg); }
+    .stat-icon.muted  { background: rgba(255,255,255,.05); }
+    .stat-info { flex: 1; min-width: 0; }
+    .stat-info label { font-size: 11px; color: var(--texto3); letter-spacing: .5px; text-transform: uppercase; }
+    .stat-info strong { display: block; font-size: 20px; color: var(--branco); line-height: 1.2; }
+    .stat-info small  { font-size: 11px; color: var(--verde); }
+    .stat-info small.down { color: var(--vermelho); }
+
+    /* Card genérico */
+    .dash-card {
+      background: var(--card); border: 1px solid var(--borda2);
+      border-radius: var(--radius); overflow: hidden;
+    }
+    .dash-card-header {
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 18px; border-bottom: 1px solid var(--borda2);
+    }
+    .dash-card-header h3 { font-size: 14px; color: var(--branco); display: flex; align-items: center; gap: 8px; }
+    .dash-card-body { padding: 18px; }
+
+    /* ── PRODUÇÃO ── */
+    .producao-gauge {
+      text-align: center; padding: 20px 0 10px;
+    }
+    .gauge-value { font-size: 42px; font-weight: bold; color: var(--amarelo); }
+    .gauge-unit  { font-size: 13px; color: var(--texto2); }
+    .gauge-sub   { font-size: 12px; color: var(--texto3); margin-top: 4px; }
+
+    .producao-stats {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+      margin: 16px 0;
+    }
+    .prod-stat {
+      background: var(--amarelo-bg2); border: 1px solid var(--borda2);
+      border-radius: var(--radius-sm); padding: 10px 12px; text-align: center;
+    }
+    .prod-stat strong { display: block; font-size: 16px; color: var(--amarelo); }
+    .prod-stat span   { font-size: 11px; color: var(--texto3); }
+
+    /* Botão envasar */
+    .btn-envasar {
+      width: 100%; padding: 13px;
+      background: linear-gradient(135deg, var(--amarelo), var(--amarelo3));
+      color: #000; border: none; border-radius: var(--radius-sm);
+      font-size: 15px; font-weight: bold; letter-spacing: .5px;
+      transition: all .2s;
+    }
+    .btn-envasar:hover { filter: brightness(1.1); box-shadow: 0 6px 24px var(--amarelo-glow); }
+
+    /* Recarregar flores */
+    .flores-bar { margin: 16px 0; }
+    .flores-label { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 12px; }
+    .flores-label span { color: var(--texto2); }
+    .flores-label strong { color: var(--verde); }
+
+    .btn-recarregar {
+      width: 100%; padding: 10px;
+      background: var(--roxo-bg); border: 1px solid var(--borda-roxo);
+      color: var(--roxo2); border-radius: var(--radius-sm);
+      font-size: 13px; font-weight: bold;
+      transition: all .2s;
+    }
+    .btn-recarregar:hover { background: var(--roxo); color: #fff; }
+
+    /* ── COLMEIA / MÁQUINAS ── */
+    .machine-list { display: flex; flex-direction: column; gap: 10px; }
+    .machine-item {
+      display: flex; align-items: center; gap: 12px;
+      background: var(--amarelo-bg2); border: 1px solid var(--borda2);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+      transition: border-color .2s;
+    }
+    .machine-item:hover { border-color: var(--borda); }
+    .machine-icon { font-size: 22px; flex-shrink: 0; }
+    .machine-info { flex: 1; min-width: 0; }
+    .machine-info strong { display: block; font-size: 13px; color: var(--branco); }
+    .machine-info span   { font-size: 11px; color: var(--texto3); }
+    .machine-prod { text-align: right; flex-shrink: 0; }
+    .machine-prod strong { display: block; font-size: 14px; color: var(--amarelo); }
+    .machine-prod span   { font-size: 11px; color: var(--texto3); }
+    .machine-badge {
+      font-size: 10px; padding: 2px 8px; border-radius: 20px;
+      font-weight: bold; margin-left: auto;
+    }
+    .machine-badge.ativo { background: var(--verde-bg); color: var(--verde); }
+
+    /* AD em card de colmeia (300×250 float right) */
+    .colmeia-ad-wrap {
+      float: right; margin: 0 0 10px 14px;
+      width: 160px;
+    }
+    .colmeia-ad-wrap .anuncio-160 { height: 200px; }
+
+    /* ── MERCADO ── */
+    #chart-mercado { min-height: 220px; }
+    .mercado-info {
+      display: flex; justify-content: space-between; align-items: center;
+      padding: 10px 18px; border-top: 1px solid var(--borda2);
+    }
+    .mercado-price strong { font-size: 22px; color: var(--amarelo); }
+    .mercado-price span   { font-size: 12px; color: var(--verde); margin-left: 6px; }
+    .mercado-price span.down { color: var(--vermelho); }
+    .btn-vender {
+      padding: 9px 20px;
+      background: var(--amarelo); color: #000;
+      border: none; border-radius: var(--radius-sm);
+      font-weight: bold; font-size: 13px;
+      transition: all .2s;
+    }
+    .btn-vender:hover { background: var(--amarelo2); }
+
+    /* ── MISSÕES ── */
+    .mission-list { display: flex; flex-direction: column; gap: 12px; }
+    .mission-item {
+      background: var(--amarelo-bg2); border: 1px solid var(--borda2);
+      border-radius: var(--radius-sm); padding: 12px 14px;
+    }
+    .mission-top {
+      display: flex; align-items: center; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .mission-top strong { font-size: 13px; color: var(--branco); }
+    .mission-top span   { font-size: 12px; color: var(--texto2); }
+    .mission-bottom { display: flex; align-items: center; gap: 10px; }
+    .mission-bottom .progress-bar { flex: 1; }
+    .mission-reward {
+      font-size: 11px; color: var(--amarelo); white-space: nowrap;
+    }
+
+    /* ── RANKING ── */
+    .ranking-list { display: flex; flex-direction: column; gap: 8px; }
+    .rank-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0; border-bottom: 1px solid rgba(255,255,255,.04);
+    }
+    .rank-pos {
+      width: 24px; text-align: center; font-size: 13px; font-weight: bold;
+      flex-shrink: 0;
+    }
+    .rank-pos.gold   { color: var(--amarelo); }
+    .rank-pos.silver { color: #C0C0C0; }
+    .rank-pos.bronze { color: #CD7F32; }
+    .rank-pos.other  { color: var(--texto3); }
+    .rank-avatar {
+      width: 28px; height: 28px; border-radius: 50%;
+      background: var(--roxo-bg); border: 1px solid var(--borda-roxo);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; flex-shrink: 0;
+    }
+    .rank-name { flex: 1; font-size: 13px; color: var(--texto); }
+    .rank-name.me { color: var(--amarelo); font-weight: bold; }
+    .rank-val  { font-size: 12px; color: var(--texto2); white-space: nowrap; }
+
+    .rank-see-all {
+      display: block; text-align: center;
+      padding: 8px; margin-top: 10px;
+      font-size: 12px; color: var(--roxo2);
+      border: 1px solid var(--borda-roxo); border-radius: var(--radius-sm);
+      transition: all .2s;
+    }
+    .rank-see-all:hover { background: var(--roxo-bg); color: var(--texto); }
+
+    /* ── BANNER ENVASAR / STAKE ── */
+    .promo-row {
+      display: grid; grid-template-columns: 1fr 1fr; gap: 14px;
+    }
+    .promo-card {
+      border-radius: var(--radius); padding: 20px 22px;
+      display: flex; align-items: center; gap: 16px;
+      border: 1px solid;
+    }
+    .promo-card.yellow {
+      background: linear-gradient(135deg, rgba(255,215,0,.1), rgba(255,170,0,.05));
+      border-color: var(--borda);
+    }
+    .promo-card.roxo {
+      background: linear-gradient(135deg, rgba(123,47,190,.15), rgba(123,47,190,.05));
+      border-color: var(--borda-roxo);
+    }
+    .promo-icon { font-size: 36px; flex-shrink: 0; }
+    .promo-text h4 { font-size: 16px; color: var(--branco); margin-bottom: 4px; }
+    .promo-text p  { font-size: 12px; color: var(--texto2); margin-bottom: 10px; }
+
+    /* ── RESPONSIVE ── */
+    @media(max-width: 900px) {
+      .ticker-wrap { left: 0; }
+      .ad-topo { left: 0; }
+      .dashboard-grid { grid-template-columns: 1fr; }
+      .stat-row { grid-template-columns: 1fr 1fr; }
+      .col-left, .col-right { grid-column: 1; }
+      .promo-row { grid-template-columns: 1fr; }
+    }
+    @media(max-width: 480px) {
+      .stat-row { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top" id="ad-loader-1"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank">
+      <div class="honey-fill">
+        <div class="honey-wave"></div>
+        <div class="honey-wave w2"></div>
+      </div>
+      <div class="hive-bubble b1"></div>
+      <div class="hive-bubble b2"></div>
+      <div class="hive-bubble b3"></div>
+    </div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Aquecendo as colmeias...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot" id="ad-loader-2"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo">
+    <i class="fa-solid fa-hexagon-nodes"></i>
+    <span>NectarMine</span>
+  </div>
+  <div class="sidebar-user">
+    <div class="user-avatar">🐝</div>
+    <div class="user-info">
+      <strong>BIFFI</strong>
+      <span>ID #104</span>
+    </div>
+    <div class="user-level">Nv.12</div>
+  </div>
+  <div class="sidebar-stats">
+    <div class="sidebar-stat">
+      <span>Néctar</span>
+      <strong>48.320</strong>
+    </div>
+    <div class="sidebar-stat">
+      <span>Potes</span>
+      <strong>1.247</strong>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"       class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard<span class="nav-badge hot">LIVE</span></a>
+    <a href="meus-apiarios.html"   class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"         class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"         class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"        class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"           class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"        class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"   class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"  class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"    class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"       class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"      class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"         class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"              class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<!-- TICKER + HEADER fixo -->
+<div class="ticker-wrap">
+  <div class="ticker-header">
+    <h2><i class="fa-solid fa-gauge-high" style="color:var(--amarelo)"></i> Dashboard</h2>
+    <div class="header-actions">
+      <span class="time-badge"><i class="fa-solid fa-clock"></i> <span id="live-time">--:--:--</span></span>
+      <button class="btn btn-sm btn-ghost" onclick="location.reload()"><i class="fa-solid fa-rotate"></i></button>
+    </div>
+  </div>
+  <div class="market-ticker" id="market-ticker">
+    <div class="market-ticker-track" id="market-ticker-track"></div>
+  </div>
+</div>
+
+<!-- AD TOPO (970×90) -->
+<div class="ad-topo">
+  <div class="anuncio anuncio-topo-full" id="ad-topo-1"><!-- AD 970×90 -->Publicidade 970×90</div>
+</div>
+
+<!-- LAYOUT -->
+<div class="nm-layout">
+  <main class="page-content" style="padding: calc(var(--header-h) + 44px + 16px) 20px 30px;">
+
+    <div class="dashboard-grid">
+
+      <!-- ── STATS ROW ── -->
+      <div class="col-full stat-row">
+        <div class="stat-card">
+          <div class="stat-icon yellow">🍯</div>
+          <div class="stat-info">
+            <label>Néctar Total</label>
+            <strong id="stat-nectar">48.320</strong>
+            <small>+1.240 hoje</small>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon yellow">📦</div>
+          <div class="stat-info">
+            <label>Potes em Estoque</label>
+            <strong id="stat-potes">1.247</strong>
+            <small>Pronto para envasar</small>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon verde">🌸</div>
+          <div class="stat-info">
+            <label>Flores (Energia)</label>
+            <strong id="stat-flores">4.800</strong>
+            <small id="flores-pct">80% do tank</small>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon roxo">⚙️</div>
+          <div class="stat-info">
+            <label>Produção / hora</label>
+            <strong id="stat-prod">312</strong>
+            <small>potes/hora</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- AD lateral (728×90) -->
+      <div class="col-full">
+        <div class="anuncio anuncio-728" id="ad-mid-1"><!-- AD 728×90 -->Publicidade 728×90</div>
+      </div>
+
+      <!-- ── COL ESQUERDA: PRODUÇÃO + COLMEIA ── -->
+      <div class="col-left" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Produção atual -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><i class="fa-solid fa-jar" style="color:var(--amarelo)"></i> Produção Disponível</h3>
+            <span class="badge badge-yellow" id="prod-status">Produzindo</span>
+          </div>
+          <div class="dash-card-body">
+            <div class="producao-gauge">
+              <div class="gauge-value" id="potes-disp">1.247</div>
+              <div class="gauge-unit">potes acumulados</div>
+              <div class="gauge-sub">Última coleta: há 2 horas</div>
+            </div>
+            <div class="producao-stats">
+              <div class="prod-stat">
+                <strong id="prod-hora">312</strong>
+                <span>Potes / hora</span>
+              </div>
+              <div class="prod-stat">
+                <strong id="prod-dia">7.488</strong>
+                <span>Potes / dia</span>
+              </div>
+              <div class="prod-stat">
+                <strong id="prod-preco">24,57</strong>
+                <span>Preço atual (NCT)</span>
+              </div>
+              <div class="prod-stat">
+                <strong id="prod-valor">30.614</strong>
+                <span>Valor em NCT</span>
+              </div>
+            </div>
+
+            <!-- Flores -->
+            <div class="flores-bar">
+              <div class="flores-label">
+                <span>🌸 Flores (energia)</span>
+                <strong>4.800 / 6.000</strong>
+              </div>
+              <div class="progress-bar">
+                <div class="progress-fill" id="flores-fill" style="width:0%"></div>
+              </div>
+            </div>
+
+            <div style="display:flex;gap:10px;">
+              <button class="btn-envasar" onclick="envasar()" style="flex:2">
+                <i class="fa-solid fa-jar"></i> Envasar Potes
+              </button>
+              <button class="btn-recarregar" onclick="location.href='recarregar-flores.html'" style="flex:1">
+                <i class="fa-solid fa-bolt"></i> Flores
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Minha Colmeia -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><i class="fa-solid fa-industry" style="color:var(--amarelo)"></i> Minha Colmeia</h3>
+            <a href="meus-apiarios.html" class="btn btn-sm btn-ghost">Ver tudo</a>
+          </div>
+          <div class="dash-card-body">
+            <div class="colmeia-ad-wrap anuncio-desktop">
+              <div class="anuncio anuncio-160" id="ad-colmeia-1"><!-- AD 160×200 -->Pub 160×200</div>
+            </div>
+            <div class="machine-list">
+              <div class="machine-item">
+                <div class="machine-icon">🏭</div>
+                <div class="machine-info">
+                  <strong>Colmeia Industrial</strong>
+                  <span>Nível 3 · Capacity 800 potes</span>
+                </div>
+                <div class="machine-prod">
+                  <strong>120/h</strong>
+                  <span>potes</span>
+                </div>
+                <span class="machine-badge ativo">ATIVO</span>
+              </div>
+              <div class="machine-item">
+                <div class="machine-icon">🐝</div>
+                <div class="machine-info">
+                  <strong>Apiário Avançado</strong>
+                  <span>Nível 2 · Capacity 500 potes</span>
+                </div>
+                <div class="machine-prod">
+                  <strong>96/h</strong>
+                  <span>potes</span>
+                </div>
+                <span class="machine-badge ativo">ATIVO</span>
+              </div>
+              <div class="machine-item">
+                <div class="machine-icon">🌺</div>
+                <div class="machine-info">
+                  <strong>Apiário Floral</strong>
+                  <span>Nível 1 · Capacity 300 potes</span>
+                </div>
+                <div class="machine-prod">
+                  <strong>56/h</strong>
+                  <span>potes</span>
+                </div>
+                <span class="machine-badge ativo">ATIVO</span>
+              </div>
+              <div class="machine-item">
+                <div class="machine-icon">🔬</div>
+                <div class="machine-info">
+                  <strong>Plataforma Quântica</strong>
+                  <span>Nível 1 · Capacity 200 potes</span>
+                </div>
+                <div class="machine-prod">
+                  <strong>40/h</strong>
+                  <span>potes</span>
+                </div>
+                <span class="machine-badge ativo">ATIVO</span>
+              </div>
+            </div>
+            <div style="margin-top:12px;">
+              <a href="upgrades.html" class="btn btn-block btn-roxo btn-sm">
+                <i class="fa-solid fa-arrow-trend-up"></i> Fazer Upgrade
+              </a>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /col-left -->
+
+      <!-- ── COL DIREITA: MERCADO + RANKING ── -->
+      <div class="col-right" style="display:flex;flex-direction:column;gap:14px;">
+
+        <!-- Mercado (mini chart) -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><i class="fa-solid fa-chart-candlestick" style="color:var(--amarelo)"></i> Mercado de Mel</h3>
+            <a href="mercado.html" class="btn btn-sm btn-ghost">Abrir</a>
+          </div>
+          <div id="chart-mercado"></div>
+          <div class="mercado-info">
+            <div class="mercado-price">
+              <strong>24,57 NCT</strong>
+              <span>▲ +6.51%</span>
+            </div>
+            <button class="btn-vender" onclick="location.href='envasar.html'">
+              <i class="fa-solid fa-jar"></i> Envasar agora
+            </button>
+          </div>
+        </div>
+
+        <!-- AD 300×250 -->
+        <div class="anuncio anuncio-300" id="ad-dash-1"><!-- AD 300×250 -->Publicidade 300×250</div>
+
+        <!-- Ranking diário -->
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><i class="fa-solid fa-trophy" style="color:var(--amarelo)"></i> Ranking do Dia</h3>
+            <span class="badge badge-muted">Top produtores</span>
+          </div>
+          <div class="dash-card-body">
+            <div class="ranking-list">
+              <div class="rank-item">
+                <div class="rank-pos gold">🥇</div>
+                <div class="rank-avatar">👑</div>
+                <div class="rank-name">MelRainha</div>
+                <div class="rank-val">24.850 potes</div>
+              </div>
+              <div class="rank-item">
+                <div class="rank-pos silver">🥈</div>
+                <div class="rank-avatar">🐝</div>
+                <div class="rank-name">AbelhaFuriosa</div>
+                <div class="rank-val">19.320 potes</div>
+              </div>
+              <div class="rank-item">
+                <div class="rank-pos bronze">🥉</div>
+                <div class="rank-avatar">🍯</div>
+                <div class="rank-name">NectarKing</div>
+                <div class="rank-val">15.744 potes</div>
+              </div>
+              <div class="rank-item">
+                <div class="rank-pos other">4</div>
+                <div class="rank-avatar">🌺</div>
+                <div class="rank-name">FloralMaster</div>
+                <div class="rank-val">12.100 potes</div>
+              </div>
+              <div class="rank-item" style="background:var(--amarelo-bg);border-radius:6px;padding:6px 8px;">
+                <div class="rank-pos other" style="color:var(--amarelo)">28</div>
+                <div class="rank-avatar" style="border-color:var(--borda)">😎</div>
+                <div class="rank-name me">BIFFI (você)</div>
+                <div class="rank-val">1.247 potes</div>
+              </div>
+            </div>
+            <a href="ranking-producao.html" class="rank-see-all">Ver ranking completo →</a>
+          </div>
+        </div>
+
+      </div><!-- /col-right -->
+
+      <!-- ── MISSÕES ── -->
+      <div class="col-left">
+        <div class="dash-card">
+          <div class="dash-card-header">
+            <h3><i class="fa-solid fa-list-check" style="color:var(--amarelo)"></i> Missões do Dia</h3>
+            <a href="desafios.html" class="btn btn-sm btn-ghost">Ver todas</a>
+          </div>
+          <div class="dash-card-body">
+            <div class="mission-list">
+              <div class="mission-item">
+                <div class="mission-top">
+                  <strong>🍯 Produzir 500 potes</strong>
+                  <span>347 / 500</span>
+                </div>
+                <div class="mission-bottom">
+                  <div class="progress-bar"><div class="progress-fill" id="m1" style="width:0%"></div></div>
+                  <span class="mission-reward">+200 NCT</span>
+                </div>
+              </div>
+              <div class="mission-item">
+                <div class="mission-top">
+                  <strong>💧 Envasar 100 potes</strong>
+                  <span>100 / 100 ✅</span>
+                </div>
+                <div class="mission-bottom">
+                  <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
+                  <span class="mission-reward" style="color:var(--verde)">CONCLUÍDA</span>
+                </div>
+              </div>
+              <div class="mission-item">
+                <div class="mission-top">
+                  <strong>🌸 Recarregar flores (x1)</strong>
+                  <span>0 / 1</span>
+                </div>
+                <div class="mission-bottom">
+                  <div class="progress-bar"><div class="progress-fill" id="m3" style="width:0%"></div></div>
+                  <span class="mission-reward">+100 NCT</span>
+                </div>
+              </div>
+              <div class="mission-item">
+                <div class="mission-top">
+                  <strong>👥 Convidar 1 amigo</strong>
+                  <span>0 / 1</span>
+                </div>
+                <div class="mission-bottom">
+                  <div class="progress-bar"><div class="progress-fill" id="m4" style="width:0%"></div></div>
+                  <span class="mission-reward">+500 NCT</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── BANNER PROMOS ── -->
+      <div class="col-right">
+        <div class="promo-row" style="flex-direction:column;display:flex;gap:12px;">
+          <div class="promo-card yellow">
+            <div class="promo-icon">🍯</div>
+            <div class="promo-text">
+              <h4>Honey Stake — até +20%</h4>
+              <p>Bloqueie seus potes por 10, 20 ou 30 dias e receba rendimento garantido em Néctar.</p>
+              <a href="stake.html" class="btn btn-sm btn-primary">Fazer Stake →</a>
+            </div>
+          </div>
+          <div class="promo-card roxo">
+            <div class="promo-icon">🌐</div>
+            <div class="promo-text">
+              <h4>Ganhe Néctar Agora</h4>
+              <p>Assista anúncios, complete pesquisas e ganhe Néctar extra instantaneamente.</p>
+              <a href="ganhar-nectar.html" class="btn btn-sm btn-roxo">Ganhar NCT →</a>
+            </div>
+          </div>
+          <!-- AD 300×250 -->
+          <div class="anuncio anuncio-300" id="ad-dash-2"><!-- AD 300×250 -->Publicidade 300×250</div>
+        </div>
+      </div>
+
+      <!-- AD footer -->
+      <div class="col-full">
+        <div class="anuncio anuncio-728" id="ad-footer"><!-- AD 728×90 -->Publicidade 728×90</div>
+      </div>
+
+    </div><!-- /dashboard-grid -->
+  </main>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  /* ── RELÓGIO ── */
+  function updateTime() {
+    const now = new Date();
+    document.getElementById('live-time').textContent =
+      now.toLocaleTimeString('pt-BR');
+  }
+  setInterval(updateTime, 1000);
+  updateTime();
+
+  /* ── MINI CHART (ApexCharts candlestick) ── */
+  function initChart() {
+    const generateCandles = () => {
+      const data = [];
+      let price = 22;
+      const now = new Date();
+      for (let i = 24; i >= 0; i--) {
+        const t = new Date(now - i * 3600000);
+        const o = price + (Math.random() - 0.5) * 2;
+        const c = o + (Math.random() - 0.5) * 3;
+        const h = Math.max(o, c) + Math.random() * 1.5;
+        const l = Math.min(o, c) - Math.random() * 1.5;
+        price = c;
+        data.push({ x: t, y: [+o.toFixed(2), +h.toFixed(2), +l.toFixed(2), +c.toFixed(2)] });
+      }
+      return data;
+    };
+
+    const chart = new ApexCharts(document.getElementById('chart-mercado'), {
+      series: [{ data: generateCandles() }],
+      chart: { type: 'candlestick', height: 200, background: 'transparent', toolbar: { show: false }, zoom: { enabled: false } },
+      plotOptions: {
+        candlestick: {
+          colors: { upward: '#22C55E', downward: '#EF4444' }
+        }
+      },
+      xaxis: { type: 'datetime', labels: { style: { colors: '#6B5F8A', fontSize: '10px' }, format: 'HH:mm' } },
+      yaxis: { labels: { style: { colors: '#6B5F8A', fontSize: '10px' }, formatter: v => v.toFixed(1) } },
+      grid: { borderColor: 'rgba(255,215,0,0.06)' },
+      tooltip: { theme: 'dark' }
+    });
+    chart.render();
+  }
+
+  /* ── ENVASAR (com anúncio modal) ── */
+  async function envasar() {
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '🍯 Envasar Potes',
+      'Você tem <strong>1.247 potes</strong> prontos para envasar.<br/>Valor estimado: <strong>30.614 NCT</strong>.',
+      'Envasar tudo',
+      'ad-envasar-modal'
+    );
+    if (isConfirmed) {
+      await NM_SWAL.success('Envase concluído!', 'Seus <strong>1.247 potes</strong> foram enviados para o envasamento. <br/>Néctar creditado em breve.');
+    }
+  }
+
+  /* ── PROGRESS BARS ── */
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      nmAnimateProgress('#flores-fill', 80);
+      nmAnimateProgress('#m1', 69.4);
+      nmAnimateProgress('#m3', 0);
+      nmAnimateProgress('#m4', 0);
+      initChart();
+    }, 2600);
+  });
+</script>
+</body>
+</html>

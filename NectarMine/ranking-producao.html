@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Ranking de Produção</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .rank-tabs { display:flex; gap:8px; margin-bottom:20px; }
+    .rtab { padding:8px 20px; border-radius:8px; border:1px solid var(--borda2); background:transparent; color:var(--texto2); font-size:13px; font-weight:bold; transition:all .2s; }
+    .rtab.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
+
+    /* Podium */
+    .podium { display:flex; align-items:flex-end; justify-content:center; gap:12px; margin-bottom:28px; }
+    .podium-item { text-align:center; flex:1; max-width:160px; }
+    .podium-block {
+      border-radius:var(--radius) var(--radius) 0 0; display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-end; padding:16px 10px 10px;
+    }
+    .podium-item:nth-child(1) .podium-block { background:linear-gradient(180deg,rgba(192,192,192,.2),rgba(192,192,192,.08)); border:1px solid rgba(192,192,192,.3); min-height:100px; }
+    .podium-item:nth-child(2) .podium-block { background:linear-gradient(180deg,rgba(255,215,0,.2),rgba(255,215,0,.08)); border:1px solid var(--borda); min-height:130px; }
+    .podium-item:nth-child(3) .podium-block { background:linear-gradient(180deg,rgba(205,127,50,.2),rgba(205,127,50,.08)); border:1px solid rgba(205,127,50,.3); min-height:80px; }
+    .podium-medal { font-size:28px; }
+    .podium-name { font-size:13px; color:var(--branco); font-weight:bold; margin-top:6px; }
+    .podium-score { font-size:12px; color:var(--amarelo); }
+    .podium-prize { font-size:11px; color:var(--verde); margin-top:3px; }
+
+    /* Lista de ranking */
+    .rank-layout { display:grid; grid-template-columns:1fr 300px; gap:18px; }
+    .rank-table { width:100%; border-collapse:collapse; }
+    .rank-table th { font-size:10px; color:var(--texto3); letter-spacing:1px; text-transform:uppercase; padding:8px 12px; border-bottom:1px solid var(--borda2); text-align:left; }
+    .rank-table td { padding:10px 12px; border-bottom:1px solid rgba(255,255,255,.03); font-size:13px; vertical-align:middle; }
+    .rank-table tr:hover td { background:var(--amarelo-bg2); }
+    .rank-table tr.me td { background:var(--amarelo-bg); }
+    .rank-pos { font-weight:bold; text-align:center; width:36px; }
+    .rank-pos.g1 { color:var(--amarelo); font-size:18px; }
+    .rank-pos.g2 { color:#C0C0C0; }
+    .rank-pos.g3 { color:#CD7F32; }
+    .rank-user { display:flex; align-items:center; gap:8px; }
+    .rank-av { width:28px; height:28px; border-radius:50%; background:var(--roxo-bg); border:1px solid var(--borda-roxo); display:flex; align-items:center; justify-content:center; font-size:12px; }
+    .rank-av.me { border-color:var(--amarelo); background:var(--amarelo-bg); }
+    .me-tag { font-size:10px; color:var(--amarelo); font-weight:bold; background:var(--amarelo-bg); padding:1px 6px; border-radius:10px; }
+
+    /* Aside: prêmios */
+    .prize-card { background:var(--card); backdrop-filter:blur(10px); border:1px solid var(--borda2); border-radius:var(--radius); padding:18px; margin-bottom:14px; }
+    .prize-item { display:flex; align-items:center; gap:10px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.04); font-size:13px; }
+    .prize-item:last-child { border-bottom:none; }
+    .prize-pos { width:28px; font-weight:bold; flex-shrink:0; }
+    .prize-name { flex:1; color:var(--texto2); }
+    .prize-val { color:var(--amarelo); font-weight:bold; }
+
+    @media(max-width:900px){ .rank-layout{grid-template-columns:1fr;} }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Carregando ranking...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR (abreviado - mesmo padrão) -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <h1 style="font-size:22px;color:var(--branco);"><i class="fa-solid fa-trophy" style="color:var(--amarelo)"></i> Ranking de Produção</h1>
+      <span class="badge badge-muted">Reset em: <strong id="reset">23:12:44</strong></span>
+    </div>
+
+    <div class="rank-tabs">
+      <button class="rtab active" onclick="switchR('diario',this)">📅 Diário</button>
+      <button class="rtab" onclick="switchR('semanal',this)">🗓️ Semanal</button>
+      <button class="rtab" onclick="switchR('mensal',this)">📆 Mensal</button>
+      <button class="rtab" onclick="switchR('alltime',this)">🏆 All Time</button>
+    </div>
+
+    <!-- Pódio (preenchido pela API) -->
+    <div class="podium" id="podium"></div>
+
+    <div class="rank-layout">
+      <div>
+        <div style="background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--borda2);border-radius:var(--radius);overflow:hidden;">
+          <div style="overflow-x:auto;">
+            <table class="rank-table">
+              <thead><tr><th style="width:36px;">#</th><th>Minerador</th><th>Potes (dia)</th><th>Néctar total</th><th>Nível</th></tr></thead>
+              <tbody id="rank-body">
+                <tr><td colspan="5" style="text-align:center;padding:20px;color:var(--texto3);">Carregando ranking...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="anuncio anuncio-728" style="margin-top:16px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+      </div>
+
+      <!-- ASIDE: Prêmios + AD -->
+      <div>
+        <div class="prize-card">
+          <h3 style="font-size:14px;color:var(--branco);margin-bottom:12px;">🏆 Prêmios do Ranking Diário</h3>
+          <div class="prize-item"><div class="prize-pos" style="color:var(--amarelo);">🥇</div><div class="prize-name">1º lugar</div><div class="prize-val">100.000 NCT</div></div>
+          <div class="prize-item"><div class="prize-pos" style="color:#C0C0C0;">🥈</div><div class="prize-name">2º lugar</div><div class="prize-val">50.000 NCT</div></div>
+          <div class="prize-item"><div class="prize-pos" style="color:#CD7F32;">🥉</div><div class="prize-name">3º lugar</div><div class="prize-val">25.000 NCT</div></div>
+          <div class="prize-item"><div class="prize-pos" style="color:var(--texto3);">4–10</div><div class="prize-name">4º a 10º</div><div class="prize-val">10.000 NCT</div></div>
+          <div class="prize-item"><div class="prize-pos" style="color:var(--texto3);">11–25</div><div class="prize-name">11º a 25º</div><div class="prize-val">2.000 NCT</div></div>
+        </div>
+
+        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  const MEDALS = ['🥇','🥈','🥉'];
+  const POS_CLASS = ['g1','g2','g3'];
+
+  async function loadRanking(periodo = 'diario') {
+    const body = document.getElementById('rank-body');
+    const podium = document.getElementById('podium');
+    try {
+      const { ranking } = await NM_API.ranking('producao', periodo);
+
+      // Pódio: 2º, 1º, 3º
+      const [p1, p2, p3] = [ranking[0], ranking[1], ranking[2]];
+      const bloco = (r, medal, prize) => `
+        <div class="podium-item"><div class="podium-block">
+          <div class="podium-medal">${medal}</div>
+          <div class="podium-name">${r ? r.username : '—'}</div>
+          <div class="podium-score">${r ? nmFormatInt(r.score) + ' potes' : 'vago'}</div>
+          <div class="podium-prize">${r ? prize : ''}</div>
+        </div></div>`;
+      podium.innerHTML = bloco(p2,'🥈','+50.000 NCT') + bloco(p1,'🥇','+100.000 NCT') + bloco(p3,'🥉','+25.000 NCT');
+
+      // Tabela
+      if (!ranking.length) {
+        body.innerHTML = '<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--texto3);">Ninguém produziu neste período ainda. Seja o primeiro! 🐝</td></tr>';
+        return;
+      }
+      body.innerHTML = ranking.map((r, i) => `
+        <tr class="${r.me ? 'me' : ''}">
+          <td class="rank-pos ${POS_CLASS[i] || ''}" ${r.me ? 'style="color:var(--amarelo);"' : ''}>${MEDALS[i] || r.pos}</td>
+          <td><div class="rank-user"><div class="rank-av ${r.me ? 'me' : ''}">${r.avatar}</div>${r.username}${r.me ? ' <span class="me-tag">VOCÊ</span>' : ''}</div></td>
+          <td>${nmFormatInt(r.score)}</td>
+          <td>${nmFormatInt(Math.round(r.nct))}</td>
+          <td>Nv. ${r.level}</td>
+        </tr>`).join('');
+    } catch (e) {
+      body.innerHTML = `<tr><td colspan="5" style="text-align:center;padding:20px;color:var(--texto3);">Erro ao carregar: ${e.message}</td></tr>`;
+    }
+  }
+
+  function switchR(tipo, btn) {
+    document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadRanking(tipo);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => loadRanking('diario'));
+  let t=23*3600+12*60+44;
+  function updateTimer(){const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('reset').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;if(t>0)t--;}
+  setInterval(updateTimer,1000);
+</script>
+</body>
+</html>

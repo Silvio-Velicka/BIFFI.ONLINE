@@ -1,0 +1,560 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Roadmap Oficial</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    :root {
+      --preto:    #02060F;
+      --preto2:   #070F18;
+      --card:     rgba(15,10,30,0.85);
+      --amarelo:  #FFD700;
+      --amarelo2: #FFC300;
+      --amarelo3: #FFAA00;
+      --amarelo-bg: rgba(255,215,0,0.10);
+      --roxo:     #7B2FBE;
+      --roxo2:    #9B59B6;
+      --roxo-bg:  rgba(123,47,190,0.15);
+      --texto:    #D4C9E8;
+      --texto2:   #9E8FC0;
+      --branco:   #FFFFFF;
+      --verde:    #22C55E;
+      --borda:    rgba(255,215,0,0.18);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:var(--preto); color:var(--texto); font-family:Arial,sans-serif; line-height:1.7; }
+
+    /* ── LOADER ── */
+    #nm-loader {
+      position:fixed; inset:0; z-index:9999;
+      background:var(--preto);
+      display:flex; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+      transition:opacity .4s;
+    }
+    #nm-loader.hide { opacity:0; pointer-events:none; }
+    .hive-tank {
+      width:100px; height:100px; border-radius:50%;
+      border:3px solid var(--amarelo); overflow:hidden;
+      box-shadow:0 0 30px rgba(255,215,0,0.3); position:relative;
+    }
+    .honey-fill {
+      position:absolute; bottom:0; left:0; right:0; height:60%;
+      background:linear-gradient(180deg,var(--amarelo3),var(--amarelo));
+      animation:honeyRise 3s ease-in-out infinite alternate;
+    }
+    @keyframes honeyRise { from{height:40%} to{height:75%} }
+    .honey-wave {
+      position:absolute; top:-10px; left:-50%; width:200%; height:20px;
+      background:rgba(255,200,0,0.5); border-radius:50%;
+      animation:waveMove 2s linear infinite;
+    }
+    @keyframes waveMove { from{transform:translateX(0)} to{transform:translateX(50%)} }
+    .loader-ad-top {
+      width:320px; height:100px;
+      background:rgba(255,215,0,0.04);
+      border:1px dashed rgba(255,215,0,0.2);
+      border-radius:6px; display:flex; align-items:center; justify-content:center;
+      color:var(--texto2); font-size:11px;
+    }
+    .loader-ad-bot {
+      width:320px; height:50px;
+      background:rgba(255,215,0,0.04);
+      border:1px dashed rgba(255,215,0,0.15);
+      border-radius:4px; display:flex; align-items:center; justify-content:center;
+      color:var(--texto2); font-size:11px;
+    }
+    #loader-text { font-size:13px; color:var(--texto2); animation:blink 1.5s infinite; }
+    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:.4} }
+    .loading-bar { width:240px; height:3px; background:rgba(255,215,0,.15); border-radius:2px; overflow:hidden; }
+    .loading-bar span { display:block; height:100%; width:0; background:var(--amarelo); animation:loadBar 2.2s ease-in-out forwards; }
+    @keyframes loadBar { to{width:100%} }
+
+    /* ── HEADER ── */
+    header {
+      position:sticky; top:0; z-index:100;
+      background:rgba(2,6,15,0.96); backdrop-filter:blur(10px);
+      border-bottom:1px solid var(--borda);
+      padding:0 40px; height:60px;
+      display:flex; align-items:center; justify-content:space-between;
+    }
+    .header-logo { display:flex; align-items:center; gap:10px; font-size:20px; font-weight:bold; color:var(--amarelo); text-decoration:none; }
+    .header-logo i { color:var(--roxo2); }
+    .header-nav { display:flex; gap:24px; }
+    .header-nav a { color:var(--texto2); text-decoration:none; font-size:13px; transition:color .2s; }
+    .header-nav a:hover { color:var(--amarelo); }
+
+    /* ── AD TOPO 970×90 ── */
+    .ad-topo {
+      width:100%; display:flex; justify-content:center;
+      background:rgba(0,0,0,.3); padding:8px 0;
+    }
+    .ad-topo-inner {
+      width:970px; height:90px; max-width:100%;
+      background:rgba(255,215,0,.04);
+      border:1px dashed rgba(255,215,0,.15);
+      border-radius:6px; display:flex; align-items:center; justify-content:center;
+      color:var(--texto2); font-size:12px;
+    }
+
+    /* ── HERO ── */
+    .hero {
+      text-align:center; padding:70px 40px 50px;
+      background:radial-gradient(ellipse at 50% 0%, rgba(123,47,190,.2) 0%, transparent 70%);
+      border-bottom:1px solid var(--borda);
+    }
+    .hero-badge {
+      display:inline-block;
+      background:var(--roxo-bg); border:1px solid var(--roxo);
+      color:var(--roxo2); font-size:11px; letter-spacing:2px; text-transform:uppercase;
+      padding:4px 14px; border-radius:20px; margin-bottom:20px;
+    }
+    .hero h1 { font-size:clamp(28px,5vw,52px); color:var(--branco); margin-bottom:12px; }
+    .hero h1 span { color:var(--amarelo); }
+    .hero p { max-width:580px; margin:0 auto 30px; color:var(--texto2); font-size:16px; }
+
+    /* Filtro de temporadas */
+    .season-filter {
+      display:inline-flex; gap:8px; background:var(--card);
+      border:1px solid var(--borda); border-radius:30px; padding:6px;
+      margin-bottom:20px;
+    }
+    .sf-btn {
+      padding:7px 20px; border-radius:24px; border:none; cursor:pointer;
+      font-size:13px; transition:all .2s; background:transparent; color:var(--texto2);
+    }
+    .sf-btn.active { background:var(--amarelo); color:#000; font-weight:bold; }
+    .sf-btn:hover:not(.active) { color:var(--amarelo); }
+
+    /* ── LINHA DO TEMPO ── */
+    .roadmap-wrap { max-width:960px; margin:0 auto; padding:60px 24px; }
+
+    .timeline { position:relative; }
+    .timeline::before {
+      content:''; position:absolute; left:50%; top:0; bottom:0;
+      width:2px; background:linear-gradient(180deg, var(--roxo), var(--amarelo), var(--roxo));
+      transform:translateX(-50%);
+    }
+
+    .timeline-item {
+      display:flex; gap:0; margin-bottom:60px;
+      opacity:0; transform:translateY(20px);
+      transition:opacity .5s, transform .5s;
+    }
+    .timeline-item.visible { opacity:1; transform:translateY(0); }
+
+    /* Alternância esquerda/direita */
+    .timeline-item:nth-child(odd) { flex-direction:row; }
+    .timeline-item:nth-child(even) { flex-direction:row-reverse; }
+
+    .timeline-content {
+      width:calc(50% - 40px);
+      background:var(--card);
+      border:1px solid var(--borda);
+      border-radius:14px; padding:24px;
+      position:relative;
+      transition:border-color .2s;
+    }
+    .timeline-content:hover { border-color:var(--amarelo); }
+
+    /* Seta apontando para o centro */
+    .timeline-item:nth-child(odd) .timeline-content::after {
+      content:''; position:absolute; right:-10px; top:28px;
+      border:10px solid transparent;
+      border-left-color:var(--borda);
+    }
+    .timeline-item:nth-child(even) .timeline-content::after {
+      content:''; position:absolute; left:-10px; top:28px;
+      border:10px solid transparent;
+      border-right-color:var(--borda);
+    }
+
+    /* Nó central */
+    .timeline-node {
+      width:80px; flex-shrink:0;
+      display:flex; flex-direction:column;
+      align-items:center; justify-content:flex-start;
+      padding-top:20px; gap:8px; position:relative; z-index:2;
+    }
+    .node-circle {
+      width:44px; height:44px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:18px; flex-shrink:0;
+      border:2px solid transparent;
+    }
+    .node-circle.done     { background:var(--verde); border-color:var(--verde); color:#000; }
+    .node-circle.active   { background:var(--amarelo); border-color:var(--amarelo); color:#000; animation:pulse 2s infinite; }
+    .node-circle.upcoming { background:var(--roxo-bg); border-color:var(--roxo); color:var(--roxo2); }
+    .node-circle.future   { background:rgba(255,255,255,.05); border-color:rgba(255,255,255,.2); color:var(--texto2); }
+    @keyframes pulse { 0%,100%{box-shadow:0 0 0 0 rgba(255,215,0,.4)} 50%{box-shadow:0 0 0 10px rgba(255,215,0,0)} }
+
+    /* Cabeçalho do card */
+    .season-tag {
+      display:inline-flex; align-items:center; gap:6px;
+      font-size:10px; letter-spacing:2px; text-transform:uppercase;
+      padding:3px 10px; border-radius:20px; margin-bottom:10px;
+    }
+    .season-tag.t0 { background:rgba(34,197,94,.1); color:var(--verde); border:1px solid rgba(34,197,94,.3); }
+    .season-tag.t1 { background:var(--amarelo-bg); color:var(--amarelo); border:1px solid rgba(255,215,0,.3); }
+    .season-tag.t2 { background:var(--roxo-bg); color:var(--roxo2); border:1px solid rgba(123,47,190,.4); }
+    .season-tag.t3 { background:rgba(255,255,255,.05); color:var(--texto2); border:1px solid rgba(255,255,255,.15); }
+
+    .timeline-content h2 { font-size:20px; color:var(--branco); margin-bottom:6px; }
+    .timeline-content .subtitle { font-size:13px; color:var(--texto2); margin-bottom:16px; }
+
+    /* Feature list */
+    .feature-list { list-style:none; display:flex; flex-direction:column; gap:8px; }
+    .feature-list li {
+      display:flex; align-items:flex-start; gap:10px;
+      font-size:13px; color:var(--texto);
+    }
+    .feature-list li i { color:var(--amarelo); margin-top:2px; flex-shrink:0; width:14px; }
+    .feature-list li i.roxo { color:var(--roxo2); }
+    .feature-list li i.verde { color:var(--verde); }
+    .feature-list li i.muted { color:var(--texto2); }
+    .feature-list li span.done-text { text-decoration:line-through; opacity:.6; }
+
+    /* Status badge */
+    .status-badge {
+      display:inline-flex; align-items:center; gap:5px;
+      padding:4px 12px; border-radius:20px; font-size:11px; margin-top:14px;
+    }
+    .status-badge.done     { background:rgba(34,197,94,.1); color:var(--verde); border:1px solid rgba(34,197,94,.3); }
+    .status-badge.active   { background:var(--amarelo-bg); color:var(--amarelo); border:1px solid rgba(255,215,0,.3); }
+    .status-badge.soon     { background:var(--roxo-bg); color:var(--roxo2); border:1px solid rgba(123,47,190,.4); }
+    .status-badge.future   { background:rgba(255,255,255,.05); color:var(--texto2); border:1px solid rgba(255,255,255,.1); }
+
+    /* Separador de fase */
+    .phase-divider {
+      text-align:center; margin:40px 0; position:relative;
+    }
+    .phase-divider::before {
+      content:''; position:absolute; left:0; right:0; top:50%;
+      border-top:1px solid var(--borda);
+    }
+    .phase-divider span {
+      position:relative; background:var(--preto);
+      padding:6px 20px; border-radius:20px;
+      border:1px solid var(--borda);
+      color:var(--texto2); font-size:12px; letter-spacing:2px; text-transform:uppercase;
+    }
+
+    /* Ad in-roadmap — 728×90 */
+    .ad-roadmap {
+      width:100%; max-width:728px; height:90px;
+      margin:40px auto;
+      background:rgba(255,215,0,.04);
+      border:1px dashed rgba(255,215,0,.15);
+      border-radius:6px; display:flex; align-items:center; justify-content:center;
+      color:var(--texto2); font-size:12px;
+    }
+
+    /* ── LEGENDA ── */
+    .legenda {
+      max-width:960px; margin:0 auto 60px;
+      padding:0 24px;
+      display:flex; gap:20px; flex-wrap:wrap; justify-content:center;
+    }
+    .legenda-item { display:flex; align-items:center; gap:8px; font-size:13px; color:var(--texto2); }
+    .dot { width:12px; height:12px; border-radius:50%; }
+    .dot.done   { background:var(--verde); }
+    .dot.active { background:var(--amarelo); }
+    .dot.soon   { background:var(--roxo); }
+    .dot.future { background:rgba(255,255,255,.2); border:1px solid rgba(255,255,255,.3); }
+
+    /* ── CONTADOR T2 ── */
+    .t2-countdown {
+      max-width:700px; margin:0 auto 60px;
+      background:linear-gradient(135deg,rgba(123,47,190,.2),rgba(2,6,15,.8));
+      border:1px solid var(--roxo); border-radius:16px; padding:32px;
+      text-align:center;
+    }
+    .t2-countdown h3 { color:var(--roxo2); font-size:16px; letter-spacing:1px; text-transform:uppercase; margin-bottom:8px; }
+    .t2-countdown p  { color:var(--texto2); font-size:14px; margin-bottom:20px; }
+    .countdown-boxes { display:flex; justify-content:center; gap:16px; }
+    .cd-box { background:var(--card); border:1px solid rgba(123,47,190,.4); border-radius:10px; padding:12px 20px; min-width:70px; }
+    .cd-box strong { display:block; font-size:28px; color:var(--roxo2); }
+    .cd-box small { font-size:10px; color:var(--texto2); text-transform:uppercase; letter-spacing:1px; }
+
+    /* ── FOOTER ── */
+    footer {
+      border-top:1px solid var(--borda); padding:40px;
+      text-align:center; color:var(--texto2); font-size:13px;
+    }
+    .footer-links { display:flex; gap:24px; justify-content:center; margin-bottom:14px; }
+    .footer-links a { color:var(--texto2); text-decoration:none; transition:color .2s; }
+    .footer-links a:hover { color:var(--amarelo); }
+    .ad-rodape {
+      width:100%; max-width:728px; height:90px; margin:0 auto 24px;
+      background:rgba(255,215,0,.04); border:1px dashed rgba(255,215,0,.15);
+      border-radius:6px; display:flex; align-items:center; justify-content:center;
+      color:var(--texto2); font-size:12px;
+    }
+
+    @media(max-width:768px) {
+      .timeline::before { left:24px; }
+      .timeline-item, .timeline-item:nth-child(even) { flex-direction:column !important; padding-left:56px; }
+      .timeline-node { position:absolute; left:0; width:48px; padding-top:0; }
+      .timeline-content { width:100%; }
+      .timeline-content::after, .timeline-item:nth-child(even) .timeline-content::after { display:none; }
+      header { padding:0 16px; }
+      .hero { padding:40px 16px 30px; }
+      .countdown-boxes { flex-wrap:wrap; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ── LOADER ── -->
+<div id="nm-loader">
+  <!-- SLOT AD L1 — Loader — 320×100 -->
+  <div class="loader-ad-top" id="ad-loader-1">Publicidade 320×100</div>
+  <div class="hive-tank">
+    <div class="honey-fill"><div class="honey-wave"></div></div>
+  </div>
+  <span style="color:var(--amarelo);font-size:13px;letter-spacing:2px;">🍯 NECTARMINE</span>
+  <p id="loader-text">Carregando missão futura...</p>
+  <div class="loading-bar"><span></span></div>
+  <!-- SLOT AD L2 — Loader — 320×50 -->
+  <div class="loader-ad-bot" id="ad-loader-2">Publicidade 320×50</div>
+</div>
+
+<!-- ── AD TOPO 970×90 ── -->
+<div class="ad-topo">
+  <div class="ad-topo-inner" id="ad-topo">Publicidade 970×90</div>
+</div>
+
+<!-- ── HEADER ── -->
+<header>
+  <a href="/dashboard" class="header-logo">
+    <i class="fa-solid fa-hexagon-nodes"></i> NectarMine
+  </a>
+  <nav class="header-nav">
+    <a href="/whitepaper">Whitepaper</a>
+    <a href="/roadmap">Roadmap</a>
+    <a href="/dashboard">Entrar no Jogo</a>
+  </nav>
+</header>
+
+<!-- ── HERO ── -->
+<section class="hero">
+  <div class="hero-badge">Plano Oficial de Desenvolvimento</div>
+  <h1>Road<span>map</span></h1>
+  <p>Veja para onde o NectarMine está indo. Cada temporada expande o ecossistema com novas mecânicas, apiários e oportunidades.</p>
+  <div class="season-filter">
+    <button class="sf-btn active" onclick="filterSeason('all',this)">Tudo</button>
+    <button class="sf-btn" onclick="filterSeason('t0',this)">Fundação</button>
+    <button class="sf-btn" onclick="filterSeason('t1',this)">T1 — Colmeia</button>
+    <button class="sf-btn" onclick="filterSeason('t2',this)">T2 — Entregas</button>
+    <button class="sf-btn" onclick="filterSeason('t3',this)">T3 — Expansão</button>
+  </div>
+</section>
+
+<!-- ── LEGENDA ── -->
+<div class="legenda">
+  <div class="legenda-item"><div class="dot done"></div> Concluído</div>
+  <div class="legenda-item"><div class="dot active"></div> Em andamento</div>
+  <div class="legenda-item"><div class="dot soon"></div> Em breve</div>
+  <div class="legenda-item"><div class="dot future"></div> Futuro</div>
+</div>
+
+<!-- ── LINHA DO TEMPO ── -->
+<div class="roadmap-wrap">
+  <div class="timeline" id="timeline">
+
+    <!-- ══ FASE 0 — FUNDAÇÃO ══ -->
+    <div class="timeline-item" data-season="t0">
+      <div class="timeline-content">
+        <div class="season-tag t0"><i class="fa-solid fa-seedling"></i> Fase 0</div>
+        <h2>Fundação</h2>
+        <p class="subtitle">Concepção, arquitetura e infraestrutura da plataforma</p>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-check verde"></i><span class="done-text">Definição do conceito e tema</span></li>
+          <li><i class="fa-solid fa-check verde"></i><span class="done-text">Arquitetura do banco de dados</span></li>
+          <li><i class="fa-solid fa-check verde"></i><span class="done-text">Sistema de autenticação e sessões</span></li>
+          <li><i class="fa-solid fa-check verde"></i><span class="done-text">Engine de produção por tempo real</span></li>
+          <li><i class="fa-solid fa-check verde"></i><span class="done-text">Integração AdsTerra e ZerAds</span></li>
+          <li><i class="fa-solid fa-check verde"></i><span class="done-text">Whitepaper e Roadmap oficiais</span></li>
+        </ul>
+        <div class="status-badge done"><i class="fa-solid fa-check"></i> Concluído</div>
+      </div>
+      <div class="timeline-node">
+        <div class="node-circle done"><i class="fa-solid fa-check"></i></div>
+      </div>
+      <div style="width:calc(50% - 40px);"></div>
+    </div>
+
+    <!-- AD entre seções — 728×90 -->
+    <div class="ad-roadmap" id="ad-rm-1">Publicidade 728×90</div>
+
+    <!-- ══ T1 — COLMEIA (LANÇAMENTO) ══ -->
+    <div class="timeline-item" data-season="t1">
+      <div style="width:calc(50% - 40px);"></div>
+      <div class="timeline-node">
+        <div class="node-circle active">🍯</div>
+      </div>
+      <div class="timeline-content">
+        <div class="season-tag t1"><i class="fa-solid fa-fire"></i> Temporada 1 — Atual</div>
+        <h2>Colmeia</h2>
+        <p class="subtitle">Lançamento oficial — produção, mercado e stake</p>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-check verde"></i> Sistema de login e cadastro</li>
+          <li><i class="fa-solid fa-check verde"></i> Dashboard com painel de produção</li>
+          <li><i class="fa-solid fa-check verde"></i> 14 tipos de apiários com validade por lote</li>
+          <li><i class="fa-solid fa-check verde"></i> Colmeia principal (reservatório)</li>
+          <li><i class="fa-solid fa-check verde"></i> Envasar potes da colmeia</li>
+          <li><i class="fa-solid fa-check verde"></i> Sistema de flores (energia)</li>
+          <li><i class="fa-solid fa-check verde"></i> Mercado de mel com gráfico candlestick</li>
+          <li><i class="fa-solid fa-check verde"></i> Honey Stake (3 planos: 5% / 10% / 20%)</li>
+          <li><i class="fa-solid fa-check verde"></i> 7 missões diárias com recompensas</li>
+          <li><i class="fa-solid fa-check verde"></i> Ranking semanal de produção</li>
+          <li><i class="fa-solid fa-check verde"></i> Programa de Abelhas (indicação)</li>
+          <li><i class="fa-solid fa-check verde"></i> Ganhar Néctar via PTC (ZerAds)</li>
+          <li><i class="fa-solid fa-check verde"></i> Saque em 5 criptomoedas</li>
+          <li><i class="fa-solid fa-check verde"></i> Sistema de XP e níveis</li>
+          <li><i class="fa-solid fa-check verde"></i> Whitepaper e Roadmap integrados</li>
+        </ul>
+        <div class="status-badge active"><i class="fa-solid fa-circle-dot"></i> Em andamento — 2026</div>
+      </div>
+    </div>
+
+    <!-- AD entre seções — 728×90 -->
+    <div class="ad-roadmap" id="ad-rm-2">Publicidade 728×90</div>
+
+    <!-- ══ T2 — ENTREGAS ══ -->
+    <div class="timeline-item" data-season="t2">
+      <div class="timeline-content">
+        <div class="season-tag t2"><i class="fa-solid fa-truck-fast"></i> Temporada 2 — Em breve</div>
+        <h2>Sistema de Entregas</h2>
+        <p class="subtitle">Logística, refinadoras parceiras e ranking de entregadores</p>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-clock roxo"></i> Contratos de entrega com refinadoras</li>
+          <li><i class="fa-solid fa-clock roxo"></i> 3 categorias de refinadora (Local / Regional / Global)</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Multiplicadores de bônus x1.10 até x1.75</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Entregas com tempo de espera (10 min a 12h)</li>
+          <li><i class="fa-solid fa-clock roxo"></i> EXP adicional por entrega concluída</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Ranking semanal de entregadores</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Prêmio: apiários especiais para top 10</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Novas métricas no painel de estatísticas</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Histórico de entregas realizadas</li>
+          <li><i class="fa-solid fa-clock roxo"></i> Missão diária exclusiva de entrega</li>
+        </ul>
+        <div class="status-badge soon"><i class="fa-solid fa-clock"></i> Previsto após estabilização da T1</div>
+      </div>
+      <div class="timeline-node">
+        <div class="node-circle upcoming"><i class="fa-solid fa-truck"></i></div>
+      </div>
+      <div style="width:calc(50% - 40px);"></div>
+    </div>
+
+    <!-- ══ T2 COUNTDOWN ══ -->
+    <div class="t2-countdown" id="t2-countdown">
+      <h3>🚚 Temporada 2 — Sistema de Entregas</h3>
+      <p>Aguarde o lançamento. Jogadores da T1 receberão vantagens exclusivas no início da T2.</p>
+      <div class="countdown-boxes">
+        <div class="cd-box"><strong id="cd-d">--</strong><small>Dias</small></div>
+        <div class="cd-box"><strong id="cd-h">--</strong><small>Horas</small></div>
+        <div class="cd-box"><strong id="cd-m">--</strong><small>Min</small></div>
+        <div class="cd-box"><strong id="cd-s">--</strong><small>Seg</small></div>
+      </div>
+    </div>
+
+    <!-- AD entre seções — 728×90 -->
+    <div class="ad-roadmap" id="ad-rm-3">Publicidade 728×90</div>
+
+    <!-- ══ T3 — EXPANSÃO ══ -->
+    <div class="timeline-item" data-season="t3">
+      <div style="width:calc(50% - 40px);"></div>
+      <div class="timeline-node">
+        <div class="node-circle future"><i class="fa-solid fa-rocket"></i></div>
+      </div>
+      <div class="timeline-content">
+        <div class="season-tag t3"><i class="fa-solid fa-rocket"></i> Temporada 3 — Visão Futura</div>
+        <h2>Expansão Global</h2>
+        <p class="subtitle">Novas mecânicas, colônias e mercado global</p>
+        <ul class="feature-list">
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> Colônias de Abelhas (clãs/guilds)</li>
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> Mercado Global entre jogadores (P2P)</li>
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> Novos tipos de mel (premium, orgânico, cristalizado)</li>
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> Eventos sazonais temáticos</li>
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> Apiários especiais por tempo limitado</li>
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> App mobile (iOS / Android)</li>
+          <li><i class="fa-solid fa-circle muted" style="font-size:8px;margin-top:5px;"></i> Suporte a novos idiomas</li>
+        </ul>
+        <div class="status-badge future"><i class="fa-solid fa-ellipsis"></i> Planejamento futuro</div>
+      </div>
+    </div>
+
+  </div><!-- /timeline -->
+</div><!-- /roadmap-wrap -->
+
+<!-- ── FOOTER ── -->
+<footer>
+  <div class="ad-rodape" id="ad-rodape">Publicidade 728×90</div>
+  <div class="footer-links">
+    <a href="/dashboard">Jogar</a>
+    <a href="/whitepaper">Whitepaper</a>
+    <a href="/roadmap">Roadmap</a>
+    <a href="/parceiros">Indicação</a>
+    <a href="/transferencias">Saques</a>
+  </div>
+  <p>© 2026 <span style="color:var(--amarelo);">NectarMine</span>. Todos os direitos reservados.</p>
+</footer>
+
+<script>
+  // Loader
+  const loaderTexts = ['Mapeando rotas de entrega...','Projetando a colmeia do futuro...','Planejando temporadas...','Carregando o roadmap...'];
+  let ti = 0;
+  const lt = document.getElementById('loader-text');
+  setInterval(() => { ti=(ti+1)%loaderTexts.length; lt.textContent=loaderTexts[ti]; }, 900);
+  window.addEventListener('load', () => {
+    setTimeout(() => {
+      document.getElementById('nm-loader').classList.add('hide');
+      setTimeout(() => document.getElementById('nm-loader').remove(), 500);
+    }, 2400);
+  });
+
+  // Filtro de temporadas
+  function filterSeason(season, btn) {
+    document.querySelectorAll('.sf-btn').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    document.querySelectorAll('.timeline-item').forEach(item => {
+      if (season === 'all' || item.dataset.season === season) {
+        item.style.display = '';
+      } else {
+        item.style.display = 'none';
+      }
+    });
+  }
+
+  // Scroll reveal
+  const observer = new IntersectionObserver(entries => {
+    entries.forEach(e => { if(e.isIntersecting) e.target.classList.add('visible'); });
+  }, { threshold: 0.1 });
+  document.querySelectorAll('.timeline-item').forEach(el => observer.observe(el));
+
+  // Countdown para T2 (data alvo: 90 dias a partir de hoje)
+  const target = new Date();
+  target.setDate(target.getDate() + 90);
+  function updateCountdown() {
+    const now = new Date();
+    const diff = target - now;
+    if (diff <= 0) {
+      document.getElementById('t2-countdown').innerHTML = '<h3 style="color:var(--amarelo)">🚀 Temporada 2 Lançada!</h3>';
+      return;
+    }
+    const d = Math.floor(diff/86400000);
+    const h = Math.floor((diff%86400000)/3600000);
+    const m = Math.floor((diff%3600000)/60000);
+    const s = Math.floor((diff%60000)/1000);
+    document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
+    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+  }
+  updateCountdown();
+  setInterval(updateCountdown, 1000);
+</script>
+</body>
+</html>

@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Ranking de Entregas (Em Breve)</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <style>
+    .em-breve-wrap {
+      min-height: 70vh; display:flex; flex-direction:column;
+      align-items:center; justify-content:center; text-align:center;
+      padding: 40px 20px;
+    }
+    .t2-badge {
+      background: var(--roxo-bg); border: 2px solid var(--roxo);
+      color: var(--roxo2); font-size: 12px; font-weight: bold; letter-spacing: 2px;
+      padding: 6px 20px; border-radius: 20px; margin-bottom: 20px; display:inline-block;
+    }
+    .em-breve-icon { font-size: 72px; margin-bottom: 16px; }
+    .em-breve-wrap h1 { font-size: 32px; color: var(--branco); margin-bottom: 10px; }
+    .em-breve-wrap h1 em { color: var(--roxo2); font-style: normal; }
+    .em-breve-wrap p { font-size: 15px; color: var(--texto2); max-width: 500px; margin-bottom: 28px; line-height: 1.8; }
+
+    /* Countdown */
+    .countdown { display: flex; gap: 20px; justify-content: center; margin-bottom: 32px; }
+    .cd-block { background: var(--roxo-bg); border: 1px solid var(--borda-roxo); border-radius: var(--radius); padding: 16px 20px; min-width: 80px; text-align: center; }
+    .cd-block strong { display: block; font-size: 32px; color: var(--roxo2); font-family: monospace; }
+    .cd-block span { font-size: 11px; color: var(--texto3); letter-spacing: 1px; }
+
+    /* Preview features */
+    .preview-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px,1fr)); gap: 14px; max-width: 800px; margin: 0 auto 28px; }
+    .preview-item { background: var(--card); backdrop-filter: blur(10px); border: 1px solid rgba(123,47,190,.3); border-radius: var(--radius); padding: 16px; text-align: center; }
+    .preview-item .emoji { font-size: 28px; margin-bottom: 8px; }
+    .preview-item h4 { font-size: 13px; color: var(--branco); margin-bottom: 4px; }
+    .preview-item p { font-size: 11px; color: var(--texto3); }
+  </style>
+</head>
+<body>
+<!-- LOADER -->
+<div id="nm-loader">
+  <div class="petro-scene">
+    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
+    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
+    <span class="loader-logo">🍯 NectarMine</span>
+    <p id="loader-text">Preparando Temporada 2...</p>
+    <div class="loading-bar"><span></span></div>
+    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+  </div>
+</div>
+
+<!-- SIDEBAR -->
+<nav class="sidebar" id="sidebar">
+  <div class="sidebar-logo"><i class="fa-solid fa-hexagon-nodes"></i><span>NectarMine</span></div>
+  <div class="sidebar-user"><div class="user-avatar">🐝</div><div class="user-info"><strong>BIFFI</strong><span>ID #104</span></div><div class="user-level">Nv.12</div></div>
+  <div class="sidebar-stats"><div class="sidebar-stat"><span>Néctar</span><strong>48.320</strong></div><div class="sidebar-stat"><span>Potes</span><strong>1.247</strong></div></div>
+  <nav class="sidebar-nav">
+    <a href="dashboard.html"         class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
+    <a href="mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
+    <a href="envasar.html"           class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
+    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
+    <a href="upgrades.html"          class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
+    <a href="stake.html"             class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
+    <a href="desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
+    <a href="ganhar-nectar.html"     class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
+    <a href="estatisticas.html"      class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
+    <a href="parceiros.html"         class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
+    <div class="nav-divider"></div>
+    <a href="whitepaper.html"        class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
+    <a href="roadmap.html"           class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
+    <a href="/logout"                class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </nav>
+</nav>
+<button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
+
+<div class="nm-layout">
+  <main class="page-content" style="padding:80px 20px 30px;">
+    <div class="anuncio anuncio-728" style="margin-bottom:20px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+    <div class="em-breve-wrap">
+      <div class="t2-badge">🚀 TEMPORADA 2 — EM BREVE</div>
+      <div class="em-breve-icon">🚚</div>
+      <h1>Sistema de <em>Entregas</em></h1>
+      <p>A Temporada 2 do NectarMine trará o sistema completo de logística e entregas de mel. Contrate entregadores, gerencie rotas e ganhe muito mais Néctar!</p>
+
+      <!-- Countdown -->
+      <div class="countdown">
+        <div class="cd-block"><strong id="cd-d">89</strong><span>DIAS</span></div>
+        <div class="cd-block"><strong id="cd-h">23</strong><span>HORAS</span></div>
+        <div class="cd-block"><strong id="cd-m">12</strong><span>MIN</span></div>
+        <div class="cd-block"><strong id="cd-s">44</strong><span>SEG</span></div>
+      </div>
+
+      <!-- Preview -->
+      <div class="preview-grid">
+        <div class="preview-item">
+          <div class="emoji">🚚</div>
+          <h4>Entregadores</h4>
+          <p>Contrate e gerencie entregadores para distribuir seu mel.</p>
+        </div>
+        <div class="preview-item">
+          <div class="emoji">🗺️</div>
+          <h4>Rotas de Entrega</h4>
+          <p>Mapa interativo com rotas e pontos de entrega.</p>
+        </div>
+        <div class="preview-item">
+          <div class="emoji">📦</div>
+          <h4>Contratos</h4>
+          <p>Assine contratos com clientes e garanta demanda constante.</p>
+        </div>
+        <div class="preview-item">
+          <div class="emoji">🏆</div>
+          <h4>Ranking de Entregas</h4>
+          <p>Compete pelo topo do ranking e ganhe recompensas extras.</p>
+        </div>
+      </div>
+
+      <div style="display:flex;gap:12px;flex-wrap:wrap;justify-content:center;">
+        <a href="roadmap.html" class="btn btn-roxo btn-lg"><i class="fa-solid fa-map"></i> Ver Roadmap</a>
+        <a href="dashboard.html" class="btn btn-secondary btn-lg"><i class="fa-solid fa-gauge-high"></i> Voltar ao Dashboard</a>
+      </div>
+    </div>
+
+    <div class="anuncio anuncio-728" style="margin-top:20px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  </main>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  // Countdown 90 dias
+  const target = new Date();
+  target.setDate(target.getDate() + 90);
+
+  function updateCountdown() {
+    const now = new Date();
+    const diff = Math.max(0, target - now);
+    const d = Math.floor(diff / 86400000);
+    const h = Math.floor((diff % 86400000) / 3600000);
+    const m = Math.floor((diff % 3600000) / 60000);
+    const s = Math.floor((diff % 60000) / 1000);
+    document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
+    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
+    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
+    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
+  }
+  setInterval(updateCountdown, 1000);
+  updateCountdown();
+</script>
+</body>
+</html>

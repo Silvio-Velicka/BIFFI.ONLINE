@@ -1,0 +1,143 @@
+====================================================
+  NECTARMINE — MEDIDAS DE PROPAGANDAS
+  Guia para contratação de anunciantes
+====================================================
+
+RESUMO GERAL
+------------
+Total de slots por página: entre 5 e 12
+Páginas com maior volume de ads: Dashboard, Mercado, Whitepaper
+Todas as páginas têm loader com 2 slots fixos (AD-L1 e AD-L2)
+
+
+====================================================
+1. SLOTS FIXOS — APARECEM EM TODAS AS PÁGINAS
+====================================================
+
+AD-L1  |  320 × 100 px  |  "Large Mobile Banner"
+  → Dentro do loader animado (topo)
+  → Aparece ANTES de qualquer conteúdo, enquanto a página carrega
+  → Alta visibilidade garantida em cada acesso
+
+AD-L2  |  320 × 50 px   |  "Mobile Leaderboard"
+  → Dentro do loader animado (rodapé)
+  → Exibido junto com AD-L1 durante o carregamento
+
+
+====================================================
+2. SLOTS DE TOPO — APARECEM EM TODAS AS PÁGINAS
+====================================================
+
+AD-T1  |  970 × 90 px   |  "Super Leaderboard / Billboard"
+  → Fixo logo abaixo do header de cada página
+  → Versão desktop (escondido no mobile)
+
+AD-M1  |  320 × 50 px   |  "Mobile Leaderboard"
+  → Rodapé em dispositivos móveis
+  → Substitui o AD-T1 no mobile
+
+
+====================================================
+3. SLOTS DE CONTEÚDO — POR TIPO/POSIÇÃO
+====================================================
+
+AD-C1  |  728 × 90 px   |  "Leaderboard"
+  → Faixa horizontal no meio do conteúdo
+  → Aparece 1 a 3 vezes por página (entre seções)
+  → Desktop e tablet
+
+AD-C2  |  300 × 250 px  |  "Medium Rectangle"
+  → Quadrado lateral (float right) ou centralizado
+  → Aparece dentro de cards e colunas laterais
+  → Funciona em desktop e mobile
+
+AD-C3  |  160 × 300 px  |  "Half Page / Wide Skyscraper"
+  → Coluna lateral alta (sidebar de conteúdo)
+  → Usado no Whitepaper e Meus Apiários
+
+
+====================================================
+4. SLOTS ESPECIAIS — MODAIS COM ANÚNCIO
+====================================================
+
+AD-M2  |  300 × 250 px  |  "Interstitial Modal"
+  → Aparece DENTRO do modal SweetAlert2 antes de confirmações
+  → Momentos de exibição:
+      - Confirmação de Envase de potes
+      - Confirmação de Venda no Mercado
+      - Confirmação de Honey Stake
+      - Confirmação de Saque em crypto
+      - Coleta de missões e desafios
+      - Compra de apiários
+      - Compra de flores
+      - Upgrade de máquinas
+  → Captive audience: usuário vê o ad antes de clicar em confirmar
+
+
+====================================================
+5. SLOTS DO ROADMAP
+====================================================
+
+AD-RM  |  728 × 90 px   |  "Leaderboard"
+  → Entre os blocos da linha do tempo
+  → 3 posições na página do Roadmap
+
+
+====================================================
+6. SLOTS DO WHITEPAPER
+====================================================
+
+AD-WP1 |  970 × 90 px   |  "Super Leaderboard"  — topo
+AD-WP2 |  160 × 300 px  |  "Half Page"          — sidebar (scroll junto)
+AD-WP3 |  300 × 250 px  |  "Medium Rectangle"   — flutuante, 3× no conteúdo
+AD-WP4 |  728 × 90 px   |  "Leaderboard"        — rodapé
+
+
+====================================================
+7. TABELA RESUMIDA PARA ANUNCIANTES
+====================================================
+
+Código  | Tamanho (px)  | Nome IAB                     | Posição
+--------|---------------|------------------------------|---------------------------
+AD-L1   | 320 × 100     | Large Mobile Banner          | Loader (topo) — todas pág.
+AD-L2   | 320 × 50      | Mobile Leaderboard           | Loader (rodapé) — todas pág.
+AD-T1   | 970 × 90      | Super Leaderboard/Billboard  | Topo das páginas (desktop)
+AD-M1   | 320 × 50      | Mobile Leaderboard           | Rodapé mobile
+AD-C1   | 728 × 90      | Leaderboard                  | Entre seções de conteúdo
+AD-C2   | 300 × 250     | Medium Rectangle             | Colunas laterais e cards
+AD-C3   | 160 × 300     | Half Page / Wide Skyscraper  | Sidebar longa (Whitepaper)
+AD-M2   | 300 × 250     | Interstitial (modal)         | Modais de confirmação
+
+
+====================================================
+8. ESTIMATIVA DE IMPRESSÕES POR ACESSO
+====================================================
+
+Por visita de um usuário (navegando 5 páginas):
+  - Loaders: 2 slots × 5 páginas = 10 exibições
+  - Topos: 1 slot × 5 páginas    =  5 exibições
+  - Conteúdo: ~2 slots × 5 pág.  = 10 exibições
+  - Modais: ~2 ações confirmadas  =  2 exibições
+  ----------------------------------------------------
+  TOTAL ESTIMADO: ~27 impressões por sessão
+
+
+====================================================
+9. OBSERVAÇÕES TÉCNICAS
+====================================================
+
+- Todos os slots usam classe CSS padrão (.anuncio + variante)
+- Slots desktop/mobile são controlados por classes:
+    .anuncio-desktop  → visível só no desktop
+    .anuncio-mobile   → visível só no mobile
+- Os modais com anúncio (AD-M2) são integrados via JavaScript
+  (função NM_SWAL.withAd) — o slot é renderizado dentro do modal
+- Recomendação de rede: AdsTerra, Google AdSense, ou rede própria
+- Slots de loader (AD-L1 / AD-L2) são especialmente valiosos:
+  o usuário não pode fechar o loader — visualização garantida de 2,4s
+
+
+====================================================
+  NectarMine — Todos os direitos reservados
+  Temporada 1 | 2026
+====================================================

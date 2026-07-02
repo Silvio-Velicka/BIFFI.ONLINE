@@ -1,0 +1,77 @@
+====================================================
+  NECTARMINE — SERVIDOR & BANCO DE USUÁRIOS
+  Como rodar e como funciona
+====================================================
+
+REQUISITO
+---------
+Node.js versão 22 ou superior (baixe em https://nodejs.org)
+Verifique com:  node --version
+
+Não precisa instalar nada mais — zero dependências.
+
+
+COMO RODAR
+----------
+1. Abra o Prompt de Comando (cmd) na pasta NectarMine
+2. Rode:   node server/server.js
+3. Abra:   http://localhost:3000
+
+O site DEVE ser acessado pelo endereço acima (não abra
+os arquivos .html direto), senão o login não funciona.
+
+O banco de dados é criado automaticamente em:
+  server/nectarmine.db  (arquivo SQLite)
+
+Se aparecer erro citando "sqlite" ou "experimental",
+sua versão do Node é mais antiga — rode assim:
+  node --experimental-sqlite server/server.js
+(ou atualize o Node para a versão mais recente)
+
+
+O QUE JÁ FUNCIONA
+-----------------
+✔ Cadastro de conta (usuário + e-mail + senha)
+✔ Login e logout (sessões de 30 dias)
+✔ Senhas criptografadas (scrypt + salt)
+✔ Páginas do jogo protegidas — sem login, redireciona
+  para login.html (públicas: index, whitepaper, roadmap)
+✔ Sidebar mostra o usuário real (nome, ID, nível, NCT, potes)
+✔ Estado do jogo por usuário: NCT, mel, flores, potes
+  + campo livre (data) para apiários, upgrades etc.
+✔ Novo jogador começa com 1.000 NCT e 100 flores
+✔ Ranking de produção REAL (diário, semanal, mensal, all time)
+✔ Ranking de entregas preparado para a Temporada 2
+
+
+API (para integrar as ações do jogo)
+------------------------------------
+No JavaScript das páginas, use o objeto NM_API (js/api.js):
+
+  NM_API.me()                     → usuário + estado do jogo
+  NM_API.saveState({nct, mel, flores, potes, level, data})
+  NM_API.event('producao', 384)   → registra produção (ranking)
+  NM_API.event('entrega', 10)     → registra entrega (T2)
+  NM_API.ranking('producao', 'diario' | 'semanal' | 'mensal' | 'alltime')
+  NM_API.logout()
+
+Nas páginas protegidas, o evento 'nm:ready' dispara quando
+o usuário está carregado:
+
+  document.addEventListener('nm:ready', (e) => {
+    const { user, state } = e.detail;
+    // atualizar a tela com os dados reais
+  });
+
+
+PRÓXIMOS PASSOS SUGERIDOS
+-------------------------
+1. Ligar as ações do jogo (coletar, envasar, comprar,
+   upgrade) ao NM_API.saveState / NM_API.event
+2. Recuperação de senha por e-mail
+3. Código de indicação (parceiros.html)
+4. Hospedar o servidor (Railway, Render, VPS…)
+
+====================================================
+  NectarMine — Temporada 1 | 2026
+====================================================
