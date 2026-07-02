@@ -49,4 +49,8 @@
 - [ ] URLs reais do Instagram, Facebook e Telegram no footer
 - [ ] Links reais de compra na Loja (botões "Comprar agora")
 - [ ] Conteúdo real para posts do Blog
-- [ ] Materiais reais para download na Bibliot
+- [ ] Materiais reais para download na Biblioteca
+
+## Dev
+- **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com
+- **WhatsApp Dev:** +55 11 94737-7498
