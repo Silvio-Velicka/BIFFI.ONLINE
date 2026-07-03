@@ -36,4 +36,30 @@
 - **Fontes:** Georgia (títulos), Arial (corpo)
 - **Elementos fixos:** Header e Footer em todas as páginas
 - **Abelhas:** 10 animadas em cada página (position: fixed, pointer-events: none)
-- **Ícones:** Font Awesome 6.5 via CDN (cdn
+- **Ícones:** Font Awesome 6.5 via CDN (cdnjs.cloudflare.com)
+
+## Rodapé
+- **Esquerda:** Contatos → WhatsApp / Instagram / Facebook / Telegram
+- **Centro:** 🐝 © 2025 BIFFI.ONLINE — feito com amor
+- **Direita:** "Dev" (hover mostra tooltip → clique abre WhatsApp do dev)
+
+## Contatos / Redes Sociais
+- **WhatsApp (site):** +55 11 94737-7498 → https://wa.me/5511947377498
+- **Instagram:** a preencher (href="#" em todos os footers)
+- **Facebook:** a preencher (href="#" em todos os footers)
+- **Telegram:** a preencher (href="#" em todos os footers)
+
+## Imagem
+- `Capa BIFFI .jpeg` — capa do livro, usada na home e na loja
+
+## Pendências
+- [ ] Foto real na página Sobre (substituir emoji 🐝 por `<img>`)
+- [ ] Texto biográfico real na página Sobre
+- [ ] URLs reais do Instagram, Facebook e Telegram no footer
+- [ ] Links reais de compra na Loja (botões "Comprar agora")
+- [ ] Conteúdo real para posts do Blog
+- [ ] Materiais reais para download na Biblioteca
+
+## Dev
+- **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com
+- **WhatsApp Dev:** +55 11 94737-7498
