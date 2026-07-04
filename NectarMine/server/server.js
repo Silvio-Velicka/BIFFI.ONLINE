@@ -58,6 +58,18 @@ db.exec(`
     created_at TEXT NOT NULL DEFAULT (datetime('now'))
   );
   CREATE INDEX IF NOT EXISTS idx_event ON event_log (tipo, created_at);
+
+  -- Modal comunicativo da tela de login (editável futuramente por um painel admin)
+  CREATE TABLE IF NOT EXISTS site_config (
+    id                INTEGER PRIMARY KEY CHECK (id = 1),
+    anuncio_ativo     INTEGER NOT NULL DEFAULT 1,
+    anuncio_titulo    TEXT    NOT NULL DEFAULT '🍯 Bem-vindo ao NectarMine!',
+    anuncio_texto     TEXT    NOT NULL DEFAULT 'Produza mel, negocie no mercado e construa sua colmeia digital.',
+    anuncio_subtitulo TEXT    NOT NULL DEFAULT 'Aviso importante',
+    anuncio_texto2    TEXT    NOT NULL DEFAULT 'Este é um jogo de simulação. Nenhum valor possui garantia de retorno real.',
+    updated_at        TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  INSERT OR IGNORE INTO site_config (id) VALUES (1);
 `);
 
 /* ── HELPERS ── */
@@ -222,6 +234,44 @@ const routes = {
       level: r.level, nct: r.nct, score: Number(r.score), me: user ? r.id === user.id : false
     }));
     json(res, 200, { tipo, periodo, ranking });
+  },
+
+  // Modal comunicativo da tela de login — público, sem autenticação
+  'GET /api/announcement': async (req, res) => {
+    const row = db.prepare(`
+      SELECT anuncio_ativo, anuncio_titulo, anuncio_texto, anuncio_subtitulo, anuncio_texto2
+      FROM site_config WHERE id = 1
+    `).get();
+    json(res, 200, {
+      ativo: !!(row && row.anuncio_ativo),
+      titulo: row ? row.anuncio_titulo : '',
+      texto: row ? row.anuncio_texto : '',
+      subtitulo: row ? row.anuncio_subtitulo : '',
+      texto2: row ? row.anuncio_texto2 : '',
+    });
+  },
+
+  // Atualiza o modal comunicativo — reservado para o futuro painel admin.
+  // Protegido por chave simples (header x-admin-key) até existir login de admin de verdade.
+  'PUT /api/announcement': async (req, res) => {
+    const key = req.headers['x-admin-key'] || '';
+    if (!process.env.ADMIN_KEY || key !== process.env.ADMIN_KEY) {
+      return json(res, 403, { error: 'Não autorizado.' });
+    }
+    const b = await readBody(req);
+    db.prepare(`
+      UPDATE site_config SET
+        anuncio_ativo = ?, anuncio_titulo = ?, anuncio_texto = ?,
+        anuncio_subtitulo = ?, anuncio_texto2 = ?, updated_at = datetime('now')
+      WHERE id = 1
+    `).run(
+      b.ativo ? 1 : 0,
+      String(b.titulo ?? ''),
+      String(b.texto ?? ''),
+      String(b.subtitulo ?? ''),
+      String(b.texto2 ?? '')
+    );
+    json(res, 200, { ok: true });
   },
 };
 

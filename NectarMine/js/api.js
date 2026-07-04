@@ -53,6 +53,9 @@ const NM_API = {
   /* ── Rankings ── */
   ranking: (tipo = 'producao', periodo = 'diario') =>
     NM_API.call(`/api/ranking?tipo=${tipo}&periodo=${periodo}`),
+
+  // Modal comunicativo da tela de login (conteúdo editável no futuro painel admin)
+  announcement: () => NM_API.call('/api/announcement'),
 };
 
 /* ── GUARD DE AUTENTICAÇÃO ──

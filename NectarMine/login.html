@@ -98,6 +98,11 @@
     NM_API.me().then(() => location.href = 'dashboard.html').catch(() => localStorage.removeItem('nm_token'));
   }
 
+  // Modal comunicativo (Título / texto / Subtítulo / texto) — conteúdo vem do backend
+  NM_API.announcement().then(a => {
+    if (a && a.ativo) NM_SWAL.anuncio(a.titulo, a.texto, a.subtitulo, a.texto2);
+  }).catch(() => {});
+
   function switchTab(tab) {
     document.getElementById('tab-entrar').classList.toggle('active', tab === 'entrar');
     document.getElementById('tab-criar').classList.toggle('active', tab === 'criar');

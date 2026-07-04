@@ -125,6 +125,26 @@ const NM_SWAL = {
       showCancelButton: false,
       customClass: { popup: 'nm-swal' }
     });
+  },
+  // Modal comunicativo da tela de login (Título / texto / Subtítulo / texto),
+  // conteúdo vem do backend (/api/announcement) e será editável por um painel admin.
+  anuncio: (titulo, texto, subtitulo, texto2) => {
+    return Swal.fire({
+      title: titulo || '',
+      html: `
+        ${texto ? `<p style="color:#D4C9E8;font-size:14px;line-height:1.7;margin-bottom:16px;">${texto}</p>` : ''}
+        ${subtitulo ? `<h3 style="color:#FFD700;font-size:15px;margin-bottom:8px;">${subtitulo}</h3>` : ''}
+        ${texto2 ? `<p style="color:#9E8FC0;font-size:13px;line-height:1.6;">${texto2}</p>` : ''}
+      `,
+      background: '#0A1220',
+      color: '#D4C9E8',
+      confirmButtonText: 'Continuar',
+      confirmButtonColor: '#FFD700',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showCancelButton: false,
+      customClass: { popup: 'nm-swal' }
+    });
   }
 };
 
