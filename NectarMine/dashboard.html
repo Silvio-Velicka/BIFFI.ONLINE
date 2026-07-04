@@ -10,30 +10,12 @@
   <style>
     /* ── DASHBOARD ── */
 
-    /* Ticker topo */
-    .ticker-wrap {
-      position: fixed; top: 0; left: var(--sidebar-w); right: 0; z-index: 100;
-      background: rgba(2,6,15,.95); backdrop-filter: blur(6px);
-      border-bottom: 1px solid var(--borda2);
-    }
-    .ticker-header {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 20px; height: var(--header-h);
-      border-bottom: 1px solid var(--borda2);
-    }
-    .ticker-header h2 { font-size: 16px; color: var(--branco); }
-    .ticker-header .header-actions { display: flex; align-items: center; gap: 10px; }
-    .ticker-header .time-badge {
-      background: var(--amarelo-bg); border: 1px solid var(--borda);
-      color: var(--amarelo); border-radius: 20px; padding: 4px 12px; font-size: 12px;
-    }
-
-    .page-content { padding-top: calc(var(--header-h) + 44px + 20px); }
+    .page-content { padding-top: 110px; }
 
     /* AD topo (970×90) */
     .ad-topo {
       left: var(--sidebar-w); right: 0;
-      position: fixed; top: var(--header-h); z-index: 99;
+      position: fixed; top: 0; z-index: 99;
     }
 
     /* Grid principal */
@@ -252,7 +234,6 @@
 
     /* ── RESPONSIVE ── */
     @media(max-width: 900px) {
-      .ticker-wrap { left: 0; }
       .ad-topo { left: 0; }
       .dashboard-grid { grid-template-columns: 1fr; }
       .stat-row { grid-template-columns: 1fr 1fr; }
@@ -331,16 +312,6 @@
 </nav>
 <button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
 
-<!-- TICKER + HEADER fixo -->
-<div class="ticker-wrap">
-  <div class="ticker-header">
-    <h2><i class="fa-solid fa-gauge-high" style="color:var(--amarelo)"></i> Dashboard</h2>
-  </div>
-  <div class="market-ticker" id="market-ticker">
-    <div class="market-ticker-track" id="market-ticker-track"></div>
-  </div>
-</div>
-
 <!-- AD TOPO (970×90) -->
 <div class="ad-topo">
   <div class="anuncio anuncio-topo-full" id="ad-topo-1"><!-- AD 970×90 -->Publicidade 970×90</div>
@@ -348,7 +319,7 @@
 
 <!-- LAYOUT -->
 <div class="nm-layout">
-  <main class="page-content" style="padding: calc(var(--header-h) + 44px + 16px) 20px 30px;">
+  <main class="page-content" style="padding: 110px 20px 30px;">
 
     <div class="dashboard-grid">
 
