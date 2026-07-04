@@ -3,432 +3,92 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NectarMine — Entrar na Colmeia</title>
+  <title>NectarMine — Entrar</title>
   <link rel="stylesheet" href="css/global.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <style>
-    /* ── LOGIN PAGE ── */
-    body { overflow-x: hidden; }
-
-    /* Fundo animado */
-    .login-bg {
-      position: fixed; inset: 0; z-index: 0;
-      background: radial-gradient(ellipse at 20% 50%, rgba(123,47,190,.18) 0%, transparent 55%),
-                  radial-gradient(ellipse at 80% 20%, rgba(255,215,0,.08) 0%, transparent 50%),
-                  var(--preto);
+    .login-wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 20px;
     }
-    .bg-particles {
-      position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden;
+    .login-card {
+      width: 100%; max-width: 400px; background: var(--card, rgba(10,18,32,.85));
+      backdrop-filter: blur(12px); border: 1px solid var(--borda2, rgba(255,255,255,.08));
+      border-radius: var(--radius, 12px); padding: 32px 28px;
     }
-    .particle {
-      position: absolute; border-radius: 50%;
-      animation: floatParticle linear infinite;
-      opacity: .35;
+    .login-logo { text-align: center; font-size: 26px; font-weight: bold; color: var(--branco, #fff); margin-bottom: 4px; }
+    .login-sub { text-align: center; font-size: 13px; color: var(--texto3, #6B5F8A); margin-bottom: 24px; }
+    .login-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+    .ltab {
+      flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--borda2, rgba(255,255,255,.08));
+      background: transparent; color: var(--texto2, #9E8FC0); font-size: 13px; font-weight: bold;
+      cursor: pointer; transition: all .2s;
     }
-    @keyframes floatParticle {
-      0%   { transform: translateY(110vh) rotate(0deg); opacity: 0; }
-      10%  { opacity: .4; }
-      90%  { opacity: .4; }
-      100% { transform: translateY(-10vh) rotate(720deg); opacity: 0; }
+    .ltab.active { background: var(--amarelo, #FFD700); color: #000; border-color: var(--amarelo, #FFD700); }
+    .login-field { margin-bottom: 14px; }
+    .login-field label { display: block; font-size: 11px; color: var(--texto3, #6B5F8A); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
+    .login-field input {
+      width: 100%; padding: 11px 12px; border-radius: 8px;
+      border: 1px solid var(--borda2, rgba(255,255,255,.1));
+      background: rgba(255,255,255,.04); color: var(--branco, #fff); font-size: 14px; outline: none;
     }
-
-    /* Layout dividido */
-    .login-page {
-      position: relative; z-index: 1;
-      min-height: 100vh;
-      display: grid;
-      grid-template-columns: 1fr 480px;
-    }
-
-    /* Lado esquerdo — hero */
-    .login-hero {
-      display: flex; flex-direction: column;
-      justify-content: center; align-items: flex-start;
-      padding: 60px 60px 60px 80px;
-      border-right: 1px solid var(--borda2);
-    }
-    .login-hero .logo {
-      display: flex; align-items: center; gap: 12px;
-      margin-bottom: 48px;
-    }
-    .login-hero .logo i { font-size: 28px; color: var(--roxo2); }
-    .login-hero .logo span { font-size: 26px; font-weight: bold; color: var(--amarelo); }
-
-    .login-hero h1 {
-      font-size: clamp(28px, 3.5vw, 46px);
-      color: var(--branco); line-height: 1.2;
-      margin-bottom: 16px;
-    }
-    .login-hero h1 em { color: var(--amarelo); font-style: normal; }
-    .login-hero p {
-      font-size: 15px; color: var(--texto2);
-      max-width: 460px; margin-bottom: 40px; line-height: 1.8;
-    }
-
-    /* Bullets de features */
-    .features { display: flex; flex-direction: column; gap: 14px; margin-bottom: 48px; }
-    .feature-item {
-      display: flex; align-items: center; gap: 14px;
-    }
-    .feature-icon {
-      width: 38px; height: 38px; border-radius: 10px;
-      background: var(--amarelo-bg);
-      border: 1px solid rgba(255,215,0,.2);
-      display: flex; align-items: center; justify-content: center;
-      font-size: 16px; flex-shrink: 0;
-    }
-    .feature-icon.roxo { background: var(--roxo-bg); border-color: var(--borda-roxo); }
-    .feature-item h4 { font-size: 14px; color: var(--branco); margin-bottom: 1px; }
-    .feature-item p  { font-size: 12px; color: var(--texto2); margin: 0; }
-
-    /* Contador live */
-    .live-counter {
-      display: flex; gap: 24px;
-    }
-    .counter-item { text-align: center; }
-    .counter-item strong { display: block; font-size: 22px; color: var(--amarelo); }
-    .counter-item span   { font-size: 11px; color: var(--texto2); letter-spacing: 1px; }
-
-    /* ── FORMULÁRIO ── */
-    .login-form-wrap {
-      display: flex; flex-direction: column;
-      justify-content: space-between;
-      padding: 0;
-      background: rgba(8,5,18,.7);
-      backdrop-filter: blur(12px);
-    }
-
-    /* AD dentro da coluna do form (topo) — 300×250 */
-    .ad-form-top {
-      width: 100%; height: 100px;
-      background: var(--amarelo-bg2);
-      border-bottom: 1px dashed rgba(255,215,0,.12);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--texto3); font-size: 11px;
-    }
-
-    .form-inner {
-      flex: 1; display: flex; flex-direction: column;
-      justify-content: center; padding: 40px;
-    }
-
-    /* Tabs Login / Cadastro */
-    .form-tabs {
-      display: flex; gap: 0;
-      background: rgba(255,255,255,.04);
-      border: 1px solid var(--borda2);
-      border-radius: 10px; padding: 4px;
-      margin-bottom: 28px;
-    }
-    .tab-btn {
-      flex: 1; padding: 9px; border-radius: 7px;
-      background: transparent; border: none;
-      color: var(--texto2); font-size: 13px; font-weight: bold;
-      transition: all .2s;
-    }
-    .tab-btn.active {
-      background: var(--amarelo); color: #000;
-    }
-
-    .form-group { margin-bottom: 16px; }
-    .form-group label {
-      display: block; font-size: 12px; color: var(--texto2);
-      margin-bottom: 6px; letter-spacing: .5px;
-    }
-    .form-group .input-wrap {
-      position: relative;
-    }
-    .form-group .input-wrap i {
-      position: absolute; left: 12px; top: 50%;
-      transform: translateY(-50%);
-      color: var(--texto3); font-size: 13px;
-    }
-    .form-group input {
-      width: 100%;
-      background: rgba(255,255,255,.05);
-      border: 1px solid rgba(255,255,255,.1);
-      border-radius: 8px; color: var(--branco);
-      padding: 11px 14px 11px 36px;
-      font-size: 14px; outline: none;
-      transition: border-color .2s;
-    }
-    .form-group input:focus { border-color: var(--amarelo); }
-    .form-group input::placeholder { color: var(--texto3); }
-
-    .form-forgot {
-      text-align: right; font-size: 12px;
-      color: var(--texto2); margin-bottom: 20px;
-    }
-    .form-forgot a { color: var(--roxo2); }
-    .form-forgot a:hover { color: var(--amarelo); }
-
+    .login-field input:focus { border-color: var(--amarelo, #FFD700); }
     .btn-login {
-      width: 100%; padding: 13px;
-      background: var(--amarelo); color: #000;
-      border: none; border-radius: 8px;
-      font-size: 15px; font-weight: bold;
-      letter-spacing: .5px;
-      transition: all .2s;
+      width: 100%; padding: 12px; border: none; border-radius: 8px; margin-top: 6px;
+      background: var(--amarelo, #FFD700); color: #000; font-size: 14px; font-weight: bold; cursor: pointer;
     }
-    .btn-login:hover {
-      background: var(--amarelo2);
-      box-shadow: 0 6px 24px var(--amarelo-glow);
-    }
-
-    .form-divider {
-      text-align: center; margin: 16px 0;
-      position: relative; color: var(--texto3); font-size: 12px;
-    }
-    .form-divider::before, .form-divider::after {
-      content: ''; position: absolute; top: 50%;
-      width: calc(50% - 20px); height: 1px;
-      background: var(--borda2);
-    }
-    .form-divider::before { left: 0; }
-    .form-divider::after  { right: 0; }
-
-    /* Links WP / Roadmap */
-    .form-docs {
-      display: flex; gap: 12px; justify-content: center;
-      margin-top: 20px;
-    }
-    .form-docs a {
-      display: flex; align-items: center; gap: 5px;
-      color: var(--texto2); font-size: 12px;
-      border: 1px solid var(--borda2);
-      border-radius: 20px; padding: 5px 12px;
-      transition: all .2s;
-    }
-    .form-docs a:hover { color: var(--amarelo); border-color: var(--borda); }
-
-    /* AD rodapé form — 300×100 */
-    .ad-form-bot {
-      width: 100%; height: 80px;
-      background: var(--amarelo-bg2);
-      border-top: 1px dashed rgba(255,215,0,.12);
-      display: flex; align-items: center; justify-content: center;
-      color: var(--texto3); font-size: 11px;
-    }
-
-    /* Panels ocultos */
-    .form-panel { display: none; }
-    .form-panel.active { display: block; }
-
-    /* Status mercado no header login */
-    .market-status-bar {
-      position: fixed; top: 0; left: 0; right: 0; z-index: 10;
-      background: rgba(0,0,0,.5); backdrop-filter: blur(6px);
-      border-bottom: 1px solid var(--borda2);
-      padding: 7px 40px;
-      display: flex; align-items: center; justify-content: space-between;
-      font-size: 12px;
-    }
-    .market-status-bar .logo { color: var(--amarelo); font-weight: bold; font-size: 14px; }
-    .market-status-bar .status { display: flex; align-items: center; gap: 6px; color: var(--texto2); }
-
-    @media(max-width: 900px) {
-      .login-page { grid-template-columns: 1fr; }
-      .login-hero { display: none; }
-      .login-form-wrap { min-height: 100vh; }
-      .market-status-bar { padding: 7px 16px; }
-    }
+    .btn-login:disabled { opacity: .5; cursor: wait; }
+    .login-back { text-align: center; margin-top: 16px; font-size: 12px; }
+    .login-back a { color: var(--texto3, #6B5F8A); text-decoration: none; }
+    .login-back a:hover { color: var(--amarelo, #FFD700); }
   </style>
 </head>
 <body>
 
-<!-- LOADER -->
-<div id="nm-loader">
-  <div class="petro-scene">
-    <div class="ad-loader-top" id="ad-loader-1"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
-    <div class="hive-tank">
-      <div class="honey-fill">
-        <div class="honey-wave"></div>
-        <div class="honey-wave w2"></div>
-      </div>
-      <div class="hive-bubble b1"></div>
-      <div class="hive-bubble b2"></div>
-      <div class="hive-bubble b3"></div>
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">🍯 NectarMine</div>
+    <div class="login-sub">Entre na sua conta ou crie uma nova</div>
+
+    <div class="login-tabs">
+      <button class="ltab active" id="tab-entrar" onclick="switchTab('entrar')">Entrar</button>
+      <button class="ltab" id="tab-criar" onclick="switchTab('criar')">Criar conta</button>
     </div>
-    <span class="loader-logo">🍯 NectarMine</span>
-    <p id="loader-text">Aquecendo as colmeias...</p>
-    <div class="loading-bar"><span></span></div>
-    <div class="ad-loader-bot" id="ad-loader-2"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
+
+    <!-- ENTRAR -->
+    <form id="form-entrar" onsubmit="doLogin(event)">
+      <div class="login-field">
+        <label>Usuário ou e-mail</label>
+        <input type="text" id="li-login" required autocomplete="username"/>
+      </div>
+      <div class="login-field">
+        <label>Senha</label>
+        <input type="password" id="li-senha" required autocomplete="current-password"/>
+      </div>
+      <button type="submit" class="btn-login" id="btn-entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+    </form>
+
+    <!-- CRIAR CONTA -->
+    <form id="form-criar" style="display:none;" onsubmit="doRegister(event)">
+      <div class="login-field">
+        <label>Nome de usuário</label>
+        <input type="text" id="rg-user" required minlength="3" autocomplete="username"/>
+      </div>
+      <div class="login-field">
+        <label>E-mail</label>
+        <input type="email" id="rg-email" required autocomplete="email"/>
+      </div>
+      <div class="login-field">
+        <label>Senha (mín. 6 caracteres)</label>
+        <input type="password" id="rg-senha" required minlength="6" autocomplete="new-password"/>
+      </div>
+      <button type="submit" class="btn-login" id="btn-criar"><i class="fa-solid fa-user-plus"></i> Criar conta</button>
+    </form>
+
+    <div class="login-back"><a href="https://biffi.online"><i class="fa-solid fa-arrow-left"></i> Voltar ao site</a></div>
   </div>
 </div>
 
-<!-- Fundo -->
-<div class="login-bg"></div>
-<div class="bg-particles" id="particles"></div>
-
-<!-- Status bar topo -->
-<div class="market-status-bar">
-  <span class="logo"><i class="fa-solid fa-hexagon-nodes"></i> NectarMine</span>
-  <div class="status">
-    <span class="status-dot"></span>
-    <span>Mercado ativo</span>
-    <span style="margin-left:20px; color:var(--amarelo);">🍯 Mel: 24,57 NCT</span>
-    <span style="margin-left:16px; color:var(--verde);">▲ +6.51%</span>
-  </div>
-</div>
-
-<!-- LAYOUT -->
-<div class="login-page" style="padding-top:40px;">
-
-  <!-- HERO ESQUERDO -->
-  <div class="login-hero">
-    <div class="logo">
-      <i class="fa-solid fa-hexagon-nodes"></i>
-      <span>NectarMine</span>
-    </div>
-
-    <h1>Controle toda a cadeia<br/>do <em>mel digital</em>.</h1>
-    <p>Produza potes de mel, negocie no mercado, realize o Honey Stake e acompanhe o preço do mel em tempo real. Construa sua operação apícola e converta Néctar em cripto.</p>
-
-    <div class="features">
-      <div class="feature-item">
-        <div class="feature-icon"><i class="fa-solid fa-industry"></i></div>
-        <div>
-          <h4>Apiários Automáticos</h4>
-          <p>Suas máquinas produzem potes 24h por dia, mesmo offline.</p>
-        </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon"><i class="fa-solid fa-chart-candlestick"></i></div>
-        <div>
-          <h4>Mercado em Tempo Real</h4>
-          <p>Venda seus potes no melhor momento com gráfico candlestick.</p>
-        </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon roxo"><i class="fa-solid fa-lock"></i></div>
-        <div>
-          <h4>Honey Stake até +20%</h4>
-          <p>Bloqueie potes por 10–30 dias e receba rendimento garantido.</p>
-        </div>
-      </div>
-      <div class="feature-item">
-        <div class="feature-icon roxo"><i class="fa-solid fa-money-bill-transfer"></i></div>
-        <div>
-          <h4>Saque em Criptomoeda</h4>
-          <p>Converta Néctar em USDT, DOGE, LTC, TRX ou DGB.</p>
-        </div>
-      </div>
-    </div>
-
-    <div class="live-counter">
-      <div class="counter-item">
-        <strong id="cnt-users">1.247</strong>
-        <span>MINERADORES</span>
-      </div>
-      <div class="counter-item">
-        <strong id="cnt-potes">2.847.310</strong>
-        <span>POTES PRODUZIDOS</span>
-      </div>
-      <div class="counter-item">
-        <strong id="cnt-price">24,57</strong>
-        <span>PREÇO DO POTE (NCT)</span>
-      </div>
-    </div>
-  </div>
-
-  <!-- FORMULÁRIO DIREITO -->
-  <div class="login-form-wrap">
-
-    <!-- AD topo do form — 300×100 -->
-    <div class="ad-form-top" id="ad-form-top"><!-- AD 300×100 -->Publicidade 300×100</div>
-
-    <div class="form-inner">
-      <!-- Tabs -->
-      <div class="form-tabs">
-        <button class="tab-btn active" onclick="switchTab('login', this)">Entrar</button>
-        <button class="tab-btn" onclick="switchTab('cadastro', this)">Criar Conta</button>
-      </div>
-
-      <!-- PAINEL LOGIN -->
-      <div class="form-panel active" id="panel-login">
-        <h2 style="color:var(--branco);font-size:20px;margin-bottom:6px;">Acesse sua Colmeia</h2>
-        <p style="color:var(--texto2);font-size:13px;margin-bottom:24px;">Entre com seu e-mail ou usuário.</p>
-
-        <form id="idx-form-login" onsubmit="idxDoLogin(event)">
-          <div class="form-group">
-            <label>E-mail ou Usuário</label>
-            <div class="input-wrap">
-              <i class="fa-solid fa-user"></i>
-              <input type="text" id="idx-login-user" placeholder="seu@email.com" required/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Senha</label>
-            <div class="input-wrap">
-              <i class="fa-solid fa-lock"></i>
-              <input type="password" id="idx-login-senha" placeholder="••••••••" required/>
-            </div>
-          </div>
-          <div class="form-forgot"><a href="#" onclick="NM_SWAL.info('Em breve', 'Recuperação de senha por e-mail ainda não está disponível.'); return false;">Esqueci minha senha</a></div>
-          <button type="submit" class="btn-login" id="idx-btn-login">
-            <i class="fa-solid fa-right-to-bracket"></i> Entrar na Colmeia
-          </button>
-        </form>
-
-        <div class="form-divider">ou continue com</div>
-        <div class="form-docs">
-          <a href="whitepaper.html"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
-          <a href="roadmap.html"><i class="fa-solid fa-map"></i> Roadmap</a>
-        </div>
-      </div>
-
-      <!-- PAINEL CADASTRO -->
-      <div class="form-panel" id="panel-cadastro">
-        <h2 style="color:var(--branco);font-size:20px;margin-bottom:6px;">Criar sua Conta</h2>
-        <p style="color:var(--texto2);font-size:13px;margin-bottom:24px;">Junte-se a mais de 1.200 mineradores.</p>
-
-        <form id="idx-form-cadastro" onsubmit="idxDoRegister(event)">
-          <div class="form-group">
-            <label>Nome de Usuário</label>
-            <div class="input-wrap">
-              <i class="fa-solid fa-user"></i>
-              <input type="text" id="idx-reg-user" placeholder="MeuApelidoNaColmeia" minlength="3" required/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>E-mail</label>
-            <div class="input-wrap">
-              <i class="fa-solid fa-envelope"></i>
-              <input type="email" id="idx-reg-email" placeholder="seu@email.com" required/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Senha</label>
-            <div class="input-wrap">
-              <i class="fa-solid fa-lock"></i>
-              <input type="password" id="idx-reg-senha" placeholder="Mínimo 6 caracteres" minlength="6" required/>
-            </div>
-          </div>
-          <div class="form-group">
-            <label>Código de Indicação (opcional)</label>
-            <div class="input-wrap">
-              <i class="fa-solid fa-handshake"></i>
-              <input type="text" id="idx-reg-indicacao" placeholder="Ex: BIFFI"/>
-            </div>
-          </div>
-          <button type="submit" class="btn-login" id="idx-btn-cadastro">
-            <i class="fa-solid fa-bee"></i> Criar Conta Grátis
-          </button>
-        </form>
-
-        <p style="font-size:11px;color:var(--texto3);text-align:center;margin-top:14px;">
-          Ao criar uma conta você concorda com nossos <a href="/termos" style="color:var(--roxo2);">Termos de Uso</a>.
-        </p>
-      </div>
-    </div>
-
-    <!-- AD rodapé form — 300×80 -->
-    <div class="ad-form-bot" id="ad-form-bot"><!-- AD 300×80 -->Publicidade 300×80</div>
-
-  </div><!-- /login-form-wrap -->
-</div><!-- /login-page -->
-
-<!-- Scripts -->
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
@@ -438,12 +98,19 @@
     NM_API.me().then(() => location.href = 'dashboard.html').catch(() => localStorage.removeItem('nm_token'));
   }
 
-  async function idxDoLogin(e) {
+  function switchTab(tab) {
+    document.getElementById('tab-entrar').classList.toggle('active', tab === 'entrar');
+    document.getElementById('tab-criar').classList.toggle('active', tab === 'criar');
+    document.getElementById('form-entrar').style.display = tab === 'entrar' ? '' : 'none';
+    document.getElementById('form-criar').style.display = tab === 'criar' ? '' : 'none';
+  }
+
+  async function doLogin(e) {
     e.preventDefault();
-    const btn = document.getElementById('idx-btn-login');
+    const btn = document.getElementById('btn-entrar');
     btn.disabled = true;
     try {
-      await NM_API.login(document.getElementById('idx-login-user').value, document.getElementById('idx-login-senha').value);
+      await NM_API.login(document.getElementById('li-login').value, document.getElementById('li-senha').value);
       location.href = 'dashboard.html';
     } catch (err) {
       NM_SWAL.error('Ops!', err.message);
@@ -451,15 +118,15 @@
     }
   }
 
-  async function idxDoRegister(e) {
+  async function doRegister(e) {
     e.preventDefault();
-    const btn = document.getElementById('idx-btn-cadastro');
+    const btn = document.getElementById('btn-criar');
     btn.disabled = true;
     try {
       await NM_API.register(
-        document.getElementById('idx-reg-user').value,
-        document.getElementById('idx-reg-email').value,
-        document.getElementById('idx-reg-senha').value
+        document.getElementById('rg-user').value,
+        document.getElementById('rg-email').value,
+        document.getElementById('rg-senha').value
       );
       await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
       location.href = 'dashboard.html';
@@ -468,50 +135,6 @@
       btn.disabled = false;
     }
   }
-
-  // Troca de tabs
-  function switchTab(tab, btn) {
-    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-    document.querySelectorAll('.form-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + tab).classList.add('active');
-  }
-
-  // Partículas de fundo (bolhas de mel)
-  function createParticles() {
-    const container = document.getElementById('particles');
-    const colors = ['rgba(255,215,0,0.5)', 'rgba(255,170,0,0.4)', 'rgba(123,47,190,0.35)'];
-    for (let i = 0; i < 18; i++) {
-      const p = document.createElement('div');
-      p.className = 'particle';
-      const size = Math.random() * 12 + 4;
-      p.style.cssText = `
-        width:${size}px; height:${size}px;
-        left:${Math.random()*100}%;
-        background:${colors[Math.floor(Math.random()*colors.length)]};
-        animation-duration:${Math.random()*12+8}s;
-        animation-delay:${Math.random()*8}s;
-      `;
-      container.appendChild(p);
-    }
-  }
-  createParticles();
-
-  // Contador animado
-  function animateCounter(el, target, duration = 2000) {
-    let start = 0, step = target / (duration / 16);
-    const timer = setInterval(() => {
-      start = Math.min(start + step, target);
-      el.textContent = Math.floor(start).toLocaleString('pt-BR');
-      if (start >= target) clearInterval(timer);
-    }, 16);
-  }
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      animateCounter(document.getElementById('cnt-users'), 1247);
-      animateCounter(document.getElementById('cnt-potes'), 2847310);
-    }, 2600);
-  });
 </script>
 </body>
 </html>
