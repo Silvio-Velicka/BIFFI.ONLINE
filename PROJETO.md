@@ -32,6 +32,15 @@
 - **Backend:** Node.js 22+ (`node:sqlite`), zero dependências — `NectarMine/server/server.js`, start command `node server/server.js` (via package.json)
 - **Banco:** SQLite persistido em volume Railway `biffi.online-volume`, montado em `/data`; variável `DB_PATH=/data/nectarmine.db`
 
+## Painel Admin (biffi.online/admin/)
+- **URL:** https://biffi.online/admin/ (não linkado no menu público — acesso direto pela URL)
+- **Login:** senha única (não tem usuário), comparada no backend com a variável de ambiente `ADMIN_KEY` (configurar em Railway → serviço → Variables). Sem `ADMIN_KEY` configurada, o login sempre falha (seguro por padrão).
+- **Como funciona:** `admin/login.html` chama `POST /api/admin/login` no Railway; se a senha bater, guarda a própria senha em `localStorage` (`biffi_admin_key`) e usa como header `x-admin-key` nas próximas chamadas (ex: `PUT /api/announcement`). Mesmo esquema de CORS cross-domain do NectarMine.
+- **Visual:** identidade BIFFI.ONLINE (rosa/roxo/dourado, Georgia + Arial), sidebar de ícones — pensado para crescer com mais módulos no futuro.
+- **Módulos existentes:**
+  - 📢 **Modal do Jogo** — edita Título / Texto / Subtítulo / Texto do modal comunicativo que aparece na tela de login do NectarMine (liga/desliga com o campo "ativo"). Lê/grava na tabela `site_config` do backend do NectarMine.
+- **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
+
 ## Design
 - **Cores:** rosa (#FFB6D9 → #FFD1EB), roxo (#8B2D8F), dourado (#FFD700)
 - **Fontes:** Georgia (títulos), Arial (corpo)

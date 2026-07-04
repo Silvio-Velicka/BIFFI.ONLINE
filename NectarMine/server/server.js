@@ -251,6 +251,15 @@ const routes = {
     });
   },
 
+  // Login do painel admin (senha única, comparada com a variável de ambiente ADMIN_KEY)
+  'POST /api/admin/login': async (req, res) => {
+    const { senha } = await readBody(req);
+    if (!process.env.ADMIN_KEY || !senha || senha !== process.env.ADMIN_KEY) {
+      return json(res, 403, { error: 'Senha incorreta.' });
+    }
+    json(res, 200, { ok: true });
+  },
+
   // Atualiza o modal comunicativo — reservado para o futuro painel admin.
   // Protegido por chave simples (header x-admin-key) até existir login de admin de verdade.
   'PUT /api/announcement': async (req, res) => {
@@ -307,7 +316,7 @@ const server = http.createServer(async (req, res) => {
   if (url.pathname.startsWith('/api/')) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, x-admin-key');
     if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   }
 

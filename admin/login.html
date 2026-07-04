@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin — BIFFI.ONLINE</title>
+  <meta name="robots" content="noindex, nofollow">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --rosa:      #FFB6D9;
+      --rosa-med:  #F472B6;
+      --roxo:      #8B2D8F;
+      --roxo-esc:  #5B1060;
+      --dourado:   #FFD700;
+      --branco:    #fff;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #FFB6D9 0%, #FFC0E0 50%, #FFD1EB 100%);
+      min-height: 100vh;
+      color: var(--roxo-esc);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+
+    .bee {
+      position: fixed;
+      font-size: 20px;
+      z-index: 1;
+      pointer-events: none;
+    }
+    .bee-1 { animation: bee1 12s infinite ease-in-out; }
+    .bee-2 { animation: bee2 14s infinite ease-in-out; }
+    .bee-3 { animation: bee3 16s infinite ease-in-out; }
+    @keyframes bee1 { 0%{left:10%;top:15%} 25%{left:40%;top:10%} 50%{left:70%;top:35%} 75%{left:40%;top:60%} 100%{left:10%;top:15%} }
+    @keyframes bee2 { 0%{right:10%;top:25%} 25%{right:35%;top:15%} 50%{right:60%;top:45%} 75%{right:35%;top:70%} 100%{right:10%;top:25%} }
+    @keyframes bee3 { 0%{left:5%;bottom:25%} 25%{left:30%;bottom:35%} 50%{left:60%;bottom:20%} 75%{left:35%;bottom:10%} 100%{left:5%;bottom:25%} }
+
+    .login-card {
+      position: relative;
+      z-index: 2;
+      width: 100%;
+      max-width: 380px;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(12px);
+      border: 2px solid rgba(139,45,143,0.2);
+      border-radius: 24px;
+      padding: 40px 32px;
+      text-align: center;
+    }
+
+    .login-card .emoji { font-size: 44px; display: block; margin-bottom: 10px; }
+
+    .login-card h1 {
+      font-size: 22px;
+      color: var(--roxo);
+      text-shadow: 2px 2px 0 var(--dourado);
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+
+    .login-card p {
+      font-family: Arial, sans-serif;
+      font-size: 13px;
+      color: var(--roxo-esc);
+      margin-bottom: 28px;
+    }
+
+    .field { text-align: left; margin-bottom: 18px; }
+    .field label {
+      display: block;
+      font-family: Arial, sans-serif;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--roxo);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%;
+      padding: 12px 14px;
+      border-radius: 10px;
+      border: 2px solid rgba(139,45,143,0.2);
+      background: rgba(255,255,255,0.6);
+      color: var(--roxo-esc);
+      font-size: 15px;
+      font-family: Arial, sans-serif;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--roxo); }
+
+    .btn-entrar {
+      width: 100%;
+      padding: 13px;
+      border: none;
+      border-radius: 10px;
+      background: var(--roxo);
+      color: var(--branco);
+      font-family: Arial, sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-entrar:hover { background: var(--roxo-esc); transform: translateY(-1px); }
+    .btn-entrar:disabled { opacity: 0.6; cursor: wait; }
+
+    .error-msg {
+      display: none;
+      background: rgba(139,45,143,0.1);
+      color: var(--roxo-esc);
+      border: 1px solid rgba(139,45,143,0.25);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      margin-bottom: 16px;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 20px;
+      font-family: Arial, sans-serif;
+      font-size: 12px;
+      color: var(--roxo);
+      text-decoration: none;
+    }
+    .back-link:hover { color: var(--roxo-esc); }
+  </style>
+</head>
+<body>
+
+  <div class="bee bee-1">🐝</div>
+  <div class="bee bee-2">🐝</div>
+  <div class="bee bee-3">🐝</div>
+
+  <div class="login-card">
+    <span class="emoji">🐝</span>
+    <h1>BIFFI.ONLINE Admin</h1>
+    <p>Área restrita — informe a senha para continuar.</p>
+
+    <div class="error-msg" id="error-msg"></div>
+
+    <form id="form-login">
+      <div class="field">
+        <label>Senha de administrador</label>
+        <input type="password" id="senha" required autocomplete="current-password" autofocus>
+      </div>
+      <button type="submit" class="btn-entrar" id="btn-entrar">
+        <i class="fa-solid fa-right-to-bracket"></i> Entrar
+      </button>
+    </form>
+
+    <a class="back-link" href="../index.html"><i class="fa-solid fa-arrow-left"></i> Voltar ao site</a>
+  </div>
+
+  <script src="js/admin.js"></script>
+  <script>
+    // Se já tem a chave salva, tenta ir direto pro painel
+    if (localStorage.getItem('biffi_admin_key')) {
+      location.href = 'index.html';
+    }
+
+    document.getElementById('form-login').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-entrar');
+      const errBox = document.getElementById('error-msg');
+      errBox.style.display = 'none';
+      btn.disabled = true;
+      try {
+        await BiffiAdmin.login(document.getElementById('senha').value);
+        location.href = 'index.html';
+      } catch (err) {
+        errBox.textContent = err.message;
+        errBox.style.display = 'block';
+        btn.disabled = false;
+      }
+    });
+  </script>
+</body>
+</html>
