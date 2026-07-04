@@ -21,15 +21,16 @@
 ## Navegação (ordem no menu)
 🐝 Sobre → 📝 Blog → 🛍️ Loja → 📚 Biblioteca → ☕ Café → 🎮 Game Relax
 - Todos os ícones do menu têm o mesmo tamanho (width: 104px, fixo).
-- "Game Relax" abre em nova aba: https://biffionline-production.up.railway.app (não usa mais a cópia estática NectarMine/ do próprio site).
+- "Game Relax" abre na mesma aba: NectarMine/index.html (dentro do próprio domínio biffi.online — importante para anúncios/monetização). O front-end é a cópia estática servida pelo GitHub Pages; ele fala com o backend do Railway por baixo dos panos (ver abaixo).
 
-## NectarMine (jogo) — hospedagem separada
-- **Onde roda:** Railway (projeto "sweet-endurance", serviço "BIFFI.ONLINE", repo Silvio-Velicka/BIFFI.ONLINE, Root Directory = /NectarMine)
-- **URL pública:** https://biffionline-production.up.railway.app
-- **Deploy:** automático a cada push em `main` (GitHub → Railway)
+## NectarMine (jogo) — front-end no próprio domínio, backend no Railway
+- **URL que o usuário vê:** https://biffi.online/NectarMine/ (GitHub Pages, mesmo domínio do site — bom para AdSense/anúncios)
+- **Onde roda o backend (banco de dados):** Railway (projeto "sweet-endurance", serviço "BIFFI.ONLINE", repo Silvio-Velicka/BIFFI.ONLINE, Root Directory = /NectarMine)
+- **URL direta do backend:** https://biffionline-production.up.railway.app (não usar como link público — só existe para o front-end conversar com o banco via API)
+- **Como funciona:** `NectarMine/js/api.js` detecta o domínio: se a página estiver em biffi.online (ou qualquer domínio que não seja o Railway/localhost), todas as chamadas de API (`/api/register`, `/api/login`, etc.) são enviadas automaticamente para a URL do Railway acima, via CORS (liberado em `server.js` com `Access-Control-Allow-Origin: *`, sem uso de cookies). Assim o usuário nunca sai do domínio biffi.online, mas os dados vão pro banco real.
+- **Deploy:** automático a cada push em `main` — GitHub Pages republica a cópia estática (biffi.online/NectarMine) e o Railway republica o backend, ambos a partir do mesmo repositório.
 - **Backend:** Node.js 22+ (`node:sqlite`), zero dependências — `NectarMine/server/server.js`, start command `node server/server.js` (via package.json)
 - **Banco:** SQLite persistido em volume Railway `biffi.online-volume`, montado em `/data`; variável `DB_PATH=/data/nectarmine.db`
-- **Pasta local `NectarMine/` no repo:** continua existindo e é hospedada também no GitHub Pages (biffi.online/NectarMine/), mas SEM backend — login/cadastro só funcionam pela URL do Railway acima.
 
 ## Design
 - **Cores:** rosa (#FFB6D9 → #FFD1EB), roxo (#8B2D8F), dourado (#FFD700)
