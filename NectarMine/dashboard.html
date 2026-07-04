@@ -335,10 +335,6 @@
 <div class="ticker-wrap">
   <div class="ticker-header">
     <h2><i class="fa-solid fa-gauge-high" style="color:var(--amarelo)"></i> Dashboard</h2>
-    <div class="header-actions">
-      <span class="time-badge"><i class="fa-solid fa-clock"></i> <span id="live-time">--:--:--</span></span>
-      <button class="btn btn-sm btn-ghost" onclick="location.reload()"><i class="fa-solid fa-rotate"></i></button>
-    </div>
   </div>
   <div class="market-ticker" id="market-ticker">
     <div class="market-ticker-track" id="market-ticker-track"></div>
@@ -684,15 +680,6 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
-  /* ── RELÓGIO ── */
-  function updateTime() {
-    const now = new Date();
-    document.getElementById('live-time').textContent =
-      now.toLocaleTimeString('pt-BR');
-  }
-  setInterval(updateTime, 1000);
-  updateTime();
-
   /* ── MINI CHART (ApexCharts candlestick) ── */
   function initChart() {
     const generateCandles = () => {
