@@ -4,13 +4,20 @@
    ═══════════════════════════════════════ */
 
 const NM_API = {
+  // O backend (Node + SQLite) só roda no Railway. Se a página estiver sendo
+  // servida de outro domínio/cópia estática (ex: GitHub Pages), as chamadas
+  // de API são redirecionadas automaticamente para o backend real.
+  base: (location.hostname === 'biffionline-production.up.railway.app' || location.hostname === 'localhost')
+    ? ''
+    : 'https://biffionline-production.up.railway.app',
+
   token: () => localStorage.getItem('nm_token'),
 
   async call(path, method = 'GET', body = null) {
     const headers = { 'Content-Type': 'application/json' };
     const t = NM_API.token();
     if (t) headers['Authorization'] = 'Bearer ' + t;
-    const res = await fetch(path, { method, headers, body: body ? JSON.stringify(body) : null });
+    const res = await fetch(NM_API.base + path, { method, headers, body: body ? JSON.stringify(body) : null });
     const data = await res.json().catch(() => ({}));
     if (!res.ok) throw new Error(data.error || 'Erro na comunicação com o servidor.');
     return data;

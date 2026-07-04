@@ -251,6 +251,16 @@ const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, `http://${req.headers.host || 'localhost'}`);
   const key = `${req.method} ${url.pathname}`;
 
+  // CORS — permite que a cópia estática (ex: GitHub Pages) chame esta API.
+  // Não usamos cookies/credenciais (token via header Authorization), então
+  // liberar qualquer origem é seguro aqui.
+  if (url.pathname.startsWith('/api/')) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
+  }
+
   if (url.pathname.startsWith('/api/')) {
     const handler = routes[key];
     if (!handler) return json(res, 404, { error: 'Rota não encontrada.' });

@@ -349,23 +349,23 @@
         <h2 style="color:var(--branco);font-size:20px;margin-bottom:6px;">Acesse sua Colmeia</h2>
         <p style="color:var(--texto2);font-size:13px;margin-bottom:24px;">Entre com seu e-mail ou usuário.</p>
 
-        <form action="/auth/login" method="POST">
+        <form id="idx-form-login" onsubmit="idxDoLogin(event)">
           <div class="form-group">
             <label>E-mail ou Usuário</label>
             <div class="input-wrap">
               <i class="fa-solid fa-user"></i>
-              <input type="text" name="usuario" placeholder="seu@email.com" required/>
+              <input type="text" id="idx-login-user" placeholder="seu@email.com" required/>
             </div>
           </div>
           <div class="form-group">
             <label>Senha</label>
             <div class="input-wrap">
               <i class="fa-solid fa-lock"></i>
-              <input type="password" name="senha" placeholder="••••••••" required/>
+              <input type="password" id="idx-login-senha" placeholder="••••••••" required/>
             </div>
           </div>
-          <div class="form-forgot"><a href="/recuperar-senha">Esqueci minha senha</a></div>
-          <button type="submit" class="btn-login">
+          <div class="form-forgot"><a href="#" onclick="NM_SWAL.info('Em breve', 'Recuperação de senha por e-mail ainda não está disponível.'); return false;">Esqueci minha senha</a></div>
+          <button type="submit" class="btn-login" id="idx-btn-login">
             <i class="fa-solid fa-right-to-bracket"></i> Entrar na Colmeia
           </button>
         </form>
@@ -382,36 +382,36 @@
         <h2 style="color:var(--branco);font-size:20px;margin-bottom:6px;">Criar sua Conta</h2>
         <p style="color:var(--texto2);font-size:13px;margin-bottom:24px;">Junte-se a mais de 1.200 mineradores.</p>
 
-        <form action="/auth/registro" method="POST">
+        <form id="idx-form-cadastro" onsubmit="idxDoRegister(event)">
           <div class="form-group">
             <label>Nome de Usuário</label>
             <div class="input-wrap">
               <i class="fa-solid fa-user"></i>
-              <input type="text" name="usuario" placeholder="MeuApelidoNaColmeia" required/>
+              <input type="text" id="idx-reg-user" placeholder="MeuApelidoNaColmeia" minlength="3" required/>
             </div>
           </div>
           <div class="form-group">
             <label>E-mail</label>
             <div class="input-wrap">
               <i class="fa-solid fa-envelope"></i>
-              <input type="email" name="email" placeholder="seu@email.com" required/>
+              <input type="email" id="idx-reg-email" placeholder="seu@email.com" required/>
             </div>
           </div>
           <div class="form-group">
             <label>Senha</label>
             <div class="input-wrap">
               <i class="fa-solid fa-lock"></i>
-              <input type="password" name="senha" placeholder="Mínimo 8 caracteres" required/>
+              <input type="password" id="idx-reg-senha" placeholder="Mínimo 6 caracteres" minlength="6" required/>
             </div>
           </div>
           <div class="form-group">
             <label>Código de Indicação (opcional)</label>
             <div class="input-wrap">
               <i class="fa-solid fa-handshake"></i>
-              <input type="text" name="indicacao" placeholder="Ex: BIFFI"/>
+              <input type="text" id="idx-reg-indicacao" placeholder="Ex: BIFFI"/>
             </div>
           </div>
-          <button type="submit" class="btn-login">
+          <button type="submit" class="btn-login" id="idx-btn-cadastro">
             <i class="fa-solid fa-bee"></i> Criar Conta Grátis
           </button>
         </form>
@@ -433,6 +433,42 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
+  // Se já está logado, vai direto ao dashboard
+  if (localStorage.getItem('nm_token')) {
+    NM_API.me().then(() => location.href = 'dashboard.html').catch(() => localStorage.removeItem('nm_token'));
+  }
+
+  async function idxDoLogin(e) {
+    e.preventDefault();
+    const btn = document.getElementById('idx-btn-login');
+    btn.disabled = true;
+    try {
+      await NM_API.login(document.getElementById('idx-login-user').value, document.getElementById('idx-login-senha').value);
+      location.href = 'dashboard.html';
+    } catch (err) {
+      NM_SWAL.error('Ops!', err.message);
+      btn.disabled = false;
+    }
+  }
+
+  async function idxDoRegister(e) {
+    e.preventDefault();
+    const btn = document.getElementById('idx-btn-cadastro');
+    btn.disabled = true;
+    try {
+      await NM_API.register(
+        document.getElementById('idx-reg-user').value,
+        document.getElementById('idx-reg-email').value,
+        document.getElementById('idx-reg-senha').value
+      );
+      await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
+      location.href = 'dashboard.html';
+    } catch (err) {
+      NM_SWAL.error('Ops!', err.message);
+      btn.disabled = false;
+    }
+  }
+
   // Troca de tabs
   function switchTab(tab, btn) {
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
