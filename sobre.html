@@ -47,7 +47,7 @@
       text-shadow: 1px 1px 0 var(--dourado);
     }
 
-    nav { display: flex; gap: 10px; }
+    nav { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
 
     nav a {
       display: flex;
@@ -56,8 +56,8 @@
       justify-content: center;
       gap: 3px;
       text-decoration: none;
-      width: 104px;
-      padding: 8px 6px;
+      width: 88px;
+      padding: 7px 4px;
       border: 2px solid var(--roxo);
       border-radius: 12px;
       background: rgba(255,255,255,0.3);
@@ -71,15 +71,16 @@
       transform: translateY(-2px);
     }
 
-    nav a .icon { font-size: 20px; }
+    nav a .icon { font-size: 18px; }
     nav a .label {
-      font-size: 10px;
+      font-size: 9px;
       font-weight: 700;
       color: var(--roxo);
-      letter-spacing: 0.5px;
+      letter-spacing: 0.3px;
       text-transform: uppercase;
       font-family: Arial, sans-serif;
-      white-space: nowrap;
+      line-height: 1.15;
+      text-align: center;
     }
 
     /* ── BEES ── */
@@ -442,25 +443,33 @@
   <header>
     <a class="logo" href="index.html">BIFFI.ONLINE</a>
     <nav>
+      <a href="missao.html">
+        <span class="icon">🎯</span>
+        <span class="label">Missão</span>
+      </a>
       <a href="sobre.html" class="active">
         <span class="icon">🐝</span>
-        <span class="label">Sobre</span>
+        <span class="label">Quem sou</span>
       </a>
-      <a href="blog.html">
-        <span class="icon">📝</span>
-        <span class="label">Blog</span>
+      <a href="o-sonho.html">
+        <span class="icon">✨</span>
+        <span class="label">O Sonho</span>
+      </a>
+      <a href="biblioteca.html">
+        <span class="icon">📖</span>
+        <span class="label">Biblioteca de Oração</span>
+      </a>
+      <a href="cafe.html">
+        <span class="icon">🙏</span>
+        <span class="label">Sala de Oração</span>
       </a>
       <a href="loja.html">
         <span class="icon">🛍️</span>
-        <span class="label">Loja</span>
+        <span class="label">Lojinha</span>
       </a>
-      <a href="biblioteca.html">
-        <span class="icon">📚</span>
-        <span class="label">Biblioteca</span>
-      </a>
-      <a href="cafe.html">
-        <span class="icon">☕</span>
-        <span class="label">Café</span>
+      <a href="parcerias.html">
+        <span class="icon">🤝</span>
+        <span class="label">Parcerias</span>
       </a>
       <a href="NectarMine/index.html">
         <span class="icon">🎮</span>

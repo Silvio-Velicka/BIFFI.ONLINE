@@ -10,18 +10,24 @@
 | Arquivo | Título | Status |
 |---|---|---|
 | index.html | Home (landing page) | ✅ Completo |
-| sobre.html | Sobre (biografia) | ⚠️ Aguarda conteúdo real |
-| blog.html | Blog | ✅ Com posts de exemplo |
-| loja.html | Loja | ⚠️ Preços/links reais a preencher |
-| biblioteca.html | Biblioteca | ✅ Com trilhas e materiais de exemplo |
-| estudos.html | (redireciona → biblioteca.html) | ✅ |
-| cafe.html | Café & Meditação | ✅ Com receitas e meditações |
+| missao.html | Missão | ⚠️ Placeholder "conteúdo em breve" |
+| sobre.html | Quem sou (biografia) | ⚠️ Aguarda conteúdo real |
+| o-sonho.html | O Sonho | ⚠️ Placeholder "conteúdo em breve" |
+| biblioteca.html | Biblioteca de Oração | ✅ Com trilhas e materiais de exemplo (conteúdo ainda genérico, a adaptar para o tema de oração) |
+| cafe.html | Sala de Oração | ✅ Com receitas e meditações (conteúdo ainda genérico, a adaptar para o tema de oração) |
+| loja.html | Lojinha | ⚠️ Preços/links reais a preencher |
+| parcerias.html | Parcerias | ⚠️ Placeholder "conteúdo em breve" |
+| blog.html | Blog | ✅ Com posts de exemplo — fora do menu principal, arquivo mantido mas sem link na navegação |
+| estudos.html | Biblioteca (cópia própria, mesmo conteúdo de biblioteca.html) | ✅ |
 | dashboard.html | (redireciona → index.html) | ✅ |
 
 ## Navegação (ordem no menu)
-🐝 Sobre → 📝 Blog → 🛍️ Loja → 📚 Biblioteca → ☕ Café → 🎮 Game Relax
-- Todos os ícones do menu têm o mesmo tamanho (width: 104px, fixo).
+🎯 Missão → 🐝 Quem sou → ✨ O Sonho → 📖 Biblioteca de Oração → 🙏 Sala de Oração → 🛍️ Lojinha → 🤝 Parcerias → 🎮 Game Relax
+- Mapeamento: Missão = missao.html (novo) · Quem sou = sobre.html · O Sonho = o-sonho.html (novo) · Biblioteca de Oração = biblioteca.html · Sala de Oração = cafe.html · Lojinha = loja.html · Parcerias = parcerias.html (novo) · Game Relax = NectarMine/index.html.
+- "Blog" saiu do menu principal (o arquivo blog.html continua existindo, só não está mais linkado na navegação).
+- Ícones do menu: width 88px, gap 8px, `flex-wrap: wrap` no nav para não quebrar o layout em telas médias; label permite quebra de linha (sem `white-space: nowrap`) para caber nomes maiores como "Biblioteca de Oração" e "Sala de Oração".
 - "Game Relax" abre na mesma aba: NectarMine/index.html (dentro do próprio domínio biffi.online — importante para anúncios/monetização). O front-end é a cópia estática servida pelo GitHub Pages; ele fala com o backend do Railway por baixo dos panos (ver abaixo).
+- missao.html, o-sonho.html e parcerias.html são páginas novas, criadas apenas com a estrutura visual do site (header/nav/rodapé/abelhas) e um aviso "conteúdo em breve" — o conteúdo definitivo de cada uma será desenvolvido depois, ícone por ícone.
 
 ## NectarMine (jogo) — front-end no próprio domínio, backend no Railway
 - **URL que o usuário vê:** https://biffi.online/NectarMine/ (GitHub Pages, mesmo domínio do site — bom para AdSense/anúncios)
@@ -69,6 +75,10 @@
 - [ ] Links reais de compra na Loja (botões "Comprar agora")
 - [ ] Conteúdo real para posts do Blog
 - [ ] Materiais reais para download na Biblioteca
+- [ ] Conteúdo definitivo de missao.html (Missão)
+- [ ] Conteúdo definitivo de o-sonho.html (O Sonho)
+- [ ] Conteúdo definitivo de parcerias.html (Parcerias)
+- [ ] Adaptar biblioteca.html e cafe.html para o tema de oração (hoje têm conteúdo genérico de trilhas/receitas, mas os ícones do menu já chamam "Biblioteca de Oração" e "Sala de Oração")
 
 ## Dev
 - **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com

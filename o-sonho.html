@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Café & Meditação — BIFFI.ONLINE</title>
+  <title>O Sonho — BIFFI.ONLINE</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -137,184 +137,30 @@
       line-height: 1.6;
     }
 
-    .section-title {
-      font-size: 22px;
-      color: var(--roxo);
-      margin-bottom: 24px;
-      letter-spacing: 2px;
-      text-shadow: 2px 2px 0 var(--dourado);
-    }
-
-    /* ── RITUAL DO DIA ── */
-    .ritual-banner {
+    .em-breve-banner {
       background: rgba(255,255,255,0.55);
       backdrop-filter: blur(12px);
       border: 2px solid rgba(139,45,143,0.2);
       border-radius: 24px;
-      padding: 40px;
-      margin-bottom: 60px;
+      padding: 48px 40px;
       text-align: center;
     }
 
-    .ritual-banner .big-emoji { font-size: 64px; margin-bottom: 16px; display: block; }
+    .em-breve-banner .big-emoji { font-size: 64px; margin-bottom: 16px; display: block; }
 
-    .ritual-banner h2 {
+    .em-breve-banner h2 {
       font-size: 26px;
       color: var(--roxo);
       margin-bottom: 16px;
     }
 
-    .ritual-banner p {
+    .em-breve-banner p {
       font-size: 15px;
       color: var(--roxo-esc);
       font-family: Arial, sans-serif;
       line-height: 1.9;
       max-width: 560px;
-      margin: 0 auto 28px;
-    }
-
-    .ritual-steps {
-      display: flex;
-      justify-content: center;
-      gap: 20px;
-      flex-wrap: wrap;
-      margin-top: 24px;
-    }
-
-    .step {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      background: rgba(255,255,255,0.5);
-      border-radius: 16px;
-      padding: 18px 20px;
-      min-width: 110px;
-    }
-
-    .step .s-icon { font-size: 30px; }
-    .step .s-text {
-      font-size: 12px;
-      color: var(--roxo);
-      font-family: Arial, sans-serif;
-      font-weight: 700;
-      text-align: center;
-    }
-
-    /* ── RECEITAS ── */
-    .recipe-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 24px;
-      margin-bottom: 60px;
-    }
-
-    .recipe-card {
-      background: rgba(255,255,255,0.48);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(139,45,143,0.18);
-      border-radius: 20px;
-      overflow: hidden;
-      transition: transform 0.25s, box-shadow 0.25s;
-    }
-
-    .recipe-card:hover {
-      transform: translateY(-5px);
-      box-shadow: 0 14px 34px rgba(139,45,143,0.16);
-    }
-
-    .recipe-thumb {
-      height: 120px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 54px;
-    }
-
-    .r1 { background: linear-gradient(135deg, #fde68a, #fca5a5); }
-    .r2 { background: linear-gradient(135deg, #f9c5e0, #c4b5fd); }
-    .r3 { background: linear-gradient(135deg, #bbf7d0, #fde68a); }
-    .r4 { background: linear-gradient(135deg, #a5f3fc, #f9c5e0); }
-
-    .recipe-body { padding: 20px; }
-
-    .recipe-body h3 {
-      font-size: 16px;
-      color: var(--roxo);
-      font-family: Arial, sans-serif;
-      font-weight: 700;
-      margin-bottom: 8px;
-    }
-
-    .recipe-body p {
-      font-size: 13px;
-      color: var(--roxo-esc);
-      font-family: Arial, sans-serif;
-      line-height: 1.6;
-      margin-bottom: 14px;
-    }
-
-    .recipe-meta {
-      font-size: 11px;
-      color: var(--rosa-med);
-      font-family: Arial, sans-serif;
-      font-weight: 700;
-      letter-spacing: 1px;
-    }
-
-    /* ── MEDITAÇÕES ── */
-    .meditation-list {
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .meditation-item {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      background: rgba(255,255,255,0.45);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(139,45,143,0.15);
-      border-radius: 16px;
-      padding: 18px 24px;
-      cursor: pointer;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .meditation-item:hover {
-      transform: translateX(4px);
-      box-shadow: 0 8px 24px rgba(139,45,143,0.13);
-    }
-
-    .med-icon { font-size: 36px; flex-shrink: 0; }
-
-    .med-info { flex: 1; }
-
-    .med-info h4 {
-      font-size: 15px;
-      color: var(--roxo);
-      font-family: Arial, sans-serif;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .med-info p {
-      font-size: 12px;
-      color: var(--roxo-esc);
-      font-family: Arial, sans-serif;
-      line-height: 1.5;
-    }
-
-    .med-duration {
-      font-size: 13px;
-      font-weight: 700;
-      color: var(--roxo);
-      font-family: Arial, sans-serif;
-      background: rgba(139,45,143,0.1);
-      padding: 6px 14px;
-      border-radius: 50px;
-      flex-shrink: 0;
+      margin: 0 auto;
     }
 
     footer {
@@ -415,7 +261,7 @@
       nav a { width: 44px; padding: 6px; }
       nav a .label { display: none; }
       .page { padding: 90px 16px 60px; }
-      .ritual-banner { padding: 24px 16px; }
+      .em-breve-banner { padding: 28px 20px; }
     }
   </style>
 </head>
@@ -443,7 +289,7 @@
         <span class="icon">🐝</span>
         <span class="label">Quem sou</span>
       </a>
-      <a href="o-sonho.html">
+      <a href="o-sonho.html" class="active">
         <span class="icon">✨</span>
         <span class="label">O Sonho</span>
       </a>
@@ -451,7 +297,7 @@
         <span class="icon">📖</span>
         <span class="label">Biblioteca de Oração</span>
       </a>
-      <a href="cafe.html" class="active">
+      <a href="cafe.html">
         <span class="icon">🙏</span>
         <span class="label">Sala de Oração</span>
       </a>
@@ -472,110 +318,18 @@
 
   <div class="page">
     <div class="page-title">
-      <span class="emoji">☕</span>
-      <h1>Café &amp; Meditação</h1>
-      <p>Momentos de pausa, receitas reconfortantes e práticas que renovam a alma.</p>
+      <span class="emoji">✨</span>
+      <h1>O Sonho</h1>
+      <p>A visão que inspira este projeto.</p>
     </div>
 
-    <!-- RITUAL -->
-    <div class="ritual-banner">
-      <span class="big-emoji">🌅</span>
-      <h2>O Ritual da Manhã</h2>
+    <div class="em-breve-banner">
+      <span class="big-emoji">🚧</span>
+      <h2>Conteúdo em breve</h2>
       <p>
-        Antes de abrir o celular, antes do barulho do mundo entrar —
-        reserve cinco minutos só para você. Uma xícara quente, uma respiração
-        funda e uma intenção para o dia que começa.
+        Estamos preparando esta página com carinho para contar o sonho
+        por trás de BIFFI.ONLINE. Volte em breve para conferir.
       </p>
-      <div class="ritual-steps">
-        <div class="step"><span class="s-icon">🫁</span><span class="s-text">Respire fundo 3x</span></div>
-        <div class="step"><span class="s-icon">☕</span><span class="s-text">Prepare seu café</span></div>
-        <div class="step"><span class="s-icon">✍️</span><span class="s-text">Escreva uma intenção</span></div>
-        <div class="step"><span class="s-icon">🙏</span><span class="s-text">Agradeça</span></div>
-      </div>
-    </div>
-
-    <!-- RECEITAS -->
-    <h2 class="section-title">☕ Receitas de Café</h2>
-    <div class="recipe-grid">
-
-      <div class="recipe-card">
-        <div class="recipe-thumb r1">☕</div>
-        <div class="recipe-body">
-          <h3>Latte de Lavanda</h3>
-          <p>Uma combinação floral e reconfortante — perfeita para momentos de calma.</p>
-          <div class="recipe-meta">⏱ 5 min &nbsp;|&nbsp; 🌸 Relaxante</div>
-        </div>
-      </div>
-
-      <div class="recipe-card">
-        <div class="recipe-thumb r2">🍵</div>
-        <div class="recipe-body">
-          <h3>Chá de Camomila com Mel</h3>
-          <p>O abraço em forma de bebida. Ideal para acalmar a mente antes de dormir.</p>
-          <div class="recipe-meta">⏱ 8 min &nbsp;|&nbsp; 💤 Para noite</div>
-        </div>
-      </div>
-
-      <div class="recipe-card">
-        <div class="recipe-thumb r3">🥛</div>
-        <div class="recipe-body">
-          <h3>Golden Milk</h3>
-          <p>Leite dourado com cúrcuma, canela e mel — anti-inflamatório e delicioso.</p>
-          <div class="recipe-meta">⏱ 10 min &nbsp;|&nbsp; ✨ Energizante</div>
-        </div>
-      </div>
-
-      <div class="recipe-card">
-        <div class="recipe-thumb r4">🍫</div>
-        <div class="recipe-body">
-          <h3>Cappuccino Rosa</h3>
-          <p>Espresso com leite de amêndoas e pitangas — tão fofo quanto saboroso.</p>
-          <div class="recipe-meta">⏱ 7 min &nbsp;|&nbsp; 💕 Especial</div>
-        </div>
-      </div>
-
-    </div>
-
-    <!-- MEDITAÇÕES -->
-    <h2 class="section-title">🧘 Práticas de Meditação</h2>
-    <div class="meditation-list">
-
-      <div class="meditation-item">
-        <span class="med-icon">🌬️</span>
-        <div class="med-info">
-          <h4>Respiração 4-7-8</h4>
-          <p>Técnica para reduzir ansiedade e induzir calma em poucos minutos.</p>
-        </div>
-        <span class="med-duration">5 min</span>
-      </div>
-
-      <div class="meditation-item">
-        <span class="med-icon">🌊</span>
-        <div class="med-info">
-          <h4>Meditação da Manhã — Intenção do Dia</h4>
-          <p>Comece o dia com clareza, presença e uma intenção poderosa.</p>
-        </div>
-        <span class="med-duration">10 min</span>
-      </div>
-
-      <div class="meditation-item">
-        <span class="med-icon">🌙</span>
-        <div class="med-info">
-          <h4>Relaxamento Noturno — Solte o Dia</h4>
-          <p>Uma prática guiada para liberar tensões e preparar corpo e mente para o sono.</p>
-        </div>
-        <span class="med-duration">15 min</span>
-      </div>
-
-      <div class="meditation-item">
-        <span class="med-icon">💛</span>
-        <div class="med-info">
-          <h4>Amor e Autocompaixão</h4>
-          <p>Cultive gentileza e amor por si mesma com essa prática transformadora.</p>
-        </div>
-        <span class="med-duration">20 min</span>
-      </div>
-
     </div>
   </div>
 
