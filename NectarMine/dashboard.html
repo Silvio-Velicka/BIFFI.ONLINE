@@ -272,46 +272,25 @@
 
 <!-- SIDEBAR -->
 <nav class="sidebar" id="sidebar">
-  <div class="sidebar-logo">
-    <i class="fa-solid fa-hexagon-nodes"></i>
-    <span>NectarMine</span>
-  </div>
   <div class="sidebar-user">
-    <div class="user-avatar">🐝</div>
-    <div class="user-info">
-      <strong>BIFFI</strong>
-      <span>ID #104</span>
-    </div>
-    <div class="user-level">Nv.12</div>
-  </div>
-  <div class="sidebar-stats">
-    <div class="sidebar-stat">
-      <span>Néctar</span>
-      <strong>48.320</strong>
-    </div>
-    <div class="sidebar-stat">
-      <span>Potes</span>
-      <strong>1.247</strong>
-    </div>
+    <div class="welcome-label">BEM VINDO</div>
+    <div class="user-info"><strong>BIFFI</strong></div>
   </div>
   <nav class="sidebar-nav">
-    <a href="dashboard.html"       class="nav-link"><i class="fa-solid fa-gauge-high"></i> Dashboard<span class="nav-badge hot">LIVE</span></a>
-    <a href="meus-apiarios.html"   class="nav-link"><i class="fa-solid fa-industry"></i> Meus Apiários</a>
-    <a href="mercado.html"         class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Mercado</a>
-    <a href="envasar.html"         class="nav-link"><i class="fa-solid fa-jar"></i> Envasar<span class="nav-badge yellow">+NCT</span></a>
-    <a href="recarregar-flores.html" class="nav-link"><i class="fa-solid fa-bolt"></i> Recarregar Flores</a>
-    <a href="upgrades.html"        class="nav-link"><i class="fa-solid fa-arrow-trend-up"></i> Upgrades</a>
-    <a href="stake.html"           class="nav-link"><i class="fa-solid fa-lock"></i> Honey Stake<span class="nav-badge roxo">+20%</span></a>
-    <a href="desafios.html"        class="nav-link"><i class="fa-solid fa-trophy"></i> Desafios</a>
-    <a href="ganhar-nectar.html"   class="nav-link"><i class="fa-solid fa-coins"></i> Ganhar Néctar</a>
+    <a href="dashboard.html"       class="nav-link active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
+    <a href="mercado.html"         class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Negociações</a>
+    <a href="meus-apiarios.html"   class="nav-link"><i class="fa-solid fa-industry"></i> Expansão</a>
+    <a href="desafios.html"        class="nav-link"><i class="fa-solid fa-trophy"></i> Metas</a>
     <a href="transferencias.html"  class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
-    <a href="estatisticas.html"    class="nav-link"><i class="fa-solid fa-chart-line"></i> Estatísticas</a>
-    <a href="parceiros.html"       class="nav-link"><i class="fa-solid fa-handshake"></i> Parceiros</a>
-    <div class="nav-divider"></div>
-    <a href="whitepaper.html"      class="nav-link"><i class="fa-solid fa-file-lines"></i> Whitepaper</a>
-    <a href="roadmap.html"         class="nav-link"><i class="fa-solid fa-map"></i> Roadmap</a>
-    <a href="/logout"              class="nav-link" style="color:var(--vermelho)"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+    <a href="ganhar-nectar.html"   class="nav-link"><i class="fa-solid fa-user-group"></i> Amigos</a>
   </nav>
+  <div class="sidebar-bottom">
+    <div class="nav-divider"></div>
+    <a href="parceiros.html"       class="nav-link"><i class="fa-solid fa-handshake"></i> Anunciantes</a>
+    <a href="whitepaper.html"      class="nav-link"><i class="fa-solid fa-file-lines"></i> White Paper</a>
+    <a href="roadmap.html"         class="nav-link"><i class="fa-solid fa-map"></i> RoadMap</a>
+    <a href="/logout"              class="nav-link nav-sair"><i class="fa-solid fa-right-from-bracket"></i> Sair</a>
+  </div>
 </nav>
 <button class="menu-toggle" id="menu-toggle"><i class="fa-solid fa-bars"></i></button>
 
@@ -414,11 +393,8 @@
             </div>
 
             <div style="display:flex;gap:10px;">
-              <button class="btn-envasar" onclick="envasar()" style="flex:2">
+              <button class="btn-envasar" onclick="envasar()" style="flex:1">
                 <i class="fa-solid fa-jar"></i> Envasar Potes
-              </button>
-              <button class="btn-recarregar" onclick="location.href='recarregar-flores.html'" style="flex:1">
-                <i class="fa-solid fa-bolt"></i> Flores
               </button>
             </div>
           </div>
@@ -485,7 +461,7 @@
               </div>
             </div>
             <div style="margin-top:12px;">
-              <a href="upgrades.html" class="btn btn-block btn-roxo btn-sm">
+              <a href="meus-apiarios.html" class="btn btn-block btn-roxo btn-sm">
                 <i class="fa-solid fa-arrow-trend-up"></i> Fazer Upgrade
               </a>
             </div>
@@ -509,7 +485,7 @@
               <strong>24,57 NCT</strong>
               <span>▲ +6.51%</span>
             </div>
-            <button class="btn-vender" onclick="location.href='envasar.html'">
+            <button class="btn-vender" onclick="envasar()">
               <i class="fa-solid fa-jar"></i> Envasar agora
             </button>
           </div>
@@ -620,14 +596,6 @@
       <!-- ── BANNER PROMOS ── -->
       <div class="col-right">
         <div class="promo-row" style="flex-direction:column;display:flex;gap:12px;">
-          <div class="promo-card yellow">
-            <div class="promo-icon">🍯</div>
-            <div class="promo-text">
-              <h4>Honey Stake — até +20%</h4>
-              <p>Bloqueie seus potes por 10, 20 ou 30 dias e receba rendimento garantido em Néctar.</p>
-              <a href="stake.html" class="btn btn-sm btn-primary">Fazer Stake →</a>
-            </div>
-          </div>
           <div class="promo-card roxo">
             <div class="promo-icon">🌐</div>
             <div class="promo-text">
