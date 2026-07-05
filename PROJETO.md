@@ -89,3 +89,4 @@
 - Botão "Voltar ao Dashboard" (`.btn-voltar-dashboard`, em `css/global.css`) fica fixo no topo direito da tela em todas as páginas internas.
 - Transição entre páginas (`NectarMine/transicao.html`) dura 12 segundos, com propagandas fixas no topo e no rodapé da tela.
 - Nota: se depois de um deploy o site não atualizar mesmo com Ctrl+Shift+R, o motivo normalmente é o job "deploy" do GitHub Pages falhando silenciosamente ("Deployment failed, try again later"), não cache do navegador — checar em github.com/Silvio-Velicka/BIFFI.ONLINE/actions.
+- Esse erro de deploy tem se repetido esporadicamente (olhando o histórico de "Deployments", já aconteceu antes nos runs #25, #31, #37, #39 e se resolveu sozinho depois de 1-2 tentativas) — parece ser uma instabilidade pontual do lado do GitHub Pages, não um problema no código ou no repositório.
