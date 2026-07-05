@@ -2,26 +2,23 @@
 cd /d "%~dp0"
 set "GIT_EDITOR=cmd /c exit 0"
 
-echo Abortando rebase travado...
+echo Limpando estado de rebase travado (se houver)...
+if exist ".git\rebase-merge" rd /s /q ".git\rebase-merge"
+if exist ".git\rebase-apply" rd /s /q ".git\rebase-apply"
+if exist ".git\index.lock" del /f /q ".git\index.lock"
 git rebase --abort >nul 2>&1
+
+echo Salvando suas alteracoes locais...
+git add -A
+git commit -m "Deploy update" >nul 2>&1
 
 echo Buscando atualizacoes do GitHub...
 git fetch origin
 
-echo Tentando sincronizar novamente...
-git rebase origin/main
-if errorlevel 1 goto resolveconflict
+echo Sincronizando (merge)...
+git merge origin/main --no-edit
+if errorlevel 1 goto mergeerror
 
-goto pushnow
-
-:resolveconflict
-echo.
-echo Conflito detectado (esperado). Resolvendo automaticamente, mantendo a exclusao do medidas-propagandas.txt...
-git rm -f "NectarMine/medidas-propagandas.txt" >nul 2>&1
-git rebase --continue
-if errorlevel 1 goto rebasefail
-
-:pushnow
 echo.
 echo Enviando para o GitHub...
 git push origin main
@@ -32,10 +29,9 @@ echo === Correcao concluida! Pode voltar a usar o deploy.bat normalmente a parti
 pause
 exit /b 0
 
-:rebasefail
+:mergeerror
 echo.
-echo === Ainda ha conflitos pendentes que nao foram resolvidos automaticamente. ===
-echo Rode "git status" nesta pasta pelo cmd e me mande o resultado.
+echo === Conflito de merge (nao resolvido automaticamente). Rode "git status" nesta pasta pelo cmd e me mande o resultado. ===
 pause
 exit /b 1
 

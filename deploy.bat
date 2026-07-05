@@ -2,12 +2,15 @@
 cd /d "%~dp0"
 
 if exist ".git\index.lock" del /f /q ".git\index.lock"
+if exist ".git\rebase-merge" rd /s /q ".git\rebase-merge"
+if exist ".git\rebase-apply" rd /s /q ".git\rebase-apply"
 
 git add .
 git commit -m "Deploy update"
 
 echo Sincronizando com o GitHub...
-git pull origin main --rebase
+git fetch origin
+git merge origin/main --no-edit
 if errorlevel 1 goto pullerror
 
 git push origin main
