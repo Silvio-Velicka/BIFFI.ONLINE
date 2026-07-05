@@ -255,8 +255,8 @@ img { max-width: 100%; display: block; }
 }
 
 /* Menu de navegação */
-.sidebar-nav { padding: 12px 0; }
-.sidebar-bottom { padding: 8px 0 16px; margin-top: 12px; }
+.sidebar-nav { padding: 12px 0; flex: 1; }
+.sidebar-bottom { padding: 8px 0 16px; }
 .nav-section-label {
   font-size: 9px; letter-spacing: 2px; text-transform: uppercase;
   color: var(--texto3); padding: 10px 20px 4px;
