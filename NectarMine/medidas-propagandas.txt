@@ -141,3 +141,5 @@ Por visita de um usuário (navegando 5 páginas):
   NectarMine — Todos os direitos reservados
   Temporada 1 | 2026
 ====================================================
+
+redeploy trigger
