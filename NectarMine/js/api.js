@@ -39,7 +39,7 @@ const NM_API = {
   async logout() {
     try { await NM_API.call('/api/logout', 'POST'); } catch {}
     localStorage.removeItem('nm_token');
-    location.href = 'login.html';
+    location.href = 'transicao.html?to=' + encodeURIComponent('https://biffi.online');
   },
 
   me: () => NM_API.call('/api/me'),
