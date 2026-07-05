@@ -88,3 +88,4 @@
 - Página `NectarMine/amigos.html`: sistema de referral (10% de comissão contínua + 50 potes de mel de bônus único por parceiro ativo), com link de convite, resgate de potes e tabela de parceiros.
 - Botão "Voltar ao Dashboard" (`.btn-voltar-dashboard`, em `css/global.css`) fica fixo no topo direito da tela em todas as páginas internas.
 - Transição entre páginas (`NectarMine/transicao.html`) dura 12 segundos, com propagandas fixas no topo e no rodapé da tela.
+- Nota: se depois de um deploy o site não atualizar mesmo com Ctrl+Shift+R, o motivo normalmente é o job "deploy" do GitHub Pages falhando silenciosamente ("Deployment failed, try again later"), não cache do navegador — checar em github.com/Silvio-Velicka/BIFFI.ONLINE/actions.
