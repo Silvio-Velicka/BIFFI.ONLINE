@@ -83,3 +83,8 @@
 ## Dev
 - **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com
 - **WhatsApp Dev:** +55 11 94737-7498
+
+## NectarMine — Notas recentes
+- Página `NectarMine/amigos.html`: sistema de referral (10% de comissão contínua + 50 potes de mel de bônus único por parceiro ativo), com link de convite, resgate de potes e tabela de parceiros.
+- Botão "Voltar ao Dashboard" (`.btn-voltar-dashboard`, em `css/global.css`) fica fixo no topo direito da tela em todas as páginas internas.
+- Transição entre páginas (`NectarMine/transicao.html`) dura 12 segundos, com propagandas fixas no topo e no rodapé da tela.
