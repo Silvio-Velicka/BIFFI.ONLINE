@@ -84,10 +84,24 @@
 - **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com
 - **WhatsApp Dev:** +55 11 94737-7498
 
-## NectarMine — Notas recentes
-- Página `NectarMine/amigos.html`: sistema de referral (10% de comissão contínua + 50 potes de mel de bônus único por parceiro ativo), com link de convite, resgate de potes e tabela de parceiros.
-- Botão "Voltar ao Dashboard" (`.btn-voltar-dashboard`, em `css/global.css`) fica fixo no topo direito da tela em todas as páginas internas.
-- Transição entre páginas (`NectarMine/transicao.html`) dura 12 segundos, com propagandas fixas no topo e no rodapé da tela.
-- Nota: se depois de um deploy o site não atualizar mesmo com Ctrl+Shift+R, o motivo normalmente é o job "deploy" do GitHub Pages falhando silenciosamente ("Deployment failed, try again later"), não cache do navegador — checar em github.com/Silvio-Velicka/BIFFI.ONLINE/actions.
-- Esse erro de deploy tem se repetido esporadicamente (olhando o histórico de "Deployments", já aconteceu antes nos runs #25, #31, #37, #39 e se resolveu sozinho depois de 1-2 tentativas) — parece ser uma instabilidade pontual do lado do GitHub Pages, não um problema no código ou no repositório.
-- Causa provável identificada em 04/07/2026: em Settings > Pages, o domínio customizado biffi.online ficou com "DNS Check in Progress" travado (em vez do check verificado). Isso pode causar falha na etapa "Getting Pages deployment status" mesmo com o deployment criado com sucesso. Se acontecer de novo: em Settings > Pages, clicar em "Save" no campo do domínio customizado para forçar uma nova verificação de DNS.
+## NectarMine — Notas recentes (sessão 04/07/2026)
+Tudo abaixo foi implementado, deployado e confirmado ao vivo em biffi.online:
+
+- **Transição entre páginas** (`NectarMine/transicao.html`): dura 12 segundos; anúncio Adcash (zoneId `11566174`) fixo no topo da tela, anúncio zerads (728x90) fixo no rodapé — ambos com `position: fixed`, não mais centralizados.
+- **`NectarMine/medidas-propagandas.txt`**: deletado (não é mais usado).
+- **Botão "Sair" (logout)**: `js/api.js` → `NM_API.logout()` agora limpa o token, passa uma última vez pela `transicao.html` e redireciona para `https://biffi.online` (site raiz) — não vai mais para `login.html` do jogo.
+- **Página Amigos**: `ganhar-nectar.html` foi renomeada para `amigos.html` (link atualizado no sidebar do dashboard). Contém sistema de referral completo, no estilo do dashboard (anúncio 468x60 + título em amarelo no topo):
+  - Reward: 50 potes de mel de bônus único + 10% de comissão contínua sobre a produção do indicado, por parceiro.
+  - Cards: comissão, bônus, parceiros, potes disponíveis, link de convite (com botão copiar), resgate de potes, tabela de parceiros registrados.
+  - Todos os cards usam o mesmo estilo visual transparente (`rgba(255,255,255,.04)` + `backdrop-filter: blur(10px)`).
+  - Propagandas no rodapé, nesta ordem: Adcash zoneId `11566166`, Adcash zoneId `11566158`, zerads (728x90), Adcash zoneId `11566174`.
+- **Botão "Voltar ao Dashboard"** (`.btn-voltar-dashboard`, em `css/global.css`): reposicionado do topo-esquerdo para o topo-direito da tela, em todas as páginas internas (classe compartilhada, uma única mudança no CSS afeta todas as páginas).
+
+### Problema de deploy resolvido (importante para o futuro)
+Depois da mudança do botão, o GitHub Pages falhou em publicar por 4 tentativas seguidas (runs #44 a #47), sempre com o erro genérico "Deployment failed, try again later." mesmo com o deployment sendo criado com sucesso (confirmado direto no log do job "deploy").
+
+**Causa raiz encontrada:** em Settings → Pages, o domínio customizado `biffi.online` estava com "DNS Check in Progress" travado (em vez do check verificado/verde). Isso instabiliza a etapa final de "Getting Pages deployment status" do GitHub Pages.
+
+**Correção:** em Settings → Pages → Custom domain, clicar em "Save" no campo do domínio (sem alterar o valor) força o GitHub a refazer a verificação de DNS. Depois disso o deploy voltou a funcionar normalmente.
+
+**Se esse erro voltar a acontecer:** checar primeiro `github.com/Silvio-Velicka/BIFFI.ONLINE/settings/pages` — se o "DNS Check" não estiver com o check verde, repetir o "Save" acima antes de tentar mais commits ou re-runs.
