@@ -23,7 +23,9 @@
     .missoes-banner p { font-size:13px; color:var(--texto2); max-width:640px; }
 
     /* Grid de cards de missão */
-    .missoes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:16px; }
+    .missoes-grid { display:grid; grid-template-columns:repeat(3, 1fr); gap:16px; }
+    @media(max-width:800px) { .missoes-grid { grid-template-columns:repeat(2, 1fr); } }
+    @media(max-width:500px) { .missoes-grid { grid-template-columns:1fr; } }
 
     .mcard {
       background:var(--card); backdrop-filter:blur(10px);
@@ -189,24 +191,6 @@
         <button class="mcard-btn andamento" disabled>Em andamento</button>
       </div>
 
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Consumo Energético</h4>
-          <div class="mcard-icon">🔋</div>
-        </div>
-        <p class="mcard-desc">Gaste energia durante a produção.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>39 / 500</span></div>
-          <div class="progress-bar"><div class="progress-fill" id="m-energia" style="width:0%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +1.000</span>
-          <span class="reward-chip xp">XP +450</span>
-        </div>
-        <button class="mcard-btn andamento" disabled>Em andamento</button>
-      </div>
-
     </div>
 
     <!-- Propagandas do rodapé -->
@@ -238,7 +222,6 @@
   window.addEventListener('load',()=>{
     setTimeout(()=>{
       nmAnimateProgress('#m-prod',15);
-      nmAnimateProgress('#m-energia',7.8);
     },2600);
   });
 </script>
