@@ -39,7 +39,7 @@
   --borda2:      rgba(255,215,0,0.08);
   --borda-roxo:  rgba(123,47,190,0.35);
 
-  --sidebar-w:   260px;
+  --sidebar-w:   190px;
   --header-h:    60px;
   --radius:      12px;
   --radius-sm:   8px;
@@ -263,10 +263,11 @@ img { max-width: 100%; display: block; }
 }
 .nav-link {
   display: flex; align-items: center; gap: 10px;
-  padding: 9px 20px;
+  padding: 9px 16px;
   color: var(--roxo-neon); font-size: 13px;
   transition: all .18s; position: relative;
   border-left: 2px solid transparent;
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 .nav-link i { width: 16px; text-align: center; font-size: 14px; }
 .nav-link:hover {
