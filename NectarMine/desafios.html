@@ -6,6 +6,7 @@
   <title>NectarMine — Desafios</title>
   <link rel="stylesheet" href="css/global.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <style>
     /* Banner Central de Missões */
     .missoes-banner {
@@ -18,22 +19,11 @@
       content:''; position:absolute; top:0; left:0; right:0; height:3px;
       background:linear-gradient(90deg, var(--amarelo), var(--roxo2), var(--amarelo));
     }
-    .missoes-banner-top { display:flex; align-items:flex-start; justify-content:space-between; gap:14px; flex-wrap:wrap; }
     .missoes-banner h1 { font-size:20px; color:var(--amarelo); display:flex; align-items:center; gap:10px; margin-bottom:6px; }
     .missoes-banner p { font-size:13px; color:var(--texto2); max-width:640px; }
 
-    /* Tabs */
-    .desafio-tabs { display:flex; gap:8px; margin-bottom:20px; flex-wrap:wrap; }
-    .dtab { padding:8px 20px; border-radius:8px; border:1px solid var(--borda2); background:transparent; color:var(--texto2); font-size:13px; font-weight:bold; transition:all .2s; }
-    .dtab.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); }
-    .desafio-panel { display:none; }
-    .desafio-panel.active { display:block; }
-
-    /* Layout */
-    .desafio-layout { display:grid; grid-template-columns:1fr 300px; gap:18px; }
-
     /* Grid de cards de missão */
-    .missoes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(230px,1fr)); gap:16px; }
+    .missoes-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(200px,1fr)); gap:16px; }
 
     .mcard {
       background:var(--card); backdrop-filter:blur(10px);
@@ -54,8 +44,6 @@
       align-self:flex-start; font-size:10px; font-weight:bold; padding:3px 10px; border-radius:20px;
       background:rgba(96,165,250,.12); color:var(--azul); border:1px solid rgba(96,165,250,.3);
     }
-    .mcard-tipo.semanal   { background:var(--roxo-bg); color:var(--roxo2); border-color:var(--borda-roxo); }
-    .mcard-tipo.conquista { background:var(--amarelo-bg); color:var(--amarelo); border-color:var(--borda); }
 
     .mcard-progress-label { display:flex; justify-content:space-between; font-size:11px; color:var(--texto2); }
     .mcard .progress-bar { height:6px; }
@@ -63,39 +51,14 @@
     .mcard-rewards { display:flex; flex-wrap:wrap; gap:6px; }
     .reward-chip { font-size:10.5px; font-weight:bold; padding:4px 10px; border-radius:8px; background:rgba(255,255,255,.05); border:1px solid rgba(255,255,255,.08); white-space:nowrap; }
     .reward-chip.nct    { color:var(--amarelo); }
-    .reward-chip.potes  { color:var(--verde); }
-    .reward-chip.flores { color:var(--azul); }
+    .reward-chip.xp     { color:var(--azul); }
+    .reward-chip.flores { color:var(--verde); }
 
     .mcard-btn { width:100%; padding:9px; border-radius:8px; border:none; font-size:12.5px; font-weight:bold; text-align:center; margin-top:auto; }
     .mcard-btn.coletada  { background:rgba(34,197,94,.15); color:var(--verde); cursor:default; }
     .mcard-btn.andamento { background:rgba(255,255,255,.05); color:var(--texto3); cursor:default; }
     .mcard-btn.coletar   { background:var(--verde); color:#fff; cursor:pointer; transition:filter .2s; }
     .mcard-btn.coletar:hover { filter:brightness(1.1); }
-
-    /* Aside: resumo diário */
-    .daily-summary {
-      background:var(--card); backdrop-filter:blur(10px);
-      border:1px solid var(--borda2); border-radius:var(--radius); padding:18px; margin-bottom:14px;
-    }
-    .daily-summary h3 { font-size:14px; color:var(--branco); margin-bottom:12px; }
-    .daily-progress { text-align:center; padding:10px 0; }
-    .daily-fraction { font-size:32px; color:var(--amarelo); font-weight:bold; }
-    .daily-label { font-size:12px; color:var(--texto2); margin-bottom:10px; }
-    .reward-pool { background:var(--amarelo-bg); border:1px solid var(--borda); border-radius:var(--radius-sm); padding:10px; text-align:center; margin-top:8px; }
-    .reward-pool label { font-size:10px; color:var(--texto3); display:block; }
-    .reward-pool strong { font-size:18px; color:var(--amarelo); }
-
-    /* Ranking mensal */
-    .rank-month-item { display:flex; align-items:center; gap:8px; padding:8px 0; border-bottom:1px solid rgba(255,255,255,.03); }
-    .rank-month-pos { width:22px; font-size:12px; font-weight:bold; color:var(--texto3); flex-shrink:0; }
-    .rank-month-pos.g { color:var(--amarelo); }
-    .rank-month-name { flex:1; font-size:13px; color:var(--texto); }
-    .rank-month-name.me { color:var(--amarelo); font-weight:bold; }
-    .rank-month-pts { font-size:12px; color:var(--texto2); }
-
-    @media(max-width:900px) {
-      .desafio-layout { grid-template-columns:1fr; }
-    }
   </style>
 </head>
 <body>
@@ -111,286 +74,139 @@
   <main class="page-content" style="padding:10px 20px 30px;">
 
     <div class="missoes-banner">
-      <div class="missoes-banner-top">
+      <h1><i class="fa-solid fa-scroll"></i> Central de Missões</h1>
+      <p>Complete tarefas diárias, evolua sua operação e receba recompensas em Néctar, XP e Energia.</p>
+    </div>
+
+    <div class="missoes-grid">
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Login Diário</h4>
+          <div class="mcard-icon">🎁</div>
+        </div>
+        <p class="mcard-desc">Entre no jogo uma vez por dia.</p>
+        <span class="mcard-tipo">Missão diária</span>
         <div>
-          <h1><i class="fa-solid fa-scroll"></i> Central de Missões</h1>
-          <p>Complete tarefas diárias, evolua sua produção e receba recompensas em Néctar, Potes e Flores.</p>
+          <div class="mcard-progress-label"><span>Progresso</span><span>1 / 1</span></div>
+          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
         </div>
-        <span class="badge badge-yellow">Reset em: <strong id="reset-timer">08:43:12</strong></span>
-      </div>
-    </div>
-
-    <div class="desafio-tabs">
-      <button class="dtab active" onclick="switchD('diarias',this)">📅 Diárias</button>
-      <button class="dtab" onclick="switchD('semanais',this)">🗓️ Semanais</button>
-      <button class="dtab" onclick="switchD('conquistas',this)">🏆 Conquistas</button>
-    </div>
-
-    <div class="desafio-layout">
-      <!-- MISSÕES -->
-      <div>
-
-        <!-- PAINEL DIÁRIAS -->
-        <div class="desafio-panel active" id="panel-diarias">
-          <div class="missoes-grid">
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Envasar potes</h4>
-                <div class="mcard-icon">💧</div>
-              </div>
-              <p class="mcard-desc">Envase pelo menos 100 potes de mel hoje.</p>
-              <span class="mcard-tipo">Missão diária</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>100 / 100</span></div>
-                <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +200</span>
-                <span class="reward-chip potes">Potes +50</span>
-              </div>
-              <button class="mcard-btn coletar" onclick="coletarMissao('Envasar potes',200,this)">Coletar</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Produzir potes</h4>
-                <div class="mcard-icon">🍯</div>
-              </div>
-              <p class="mcard-desc">Produza 500 potes com seus apiários.</p>
-              <span class="mcard-tipo">Missão diária</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>347 / 500</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-prod" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +200</span>
-                <span class="reward-chip flores">Flores +30</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Recarregar flores</h4>
-                <div class="mcard-icon">🌸</div>
-              </div>
-              <p class="mcard-desc">Compre pelo menos 1 pacote de flores.</p>
-              <span class="mcard-tipo">Missão diária</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>0 / 1</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +100</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Convidar um amigo</h4>
-                <div class="mcard-icon">👥</div>
-              </div>
-              <p class="mcard-desc">Convide 1 amigo usando seu link de indicação.</p>
-              <span class="mcard-tipo">Missão diária</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>0 / 1</span></div>
-                <div class="progress-bar"><div class="progress-fill" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +500</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Assistir anúncios</h4>
-                <div class="mcard-icon">📺</div>
-              </div>
-              <p class="mcard-desc">Assista 5 anúncios na seção "Ganhar Néctar".</p>
-              <span class="mcard-tipo">Missão diária</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>2 / 5</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-ads" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +150</span>
-                <span class="reward-chip flores">Flores +20</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-          </div>
-
-          <div class="anuncio anuncio-728" style="margin-top:16px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +300</span>
+          <span class="reward-chip xp">XP +100</span>
+          <span class="reward-chip flores">Energia +10</span>
         </div>
-
-        <!-- PAINEL SEMANAIS -->
-        <div class="desafio-panel" id="panel-semanais">
-          <div class="missoes-grid">
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Grande Produtor</h4>
-                <div class="mcard-icon">🏭</div>
-              </div>
-              <p class="mcard-desc">Produza 5.000 potes em 7 dias.</p>
-              <span class="mcard-tipo semanal">Missão semanal</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>2.430 / 5.000</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-w1" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +2.000</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Envasador Elite</h4>
-                <div class="mcard-icon">💰</div>
-              </div>
-              <p class="mcard-desc">Envase 2.000 potes durante a semana.</p>
-              <span class="mcard-tipo semanal">Missão semanal</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>800 / 2.000</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-w2" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +1.500</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Em Ascensão</h4>
-                <div class="mcard-icon">⬆️</div>
-              </div>
-              <p class="mcard-desc">Faça 3 upgrades em qualquer apiário.</p>
-              <span class="mcard-tipo semanal">Missão semanal</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>1 / 3</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-w3" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +1.000</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-          </div>
-        </div>
-
-        <!-- PAINEL CONQUISTAS -->
-        <div class="desafio-panel" id="panel-conquistas">
-          <div class="missoes-grid">
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Primeiro Pote</h4>
-                <div class="mcard-icon">🎖️</div>
-              </div>
-              <p class="mcard-desc">Produza seu primeiro pote de mel.</p>
-              <span class="mcard-tipo conquista">Conquista</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>1 / 1</span></div>
-                <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +50</span>
-              </div>
-              <button class="mcard-btn coletada" disabled>Coletada</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Apicultor Iniciante</h4>
-                <div class="mcard-icon">🐝</div>
-              </div>
-              <p class="mcard-desc">Alcance 1.000 potes produzidos no total.</p>
-              <span class="mcard-tipo conquista">Conquista</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>1.000 / 1.000</span></div>
-                <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +200</span>
-              </div>
-              <button class="mcard-btn coletada" disabled>Coletada</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Apicultor Profissional</h4>
-                <div class="mcard-icon">🏭</div>
-              </div>
-              <p class="mcard-desc">Alcance 10.000 potes produzidos no total.</p>
-              <span class="mcard-tipo conquista">Conquista</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>5.430 / 10.000</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-c1" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +1.000</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-            <div class="mcard">
-              <div class="mcard-head">
-                <h4>Milionário de Néctar</h4>
-                <div class="mcard-icon">💎</div>
-              </div>
-              <p class="mcard-desc">Acumule 1.000.000 NCT no total (todas as transações).</p>
-              <span class="mcard-tipo conquista">Conquista</span>
-              <div>
-                <div class="mcard-progress-label"><span>Progresso</span><span>48.320 / 1.000.000</span></div>
-                <div class="progress-bar"><div class="progress-fill" id="m-c2" style="width:0%"></div></div>
-              </div>
-              <div class="mcard-rewards">
-                <span class="reward-chip nct">Néctar +5.000</span>
-              </div>
-              <button class="mcard-btn andamento" disabled>Em andamento</button>
-            </div>
-
-          </div>
-        </div>
-
+        <button class="mcard-btn coletada" disabled>Coletada</button>
       </div>
 
-      <!-- ASIDE -->
-      <div>
-        <div class="daily-summary">
-          <h3>📅 Resumo Diário</h3>
-          <div class="daily-progress">
-            <div class="daily-fraction">1/5</div>
-            <div class="daily-label">missões concluídas hoje</div>
-            <div class="progress-bar"><div class="progress-fill" id="daily-prog" style="width:0%"></div></div>
-          </div>
-          <div class="reward-pool">
-            <label>BÔNUS DIÁRIO COMPLETO</label>
-            <strong>+1.500 NCT</strong>
-          </div>
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Extrair Potes</h4>
+          <div class="mcard-icon">🍯</div>
         </div>
-
-        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
-
-        <div class="daily-summary">
-          <h3>🏆 Ranking de Desafios</h3>
-          <div style="margin-top:8px;">
-            <div class="rank-month-item"><div class="rank-month-pos g">1</div><div class="rank-month-name">MelRainha</div><div class="rank-month-pts">980 pts</div></div>
-            <div class="rank-month-item"><div class="rank-month-pos">2</div><div class="rank-month-name">AbelhaFuriosa</div><div class="rank-month-pts">870 pts</div></div>
-            <div class="rank-month-item"><div class="rank-month-pos">3</div><div class="rank-month-name">NectarKing</div><div class="rank-month-pts">760 pts</div></div>
-            <div class="rank-month-item" style="background:var(--amarelo-bg);border-radius:6px;padding:6px 4px;margin-top:4px;"><div class="rank-month-pos" style="color:var(--amarelo)">28</div><div class="rank-month-name me">BIFFI</div><div class="rank-month-pts">120 pts</div></div>
-          </div>
+        <p class="mcard-desc">Transfira o mel do reservatório para seus potes.</p>
+        <span class="mcard-tipo">Missão diária</span>
+        <div>
+          <div class="mcard-progress-label"><span>Progresso</span><span>100 / 100</span></div>
+          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
         </div>
-
-        <div class="anuncio anuncio-300" style="margin-top:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +500</span>
+          <span class="reward-chip xp">XP +250</span>
+        </div>
+        <button class="mcard-btn coletada" disabled>Coletada</button>
       </div>
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Recarregar Energia</h4>
+          <div class="mcard-icon">⚡</div>
+        </div>
+        <p class="mcard-desc">Recarregue a energia das suas máquinas extratoras.</p>
+        <span class="mcard-tipo">Missão diária</span>
+        <div>
+          <div class="mcard-progress-label"><span>Progresso</span><span>1 / 1</span></div>
+          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
+        </div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +150</span>
+          <span class="reward-chip flores">Energia +25</span>
+        </div>
+        <button class="mcard-btn coletada" disabled>Coletada</button>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Comprar no Mercado</h4>
+          <div class="mcard-icon">📈</div>
+        </div>
+        <p class="mcard-desc">Compre potes no mercado global.</p>
+        <span class="mcard-tipo">Missão diária</span>
+        <div>
+          <div class="mcard-progress-label"><span>Progresso</span><span>5 / 5</span></div>
+          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
+        </div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +750</span>
+          <span class="reward-chip xp">XP +300</span>
+        </div>
+        <button class="mcard-btn coletada" disabled>Coletada</button>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Vender no Mercado</h4>
+          <div class="mcard-icon">💰</div>
+        </div>
+        <p class="mcard-desc">Venda potes no mercado global.</p>
+        <span class="mcard-tipo">Missão diária</span>
+        <div>
+          <div class="mcard-progress-label"><span>Progresso</span><span>5 / 5</span></div>
+          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
+        </div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +750</span>
+          <span class="reward-chip xp">XP +300</span>
+        </div>
+        <button class="mcard-btn coletada" disabled>Coletada</button>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Produção Industrial</h4>
+          <div class="mcard-icon">🏭</div>
+        </div>
+        <p class="mcard-desc">Produza mel usando suas máquinas.</p>
+        <span class="mcard-tipo">Missão diária</span>
+        <div>
+          <div class="mcard-progress-label"><span>Progresso</span><span>150 / 1.000</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="m-prod" style="width:0%"></div></div>
+        </div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +2.000</span>
+          <span class="reward-chip xp">XP +900</span>
+        </div>
+        <button class="mcard-btn andamento" disabled>Em andamento</button>
+      </div>
+
+      <div class="mcard">
+        <div class="mcard-head">
+          <h4>Consumo Energético</h4>
+          <div class="mcard-icon">🔋</div>
+        </div>
+        <p class="mcard-desc">Gaste energia durante a produção.</p>
+        <span class="mcard-tipo">Missão diária</span>
+        <div>
+          <div class="mcard-progress-label"><span>Progresso</span><span>39 / 500</span></div>
+          <div class="progress-bar"><div class="progress-fill" id="m-energia" style="width:0%"></div></div>
+        </div>
+        <div class="mcard-rewards">
+          <span class="reward-chip nct">Néctar +1.000</span>
+          <span class="reward-chip xp">XP +450</span>
+        </div>
+        <button class="mcard-btn andamento" disabled>Em andamento</button>
+      </div>
+
     </div>
 
     <!-- Propagandas do rodapé -->
@@ -415,54 +231,14 @@
   </main>
 </div>
 
-<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
-  function switchD(id, btn) {
-    document.querySelectorAll('.dtab').forEach(b=>b.classList.remove('active'));
-    document.querySelectorAll('.desafio-panel').forEach(p=>p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-'+id).classList.add('active');
-  }
-
-  async function coletarMissao(nome, recompensa, btn) {
-    const {isConfirmed} = await NM_SWAL.withAd(
-      '🏆 Coletar Recompensa',
-      `Missão: <strong>${nome}</strong><br/>Recompensa: <strong>+${nmFormatInt(recompensa)} NCT</strong>`,
-      'Coletar agora', 'ad-missao-modal'
-    );
-    if (isConfirmed) {
-      NM_SWAL.success('Recompensa coletada!', `<strong>+${nmFormatInt(recompensa)} NCT</strong> adicionados ao seu saldo.`);
-      if (btn) {
-        btn.textContent = 'Coletada';
-        btn.classList.remove('coletar');
-        btn.classList.add('coletada');
-        btn.disabled = true;
-      }
-    }
-  }
-
-  // Timer de reset
-  let t = 8*3600+43*60+12;
-  function updateTimer() {
-    const h=Math.floor(t/3600), m=Math.floor((t%3600)/60), s=t%60;
-    document.getElementById('reset-timer').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;
-    if(t>0)t--;
-  }
-  setInterval(updateTimer,1000);
-
   window.addEventListener('load',()=>{
     setTimeout(()=>{
-      nmAnimateProgress('#m-prod',69.4);
-      nmAnimateProgress('#m-ads',40);
-      nmAnimateProgress('#m-w1',48.6);
-      nmAnimateProgress('#m-w2',40);
-      nmAnimateProgress('#m-w3',33.3);
-      nmAnimateProgress('#m-c1',54.3);
-      nmAnimateProgress('#m-c2',4.8);
-      nmAnimateProgress('#daily-prog',20);
+      nmAnimateProgress('#m-prod',15);
+      nmAnimateProgress('#m-energia',7.8);
     },2600);
   });
 </script>
