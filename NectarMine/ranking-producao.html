@@ -6,6 +6,7 @@
   <title>NectarMine — Ranking de Produção</title>
   <link rel="stylesheet" href="css/global.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <style>
     .rank-tabs { display:flex; gap:8px; margin-bottom:20px; }
     .rtab { padding:8px 20px; border-radius:8px; border:1px solid var(--borda2); background:transparent; color:var(--texto2); font-size:13px; font-weight:bold; transition:all .2s; }
@@ -56,9 +57,14 @@
 <body>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
+<!-- AD TOPO -->
+<div class="ad-topo">
+  <iframe src="https://zerads.com/ad/ad.php?width=468&ref=11517" marginwidth="0" marginheight="0" width="468" height="60" scrolling="no" frameborder="0" style="border:0;"></iframe>
+  <div class="ad-topo-title">Ranking de Produção - NectarMine</div>
+</div>
+
 <div class="nm-layout" style="margin-left:0;">
-  <main class="page-content" style="padding:80px 20px 30px;">
-    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  <main class="page-content" style="padding:10px 20px 30px;">
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h1 style="font-size:22px;color:var(--branco);"><i class="fa-solid fa-trophy" style="color:var(--amarelo)"></i> Ranking de Produção</h1>
@@ -103,6 +109,26 @@
 
         <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
         <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
+      </div>
+    </div>
+
+    <!-- Propagandas do rodapé -->
+    <div class="rodape-4ads">
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566166' }); }
+        </script>
+      </div>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566158' }); }
+        </script>
+      </div>
+      <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+        </script>
       </div>
     </div>
   </main>
@@ -158,4 +184,8 @@
 
   document.addEventListener('DOMContentLoaded', () => loadRanking('diario'));
   let t=23*3600+12*60+44;
-  function updateTimer(){const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('reset').t
+  function updateTimer(){const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('reset').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;if(t>0)t--;}
+  setInterval(updateTimer,1000);
+</script>
+</body>
+</html>

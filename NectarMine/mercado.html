@@ -7,16 +7,33 @@
   <link rel="stylesheet" href="css/global.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
   <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <style>
-    .mercado-layout { display:grid; grid-template-columns:1fr 320px; gap:18px; }
-    .mercado-main   { display:flex; flex-direction:column; gap:16px; }
-    .mercado-aside  { display:flex; flex-direction:column; gap:14px; }
+    .mercado-layout { display:flex; flex-direction:column; gap:16px; }
+
+    /* Topo: resumo do usuário */
+    .market-summary { display:grid; grid-template-columns:repeat(2,1fr); gap:14px; }
+    .market-stat {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius);
+      padding:16px 18px; display:flex; align-items:center; gap:14px;
+      transition:border-color .2s;
+    }
+    .market-stat:hover { border-color:rgba(255,215,0,.3); }
+    .market-stat .ms-icon {
+      width:42px; height:42px; border-radius:50%; flex-shrink:0;
+      display:flex; align-items:center; justify-content:center;
+      background:var(--amarelo-bg); color:var(--amarelo); font-size:17px;
+      box-shadow:0 0 14px var(--amarelo-glow);
+    }
+    .market-stat .ms-value { font-size:22px; font-weight:bold; color:var(--branco); }
+    .market-stat .ms-label { font-size:11px; color:var(--texto3); letter-spacing:.5px; text-transform:uppercase; }
 
     /* Header preço */
     .price-header {
       background:var(--card); backdrop-filter:blur(10px);
       border:1px solid var(--borda2); border-radius:var(--radius);
-      padding:18px 22px; display:flex; align-items:center; gap:24px;
+      padding:18px 22px; display:flex; align-items:center; gap:24px; flex-wrap:wrap;
     }
     .price-big { font-size:36px; font-weight:bold; color:var(--amarelo); }
     .price-change { font-size:15px; color:var(--verde); }
@@ -35,7 +52,7 @@
       padding:5px 14px; border-radius:20px; border:1px solid var(--borda2);
       background:transparent; color:var(--texto2); font-size:12px; transition:all .2s;
     }
-    .period-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); font-weight:bold; }
+    .period-btn.active { background:var(--amarelo); color:#000; border-color:var(--amarelo); font-weight:bold; box-shadow:0 0 12px var(--amarelo-glow); }
 
     /* Chart card */
     .chart-card {
@@ -43,137 +60,288 @@
       border:1px solid var(--borda2); border-radius:var(--radius); overflow:hidden;
     }
     .chart-header {
-      display:flex; align-items:center; justify-content:space-between;
+      display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px;
       padding:12px 18px; border-bottom:1px solid var(--borda2);
     }
     .chart-header h3 { font-size:14px; color:var(--branco); }
 
-    /* Histórico de vendas */
-    .history-table { width:100%; border-collapse:collapse; }
-    .history-table th { font-size:10px; color:var(--texto3); letter-spacing:1px; text-transform:uppercase; padding:8px 12px; border-bottom:1px solid var(--borda2); text-align:left; }
-    .history-table td { padding:9px 12px; border-bottom:1px solid rgba(255,255,255,.03); font-size:13px; }
-    .history-table tr:hover td { background:var(--amarelo-bg2); }
-    .td-venda { color:var(--verde); }
-    .td-compra { color:var(--vermelho); }
-
-    /* Aside: Form venda */
-    .sell-card {
+    /* Painel de negociação (compra/venda lado a lado) */
+    .trade-panel { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+    .trade-card {
       background:var(--card); backdrop-filter:blur(10px);
       border:1px solid var(--borda2); border-radius:var(--radius); padding:18px;
     }
-    .sell-card h3 { font-size:15px; color:var(--branco); margin-bottom:14px; }
-    .sell-row { display:flex; justify-content:space-between; font-size:12px; color:var(--texto2); margin-bottom:6px; }
-    .sell-row strong { color:var(--amarelo); }
-    .sell-input-wrap { position:relative; margin:12px 0; }
-    .sell-input-wrap input { width:100%; background:rgba(255,255,255,.06); border:1px solid var(--borda2); border-radius:var(--radius-sm); padding:11px 50px 11px 14px; color:var(--branco); font-size:15px; outline:none; }
-    .sell-input-wrap input:focus { border-color:var(--amarelo); }
-    .sell-input-wrap .unit { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--texto3); font-size:12px; }
-    .sell-total { background:var(--amarelo-bg); border:1px solid var(--borda); border-radius:var(--radius-sm); padding:10px 14px; margin:12px 0; }
-    .sell-total .label { font-size:11px; color:var(--texto3); }
-    .sell-total .value { font-size:20px; font-weight:bold; color:var(--amarelo); }
+    .trade-card.buy  { border-top:2px solid var(--verde); }
+    .trade-card.sell { border-top:2px solid var(--vermelho); }
+    .trade-card h3 { font-size:14px; margin-bottom:12px; display:flex; align-items:center; gap:7px; }
+    .trade-card.buy h3  { color:var(--verde); }
+    .trade-card.sell h3 { color:var(--vermelho); }
+    .trade-row { display:flex; justify-content:space-between; font-size:12px; color:var(--texto2); margin-bottom:6px; }
+    .trade-row strong { color:var(--amarelo); }
+    .trade-input-wrap { position:relative; margin:10px 0; }
+    .trade-input-wrap input { width:100%; background:rgba(255,255,255,.06); border:1px solid var(--borda2); border-radius:var(--radius-sm); padding:11px 55px 11px 14px; color:var(--branco); font-size:15px; outline:none; }
+    .trade-input-wrap input:focus { border-color:var(--amarelo); }
+    .trade-input-wrap .unit { position:absolute; right:12px; top:50%; transform:translateY(-50%); color:var(--texto3); font-size:12px; }
+    .trade-quick { display:flex; gap:6px; margin-bottom:12px; }
+    .trade-total { background:var(--amarelo-bg); border:1px solid var(--borda); border-radius:var(--radius-sm); padding:9px 14px; margin-bottom:12px; }
+    .trade-total .label { font-size:11px; color:var(--texto3); }
+    .trade-total .value { font-size:18px; font-weight:bold; color:var(--amarelo); }
+    .btn-buy  { background:var(--verde); color:#04210F; }
+    .btn-buy:hover  { background:#16A34A; box-shadow:0 4px 16px rgba(34,197,94,.35); }
+    .btn-sell { background:var(--vermelho); color:#2A0505; }
+    .btn-sell:hover { background:#DC2626; box-shadow:0 4px 16px rgba(239,68,68,.35); }
 
-    @media(max-width:900px){ .mercado-layout{grid-template-columns:1fr;} }
+    /* 3 métricas de mercado */
+    .metrics-row { display:grid; grid-template-columns:repeat(3,1fr); gap:14px; }
+    .metric-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius);
+      padding:16px 18px;
+    }
+    .metric-card .m-label { font-size:11px; color:var(--texto3); text-transform:uppercase; letter-spacing:.5px; margin-bottom:6px; }
+    .metric-card .m-value { font-size:20px; font-weight:bold; color:var(--branco); }
+    .metric-card .m-value.up   { color:var(--verde); }
+    .metric-card .m-value.down { color:var(--vermelho); }
+
+    /* Listas: Ordens Pendentes / Histórico */
+    .list-card {
+      background:var(--card); backdrop-filter:blur(10px);
+      border:1px solid var(--borda2); border-radius:var(--radius); overflow:hidden;
+    }
+    .list-row {
+      display:flex; align-items:center; justify-content:space-between; gap:14px;
+      padding:13px 18px; border-bottom:1px solid rgba(255,255,255,.04);
+    }
+    .list-row:last-child { border-bottom:none; }
+    .list-row:hover { background:var(--amarelo-bg2); }
+    .list-main strong { display:block; font-size:13px; color:var(--branco); margin-bottom:3px; }
+    .list-main span { font-size:11.5px; color:var(--texto3); }
+    .status-pill { font-size:10.5px; font-weight:bold; letter-spacing:.5px; padding:4px 11px; border-radius:20px; white-space:nowrap; }
+    .status-pill.executada { background:var(--verde-bg); color:var(--verde); border:1px solid rgba(34,197,94,.35); }
+    .status-pill.pendente  { background:var(--amarelo-bg); color:var(--amarelo); border:1px solid rgba(255,215,0,.35); }
+
+    @media(max-width:700px){
+      .trade-panel{grid-template-columns:1fr;}
+      .metrics-row{grid-template-columns:1fr;}
+      .market-summary{grid-template-columns:1fr;}
+    }
   </style>
 </head>
 <body>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
+<!-- AD TOPO -->
+<div class="ad-topo">
+  <iframe src="https://zerads.com/ad/ad.php?width=468&ref=11517" marginwidth="0" marginheight="0" width="468" height="60" scrolling="no" frameborder="0" style="border:0;"></iframe>
+  <div class="ad-topo-title">Mercado - NectarMine</div>
+</div>
+
 <div class="nm-layout" style="margin-left:0;">
-  <main class="page-content" style="padding:80px 20px 30px;">
-    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  <main class="page-content" style="padding:10px 20px 30px;">
 
     <div class="mercado-layout">
-      <!-- MAIN -->
-      <div class="mercado-main">
 
-        <!-- Preço atual -->
-        <div class="price-header">
+      <!-- Resumo do usuário -->
+      <div class="market-summary">
+        <div class="market-stat">
+          <div class="ms-icon"><i class="fa-solid fa-jar"></i></div>
           <div>
-            <div class="price-big">24,57 NCT</div>
-            <div class="price-change">▲ +6.51% (24h)</div>
-          </div>
-          <div class="price-meta">
-            <span>Por pote de mel</span>
-            <strong>Atualizado agora</strong>
-          </div>
-          <div class="price-stats">
-            <div class="pstat"><label>MÍNIMA 24H</label><strong>22,10</strong></div>
-            <div class="pstat"><label>MÁXIMA 24H</label><strong>25,80</strong></div>
-            <div class="pstat"><label>VOLUME</label><strong>84.320</strong></div>
+            <div class="ms-value" id="ms-potes">1.247</div>
+            <div class="ms-label">Potes em estoque</div>
           </div>
         </div>
-
-        <!-- Gráfico -->
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>🍯 Preço do Mel (NCT)</h3>
-            <div class="period-tabs">
-              <button class="period-btn active" onclick="loadPeriod(this,'1h')">1H</button>
-              <button class="period-btn" onclick="loadPeriod(this,'6h')">6H</button>
-              <button class="period-btn" onclick="loadPeriod(this,'1d')">1D</button>
-              <button class="period-btn" onclick="loadPeriod(this,'7d')">7D</button>
-            </div>
-          </div>
-          <div id="chart-main" style="padding:8px;"></div>
-        </div>
-
-        <!-- AD mid -->
-        <div class="anuncio anuncio-728"><!-- AD 728×90 -->Publicidade 728×90</div>
-
-        <!-- Histórico -->
-        <div class="chart-card">
-          <div class="chart-header"><h3>📋 Histórico de Vendas</h3></div>
-          <div style="overflow-x:auto;padding:4px;">
-            <table class="history-table">
-              <thead><tr><th>Data/Hora</th><th>Tipo</th><th>Potes</th><th>Preço</th><th>Total NCT</th></tr></thead>
-              <tbody>
-                <tr><td>30/06 21:45</td><td class="td-venda">▲ Venda</td><td>300</td><td>24,57</td><td>7.371</td></tr>
-                <tr><td>30/06 18:20</td><td class="td-venda">▲ Venda</td><td>500</td><td>23,80</td><td>11.900</td></tr>
-                <tr><td>30/06 12:05</td><td class="td-venda">▲ Venda</td><td>200</td><td>22,40</td><td>4.480</td></tr>
-                <tr><td>29/06 22:10</td><td class="td-venda">▲ Venda</td><td>750</td><td>21,90</td><td>16.425</td></tr>
-                <tr><td>29/06 15:30</td><td class="td-venda">▲ Venda</td><td>400</td><td>22,10</td><td>8.840</td></tr>
-              </tbody>
-            </table>
+        <div class="market-stat">
+          <div class="ms-icon"><i class="fa-solid fa-chart-line"></i></div>
+          <div>
+            <div class="ms-value" id="ms-negociado">32.625</div>
+            <div class="ms-label">Potes negociados (total)</div>
           </div>
         </div>
       </div>
 
-      <!-- ASIDE: Venda -->
-      <div class="mercado-aside">
-        <div class="sell-card">
-          <h3>💰 Vender Potes</h3>
-          <div class="sell-row"><span>Preço atual:</span><strong>24,57 NCT/pote</strong></div>
-          <div class="sell-row"><span>Seus potes:</span><strong>1.247</strong></div>
-          <label style="font-size:11px;color:var(--texto3);">Quantidade de potes</label>
-          <div class="sell-input-wrap">
-            <input type="number" id="qtd-venda" value="500" min="1" max="1247" oninput="calcVenda()"/>
+      <!-- Preço atual -->
+      <div class="price-header">
+        <div>
+          <div class="price-big" id="preco-atual-display">24,57 NCT</div>
+          <div class="price-change" id="preco-change-display">▲ +6.51% (24h)</div>
+        </div>
+        <div class="price-meta">
+          <span>Por pote de mel</span>
+          <strong>Atualizado agora</strong>
+        </div>
+        <div class="price-stats">
+          <div class="pstat"><label>MÍNIMA 24H</label><strong>22,10</strong></div>
+          <div class="pstat"><label>MÁXIMA 24H</label><strong>25,80</strong></div>
+          <div class="pstat"><label>VOLUME</label><strong>84.320</strong></div>
+        </div>
+      </div>
+
+      <!-- Gráfico -->
+      <div class="chart-card">
+        <div class="chart-header">
+          <h3>🍯 Preço do Mel (NCT)</h3>
+          <div class="period-tabs">
+            <button class="period-btn active" onclick="loadPeriod(this,'1h')">1H</button>
+            <button class="period-btn" onclick="loadPeriod(this,'6h')">6H</button>
+            <button class="period-btn" onclick="loadPeriod(this,'1d')">1D</button>
+            <button class="period-btn" onclick="loadPeriod(this,'7d')">7D</button>
+          </div>
+        </div>
+        <div id="chart-main" style="padding:8px;"></div>
+      </div>
+
+      <!-- Painel de negociação -->
+      <div class="trade-panel">
+        <div class="trade-card buy">
+          <h3><i class="fa-solid fa-cart-plus"></i> Comprar Potes</h3>
+          <div class="trade-row"><span>Preço atual:</span><strong id="preco-compra-label">24,57 NCT/pote</strong></div>
+          <div class="trade-row"><span>Seu saldo:</span><strong id="saldo-nct-label">45.000 NCT</strong></div>
+          <label style="font-size:11px;color:var(--texto3);">Quantidade de compra</label>
+          <div class="trade-input-wrap">
+            <input type="number" id="qtd-compra" value="100" min="1" oninput="calcCompra()"/>
             <span class="unit">potes</span>
           </div>
-          <div style="display:flex;gap:6px;margin-bottom:12px;">
-            <button class="btn btn-sm btn-ghost" onclick="setQtd(100)">100</button>
-            <button class="btn btn-sm btn-ghost" onclick="setQtd(500)">500</button>
-            <button class="btn btn-sm btn-ghost" onclick="setQtd(1247)">Tudo</button>
+          <div class="trade-quick">
+            <button class="btn btn-sm btn-ghost" onclick="setQtdCompra(50)">50</button>
+            <button class="btn btn-sm btn-ghost" onclick="setQtdCompra(100)">100</button>
+            <button class="btn btn-sm btn-ghost" onclick="setQtdCompra(500)">500</button>
           </div>
-          <div class="sell-total">
-            <div class="label">Você receberá</div>
-            <div class="value" id="total-venda">12.285 NCT</div>
+          <div class="trade-total">
+            <div class="label">Custo total</div>
+            <div class="value" id="total-compra">2.457 NCT</div>
           </div>
-          <button class="btn btn-primary btn-block" onclick="vender()" style="margin-top:4px;">
-            <i class="fa-solid fa-jar"></i> Vender Agora
+          <button class="btn btn-buy btn-block" onclick="comprar()">
+            <i class="fa-solid fa-jar"></i> Comprar Agora
           </button>
         </div>
 
-        <!-- AD aside -->
-        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
-
-        <!-- Info box -->
-        <div class="info-box info-yellow" style="font-size:12px;">
-          <strong>💡 Dica de mercado</strong><br/>
-          O preço sobe entre 18h–22h (horário de Brasília). Venda nesse período para maximizar seu lucro.
+        <div class="trade-card sell">
+          <h3><i class="fa-solid fa-cart-arrow-down"></i> Vender Potes</h3>
+          <div class="trade-row"><span>Preço atual:</span><strong>24,57 NCT/pote</strong></div>
+          <div class="trade-row"><span>Seus potes:</span><strong id="seus-potes-label">1.247</strong></div>
+          <label style="font-size:11px;color:var(--texto3);">Quantidade de venda</label>
+          <div class="trade-input-wrap">
+            <input type="number" id="qtd-venda" value="500" min="1" max="1247" oninput="calcVenda()"/>
+            <span class="unit">potes</span>
+          </div>
+          <div class="trade-quick">
+            <button class="btn btn-sm btn-ghost" onclick="setQtdVenda(100)">100</button>
+            <button class="btn btn-sm btn-ghost" onclick="setQtdVenda(500)">500</button>
+            <button class="btn btn-sm btn-ghost" onclick="setQtdVenda(1247)">Tudo</button>
+          </div>
+          <div class="trade-total">
+            <div class="label">Você receberá</div>
+            <div class="value" id="total-venda">12.285 NCT</div>
+          </div>
+          <button class="btn btn-sell btn-block" onclick="vender()">
+            <i class="fa-solid fa-jar"></i> Vender Agora
+          </button>
         </div>
-
-        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
       </div>
+
+      <!-- AD mid -->
+      <div class="anuncio anuncio-728"><!-- AD 728×90 -->Publicidade 728×90</div>
+
+      <!-- 3 métricas -->
+      <div class="metrics-row">
+        <div class="metric-card">
+          <div class="m-label">Preço do Pote</div>
+          <div class="m-value" id="metric-preco">24,57 NCT</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-label">Variação 24h</div>
+          <div class="m-value up" id="metric-variacao">+6.51%</div>
+        </div>
+        <div class="metric-card">
+          <div class="m-label">Risco de Mercado</div>
+          <div class="m-value"><span class="badge badge-yellow">Moderado</span></div>
+        </div>
+      </div>
+
+      <!-- Ordens Pendentes -->
+      <div>
+        <div class="section-title"><i class="fa-solid fa-clock"></i> Ordens Pendentes</div>
+        <div class="list-card" id="lista-pendentes">
+          <div class="list-row">
+            <div class="list-main">
+              <strong>1.000 potes — venda programada</strong>
+              <span>Executa automaticamente quando o preço atingir 26,00 NCT/pote</span>
+            </div>
+            <span class="status-pill pendente">PENDENTE</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Histórico -->
+      <div>
+        <div class="section-title"><i class="fa-solid fa-list"></i> Histórico do Mercado</div>
+        <div class="list-card" id="lista-historico">
+          <div class="list-row">
+            <div class="list-main">
+              <strong>300 potes vendidos</strong>
+              <span>VENDIDO · Preço 24,57 NCT · Total 7.371 NCT · 30/06 21:45</span>
+            </div>
+            <span class="status-pill executada">EXECUTADA</span>
+          </div>
+          <div class="list-row">
+            <div class="list-main">
+              <strong>1.000 potes comprados</strong>
+              <span>COMPRADO · Preço 23,80 NCT · Total 23.800 NCT · 30/06 18:20</span>
+            </div>
+            <span class="status-pill executada">EXECUTADA</span>
+          </div>
+          <div class="list-row">
+            <div class="list-main">
+              <strong>200 potes vendidos</strong>
+              <span>VENDIDO · Preço 22,40 NCT · Total 4.480 NCT · 30/06 12:05</span>
+            </div>
+            <span class="status-pill executada">EXECUTADA</span>
+          </div>
+          <div class="list-row">
+            <div class="list-main">
+              <strong>750 potes vendidos</strong>
+              <span>VENDIDO · Preço 21,90 NCT · Total 16.425 NCT · 29/06 22:10</span>
+            </div>
+            <span class="status-pill executada">EXECUTADA</span>
+          </div>
+          <div class="list-row">
+            <div class="list-main">
+              <strong>400 potes comprados</strong>
+              <span>COMPRADO · Preço 22,10 NCT · Total 8.840 NCT · 29/06 15:30</span>
+            </div>
+            <span class="status-pill executada">EXECUTADA</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- AD final -->
+      <div class="anuncio anuncio-300" style="margin:0 auto;"><!-- AD 300×250 -->Publicidade 300×250</div>
+
+      <div class="info-box info-box-yellow" style="font-size:12px;">
+        <strong>💡 Dica de mercado</strong>
+        O preço sobe entre 18h–22h (horário de Brasília). Venda nesse período para maximizar seu lucro.
+      </div>
+
+      <!-- Propagandas do rodapé -->
+      <div class="rodape-4ads">
+        <div>
+          <script type="text/javascript">
+            if (window.aclib) { aclib.runBanner({ zoneId: '11566166' }); }
+          </script>
+        </div>
+        <div>
+          <script type="text/javascript">
+            if (window.aclib) { aclib.runBanner({ zoneId: '11566158' }); }
+          </script>
+        </div>
+        <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+        <div>
+          <script type="text/javascript">
+            if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+          </script>
+        </div>
+      </div>
+
     </div>
   </main>
 </div>
@@ -183,7 +351,8 @@
 <script src="js/api.js"></script>
 <script>
   let mainChart;
-  const PRECO_ATUAL = 24.57;
+  let PRECO_ATUAL = 24.57;
+  let MEUS_POTES = 1247;
 
   function genCandles(periods, base = 22) {
     const data = []; let p = base;
@@ -225,14 +394,68 @@
     const qtd = parseInt(document.getElementById('qtd-venda').value)||0;
     document.getElementById('total-venda').textContent = nmFormat(qtd * PRECO_ATUAL, 0) + ' NCT';
   }
-  function setQtd(n) { document.getElementById('qtd-venda').value = n; calcVenda(); }
+  function setQtdVenda(n) { document.getElementById('qtd-venda').value = n; calcVenda(); }
+
+  function calcCompra() {
+    const qtd = parseInt(document.getElementById('qtd-compra').value)||0;
+    document.getElementById('total-compra').textContent = nmFormat(qtd * PRECO_ATUAL, 0) + ' NCT';
+  }
+  function setQtdCompra(n) { document.getElementById('qtd-compra').value = n; calcCompra(); }
+
+  function addHistorico(tipo, qtd, total) {
+    const lista = document.getElementById('lista-historico');
+    const row = document.createElement('div');
+    row.className = 'list-row';
+    const agora = new Date().toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
+    row.innerHTML = `
+      <div class="list-main">
+        <strong>${nmFormatInt(qtd)} potes ${tipo === 'venda' ? 'vendidos' : 'comprados'}</strong>
+        <span>${tipo === 'venda' ? 'VENDIDO' : 'COMPRADO'} · Preço ${nmFormat(PRECO_ATUAL)} NCT · Total ${nmFormat(total,0)} NCT · ${agora}</span>
+      </div>
+      <span class="status-pill executada">EXECUTADA</span>
+    `;
+    lista.prepend(row);
+  }
 
   async function vender() {
     const qtd = parseInt(document.getElementById('qtd-venda').value)||0;
-    if (!qtd) return;
-    const total = nmFormat(qtd * PRECO_ATUAL, 0);
-    const {isConfirmed} = await NM_SWAL.withAd(
+    if (!qtd || qtd > MEUS_POTES) return;
+    const total = qtd * PRECO_ATUAL;
+    const { isConfirmed } = await NM_SWAL.withAd(
       '🍯 Confirmar Venda',
-      `Vender <strong>${nmFormatInt(qtd)} potes</strong> a <strong>24,57 NCT/pote</strong><br/>Total: <strong>${total} NCT</strong>`,
+      `Vender <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmFormat(PRECO_ATUAL)} NCT/pote</strong><br/>Total: <strong>${nmFormat(total,0)} NCT</strong>`,
       'Vender agora', 'ad-venda-modal'
     );
+    if (!isConfirmed) return;
+    MEUS_POTES -= qtd;
+    document.getElementById('ms-potes').textContent = nmFormatInt(MEUS_POTES);
+    document.getElementById('seus-potes-label').textContent = nmFormatInt(MEUS_POTES);
+    document.getElementById('qtd-venda').max = MEUS_POTES;
+    addHistorico('venda', qtd, total);
+    NM_SWAL.success('Venda concluída!', `Você recebeu <strong>${nmFormat(total,0)} NCT</strong> pela venda de ${nmFormatInt(qtd)} potes.`);
+  }
+
+  async function comprar() {
+    const qtd = parseInt(document.getElementById('qtd-compra').value)||0;
+    if (!qtd) return;
+    const total = qtd * PRECO_ATUAL;
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '🍯 Confirmar Compra',
+      `Comprar <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmFormat(PRECO_ATUAL)} NCT/pote</strong><br/>Custo: <strong>${nmFormat(total,0)} NCT</strong>`,
+      'Comprar agora', 'ad-compra-modal'
+    );
+    if (!isConfirmed) return;
+    MEUS_POTES += qtd;
+    document.getElementById('ms-potes').textContent = nmFormatInt(MEUS_POTES);
+    document.getElementById('seus-potes-label').textContent = nmFormatInt(MEUS_POTES);
+    document.getElementById('qtd-venda').max = MEUS_POTES;
+    addHistorico('compra', qtd, total);
+    NM_SWAL.success('Compra concluída!', `Você adquiriu <strong>${nmFormatInt(qtd)} potes</strong> por ${nmFormat(total,0)} NCT.`);
+  }
+
+  initChart(genCandles(60));
+  calcVenda();
+  calcCompra();
+</script>
+</body>
+</html>

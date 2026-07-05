@@ -6,6 +6,7 @@
   <title>NectarMine — Meus Apiários</title>
   <link rel="stylesheet" href="css/global.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <style>
     .page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:22px; }
     .page-header h1 { font-size:22px; color:var(--branco); }
@@ -79,11 +80,14 @@
 <body>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
-<div class="nm-layout" style="margin-left:0;">
-  <main class="page-content" style="padding:80px 20px 30px;">
+<!-- AD TOPO -->
+<div class="ad-topo">
+  <iframe src="https://zerads.com/ad/ad.php?width=468&ref=11517" marginwidth="0" marginheight="0" width="468" height="60" scrolling="no" frameborder="0" style="border:0;"></iframe>
+  <div class="ad-topo-title">Meus Apiários - NectarMine</div>
+</div>
 
-    <!-- AD TOPO -->
-    <div class="anuncio anuncio-728" style="margin-bottom:20px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+<div class="nm-layout" style="margin-left:0;">
+  <main class="page-content" style="padding:10px 20px 30px;">
 
     <div class="page-header">
       <h1><i class="fa-solid fa-industry" style="color:var(--amarelo)"></i> Meus Apiários</h1>
@@ -215,8 +219,25 @@
 
     </div>
 
-    <!-- AD footer -->
-    <div class="anuncio anuncio-728" style="margin-top:24px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+    <!-- Propagandas do rodapé -->
+    <div class="rodape-4ads">
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566166' }); }
+        </script>
+      </div>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566158' }); }
+        </script>
+      </div>
+      <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+        </script>
+      </div>
+    </div>
 
   </main>
 </div>
@@ -301,4 +322,13 @@
   async function comprarMaquina(nome, preco) {
     const { isConfirmed } = await NM_SWAL.confirm(
       `Comprar ${nome}`,
-      `
+      `Custo: <strong>${nmFormatInt(preco)} NCT</strong><br/>Este apiário será ativado imediatamente.`
+    );
+    if (isConfirmed) {
+      document.querySelector('.shop-overlay').classList.remove('open');
+      NM_SWAL.success('Compra realizada!', `<strong>${nome}</strong> foi adicionado à sua colmeia e já está produzindo mel!`);
+    }
+  }
+</script>
+</body>
+</html>

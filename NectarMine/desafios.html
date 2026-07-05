@@ -71,9 +71,14 @@
 <body>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
+<!-- AD TOPO -->
+<div class="ad-topo">
+  <iframe src="https://zerads.com/ad/ad.php?width=468&ref=11517" marginwidth="0" marginheight="0" width="468" height="60" scrolling="no" frameborder="0" style="border:0;"></iframe>
+  <div class="ad-topo-title">Desafios - NectarMine</div>
+</div>
+
 <div class="nm-layout" style="margin-left:0;">
-  <main class="page-content" style="padding:80px 20px 30px;">
-    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  <main class="page-content" style="padding:10px 20px 30px;">
 
     <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
       <h1 style="font-size:22px;color:var(--branco);"><i class="fa-solid fa-trophy" style="color:var(--amarelo)"></i> Desafios</h1>
@@ -293,9 +298,30 @@
         <div class="anuncio anuncio-300" style="margin-top:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
       </div>
     </div>
+
+    <!-- Propagandas do rodapé -->
+    <div class="rodape-4ads">
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566166' }); }
+        </script>
+      </div>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566158' }); }
+        </script>
+      </div>
+      <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+        </script>
+      </div>
+    </div>
   </main>
 </div>
 
+<script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
@@ -327,4 +353,16 @@
 
   window.addEventListener('load',()=>{
     setTimeout(()=>{
-      nmAnimatePro
+      nmAnimateProgress('#m-prod',69.4);
+      nmAnimateProgress('#m-ads',40);
+      nmAnimateProgress('#m-w1',48.6);
+      nmAnimateProgress('#m-w2',40);
+      nmAnimateProgress('#m-w3',33.3);
+      nmAnimateProgress('#m-c1',54.3);
+      nmAnimateProgress('#m-c2',4.8);
+      nmAnimateProgress('#daily-prog',20);
+    },2600);
+  });
+</script>
+</body>
+</html>

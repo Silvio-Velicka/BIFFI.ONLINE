@@ -6,6 +6,7 @@
   <title>NectarMine — Transferências</title>
   <link rel="stylesheet" href="css/global.css"/>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
   <style>
     .transf-layout { display:grid; grid-template-columns:1fr 320px; gap:18px; }
 
@@ -74,9 +75,14 @@
 <body>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
+<!-- AD TOPO -->
+<div class="ad-topo">
+  <iframe src="https://zerads.com/ad/ad.php?width=468&ref=11517" marginwidth="0" marginheight="0" width="468" height="60" scrolling="no" frameborder="0" style="border:0;"></iframe>
+  <div class="ad-topo-title">Transferências - NectarMine</div>
+</div>
+
 <div class="nm-layout" style="margin-left:0;">
-  <main class="page-content" style="padding:80px 20px 30px;">
-    <div class="anuncio anuncio-728" style="margin-bottom:18px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+  <main class="page-content" style="padding:10px 20px 30px;">
 
     <!-- Saldo -->
     <div class="nectar-balance">
@@ -186,6 +192,26 @@
         <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
       </div>
     </div>
+
+    <!-- Propagandas do rodapé -->
+    <div class="rodape-4ads">
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566166' }); }
+        </script>
+      </div>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566158' }); }
+        </script>
+      </div>
+      <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+        </script>
+      </div>
+    </div>
   </main>
 </div>
 
@@ -220,4 +246,10 @@
     const {isConfirmed} = await NM_SWAL.withAd(
       '💸 Confirmar Saque',
       `Sacar <strong>${nmFormatInt(qty)} NCT</strong> → <strong>${converted} ${currentCrypto}</strong><br/>Para: <code style="font-size:11px;color:var(--texto2);">${addr.substring(0,20)}...</code>`,
-      'Confirm
+      'Confirmar Saque', 'ad-saque-modal'
+    );
+    if (isConfirmed) NM_SWAL.success('Saque solicitado!', `Seu saque de <strong>${converted} ${currentCrypto}</strong> foi registrado e será processado em até 24h.`);
+  }
+</script>
+</body>
+</html>

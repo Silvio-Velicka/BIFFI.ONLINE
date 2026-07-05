@@ -203,6 +203,28 @@ img { max-width: 100%; display: block; }
 }
 
 /* ══════════════════════════════════════════
+   PADRÃO DE PÁGINA INTERNA — topo (propaganda + nome) e rodapé (4 propagandas)
+   Usado em: amigos.html e demais páginas internas do NectarMine
+   ══════════════════════════════════════════ */
+.ad-topo {
+  margin-left: 0;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 20px 0 16px;
+}
+.ad-topo iframe { display: block; }
+.ad-topo-title {
+  color: var(--amarelo); font-size: 48px; font-weight: bold; letter-spacing: .3px;
+  text-align: center;
+}
+@media (max-width: 600px) { .ad-topo-title { font-size: 30px; } }
+
+.rodape-4ads {
+  display: flex; flex-direction: column; align-items: center;
+  gap: 18px; margin: 10px auto 0; padding: 24px 0 10px; max-width: 980px;
+}
+.rodape-4ads > div, .rodape-4ads iframe { display: block; }
+
+/* ══════════════════════════════════════════
    BOTÃO VOLTAR AO DASHBOARD (páginas internas)
    ══════════════════════════════════════════ */
 .btn-voltar-dashboard {
