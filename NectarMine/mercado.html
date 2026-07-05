@@ -76,19 +76,7 @@
   </style>
 </head>
 <body>
-<!-- LOADER -->
-<div id="nm-loader">
-  <div class="petro-scene">
-    <div class="ad-loader-top"><!-- AD 320×100 --><span>Publicidade 320×100</span></div>
-    <div class="hive-tank"><div class="honey-fill"><div class="honey-wave"></div><div class="honey-wave w2"></div></div><div class="hive-bubble b1"></div><div class="hive-bubble b2"></div><div class="hive-bubble b3"></div></div>
-    <span class="loader-logo">🍯 NectarMine</span>
-    <p id="loader-text">Preparando o mercado...</p>
-    <div class="loading-bar"><span></span></div>
-    <div class="ad-loader-bot"><!-- AD 320×50 --><span>Publicidade 320×50</span></div>
-  </div>
-</div>
-
-<a href="dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
+<a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
 <div class="nm-layout" style="margin-left:0;">
   <main class="page-content" style="padding:80px 20px 30px;">
@@ -248,12 +236,3 @@
       `Vender <strong>${nmFormatInt(qtd)} potes</strong> a <strong>24,57 NCT/pote</strong><br/>Total: <strong>${total} NCT</strong>`,
       'Vender agora', 'ad-venda-modal'
     );
-    if (isConfirmed) NM_SWAL.success('Venda realizada!', `<strong>${total} NCT</strong> creditado na sua conta.`);
-  }
-
-  window.addEventListener('load', () => {
-    setTimeout(() => initChart(genCandles(60)), 2600);
-  });
-</script>
-</body>
-</html>

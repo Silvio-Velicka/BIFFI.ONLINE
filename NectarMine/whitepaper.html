@@ -439,37 +439,6 @@
 <body>
 
 <!-- ══════════════════════════════
-     LOADER COM ANÚNCIOS
-     ══════════════════════════════ -->
-<div id="nm-loader">
-  <div class="hive-scene">
-
-    <!-- SLOT AD 1 — dentro do loader — 320×100 -->
-    <div class="anuncio-loader" id="ad-loader-top">
-      <!-- AdsTerra / Monetag: 320×100 -->
-      <span>Publicidade 320×100</span>
-    </div>
-
-    <div class="hive-tank">
-      <div class="honey-fill">
-        <div class="honey-wave"></div>
-      </div>
-    </div>
-
-    <div class="hive-logo">🍯 NectarMine</div>
-    <p id="loader-text">Aquecendo as colmeias...</p>
-    <div class="loading-bar"><span></span></div>
-
-    <!-- SLOT AD 2 — dentro do loader — 320×50 -->
-    <div class="anuncio-loader-sm" id="ad-loader-bot">
-      <!-- AdsTerra / Monetag: 320×50 -->
-      <span>Publicidade 320×50</span>
-    </div>
-
-  </div>
-</div>
-
-<!-- ══════════════════════════════
      SLOT AD 3 — Full width topo — 970×90
      ══════════════════════════════ -->
 <div style="width:100%;display:flex;justify-content:center;background:rgba(0,0,0,0.3);padding:8px 0;">
@@ -949,26 +918,6 @@
 </footer>
 
 <script>
-  // Loader: textos rotativos temáticos
-  const loaderTexts = [
-    'Aquecendo as colmeias...',
-    'Convocando as abelhas...',
-    'Calculando produção de mel...',
-    'Sincronizando apiários...',
-    'Preparando o mercado...'
-  ];
-  let ti = 0;
-  const lt = document.getElementById('loader-text');
-  setInterval(() => { ti = (ti+1)%loaderTexts.length; lt.textContent = loaderTexts[ti]; }, 900);
-
-  // Esconder loader após carregamento
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      document.getElementById('nm-loader').classList.add('hide');
-      setTimeout(() => document.getElementById('nm-loader').remove(), 500);
-    }, 2400);
-  });
-
   // Índice ativo conforme scroll
   const sections = document.querySelectorAll('.wp-section');
   const links = document.querySelectorAll('.wp-sidebar a');

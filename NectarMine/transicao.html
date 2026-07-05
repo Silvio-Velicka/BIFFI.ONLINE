@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NectarMine — Carregando...</title>
+  <link rel="stylesheet" href="css/global.css"/>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+  <script id="aclib" type="text/javascript" src="//acscdn.com/script/aclib.js"></script>
+  <style>
+    body {
+      min-height: 100vh;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .transicao-wrap {
+      display: flex; flex-direction: column; align-items: center; gap: 20px;
+      width: 100%; max-width: 780px; padding: 24px 16px;
+    }
+    .transicao-ad {
+      width: 100%; max-width: 728px; min-height: 90px;
+      display: flex; align-items: center; justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="transicao-wrap">
+
+    <!-- AD TOPO (Adcash 728x90) -->
+    <div class="transicao-ad" id="ad-transicao-top">
+      <div>
+        <script type="text/javascript">
+          if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+        </script>
+      </div>
+    </div>
+
+    <div class="petro-scene">
+      <div class="hive-tank">
+        <div class="honey-fill">
+          <div class="honey-wave"></div>
+          <div class="honey-wave w2"></div>
+        </div>
+        <div class="hive-bubble b1"></div>
+        <div class="hive-bubble b2"></div>
+        <div class="hive-bubble b3"></div>
+      </div>
+      <span class="loader-logo">🍯 NectarMine</span>
+      <p id="loader-text">Aquecendo as colmeias...</p>
+      <div class="loading-bar"><span></span></div>
+    </div>
+
+    <!-- AD RODAPÉ (zerads 728x90) -->
+    <div class="transicao-ad" id="ad-transicao-bottom">
+      <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+    </div>
+
+  </div>
+
+  <script src="js/global.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const destino = params.get('to') || 'dashboard.html';
+
+    let idx = 0;
+    const loaderText = document.getElementById('loader-text');
+    const textInterval = setInterval(() => {
+      idx = (idx + 1) % NM_LOADER_TEXTS.length;
+      if (loaderText) loaderText.textContent = NM_LOADER_TEXTS[idx];
+    }, 900);
+
+    setTimeout(() => {
+      clearInterval(textInterval);
+      location.href = destino;
+    }, 2400);
+  </script>
+</body>
+</html>

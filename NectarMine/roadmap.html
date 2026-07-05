@@ -306,20 +306,6 @@
 </head>
 <body>
 
-<!-- ── LOADER ── -->
-<div id="nm-loader">
-  <!-- SLOT AD L1 — Loader — 320×100 -->
-  <div class="loader-ad-top" id="ad-loader-1">Publicidade 320×100</div>
-  <div class="hive-tank">
-    <div class="honey-fill"><div class="honey-wave"></div></div>
-  </div>
-  <span style="color:var(--amarelo);font-size:13px;letter-spacing:2px;">🍯 NECTARMINE</span>
-  <p id="loader-text">Carregando missão futura...</p>
-  <div class="loading-bar"><span></span></div>
-  <!-- SLOT AD L2 — Loader — 320×50 -->
-  <div class="loader-ad-bot" id="ad-loader-2">Publicidade 320×50</div>
-</div>
-
 <!-- ── AD TOPO 970×90 ── -->
 <div class="ad-topo">
   <div class="ad-topo-inner" id="ad-topo">Publicidade 970×90</div>
@@ -503,17 +489,6 @@
 </footer>
 
 <script>
-  // Loader
-  const loaderTexts = ['Mapeando rotas de entrega...','Projetando a colmeia do futuro...','Planejando temporadas...','Carregando o roadmap...'];
-  let ti = 0;
-  const lt = document.getElementById('loader-text');
-  setInterval(() => { ti=(ti+1)%loaderTexts.length; lt.textContent=loaderTexts[ti]; }, 900);
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      document.getElementById('nm-loader').classList.add('hide');
-      setTimeout(() => document.getElementById('nm-loader').remove(), 500);
-    }, 2400);
-  });
 
   // Filtro de temporadas
   function filterSeason(season, btn) {
