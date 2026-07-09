@@ -2,11 +2,14 @@
   "name": "nectarmine",
   "version": "1.0.0",
   "private": true,
-  "description": "NectarMine — servidor do jogo (Node.js + SQLite, zero dependências)",
+  "description": "NectarMine — servidor do jogo e da loja (Node.js + SQLite; única dependência: jimp, usada para marca d'água do e-book)",
   "scripts": {
     "start": "node server/server.js"
   },
   "engines": {
     "node": ">=22.5.0"
+  },
+  "dependencies": {
+    "jimp": "^1.6.0"
   }
 }

@@ -93,9 +93,16 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
-  // Se já está logado, vai direto ao dashboard
+  // Suporta voltar para onde o usuário estava (ex: checkout da loja) após o login.
+  // Uso: login.html?redirect=../checkout.html
+  function destinoAposLogin() {
+    const r = new URLSearchParams(location.search).get('redirect');
+    return r || 'dashboard.html';
+  }
+
+  // Se já está logado, vai direto ao destino (dashboard por padrão)
   if (localStorage.getItem('nm_token')) {
-    NM_API.me().then(() => location.href = 'dashboard.html').catch(() => localStorage.removeItem('nm_token'));
+    NM_API.me().then(() => location.href = destinoAposLogin()).catch(() => localStorage.removeItem('nm_token'));
   }
 
   // Modal comunicativo (Título / texto / Subtítulo / texto) — conteúdo vem do backend
@@ -116,7 +123,7 @@
     btn.disabled = true;
     try {
       await NM_API.login(document.getElementById('li-login').value, document.getElementById('li-senha').value);
-      location.href = 'dashboard.html';
+      location.href = destinoAposLogin();
     } catch (err) {
       NM_SWAL.error('Ops!', err.message);
       btn.disabled = false;
@@ -134,7 +141,7 @@
         document.getElementById('rg-senha').value
       );
       await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
-      location.href = 'dashboard.html';
+      location.href = destinoAposLogin();
     } catch (err) {
       NM_SWAL.error('Ops!', err.message);
       btn.disabled = false;

@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Meus Pedidos — BIFFI.ONLINE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --rosa: #FFB6D9; --rosa-med: #F472B6; --roxo: #8B2D8F;
+      --roxo-esc: #5B1060; --dourado: #FFD700; --branco: #fff;
+    }
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #FFB6D9 0%, #FFC0E0 50%, #FFD1EB 100%);
+      min-height: 100vh; color: var(--roxo-esc);
+    }
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 40px; background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px); border-bottom: 1px solid rgba(139,45,143,0.15);
+    }
+    .logo { font-size: 22px; font-weight: 900; letter-spacing: 3px; color: var(--roxo); text-decoration: none; text-shadow: 1px 1px 0 var(--dourado); }
+    .voltar-loja { font-family: Arial, sans-serif; font-size: 13px; font-weight: 700; color: var(--roxo); text-decoration: none; }
+    .voltar-loja:hover { text-decoration: underline; }
+
+    .page { max-width: 800px; margin: 0 auto; padding: 110px 40px 90px; }
+    .page-title { text-align: center; margin-bottom: 40px; }
+    .page-title .emoji { font-size: 44px; display: block; margin-bottom: 10px; }
+    .page-title h1 { font-size: 34px; color: var(--roxo); text-shadow: 3px 3px 0 var(--dourado); letter-spacing: 2px; }
+
+    .pedido-card {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(139,45,143,0.2);
+      border-radius: 18px;
+      padding: 22px 26px;
+      margin-bottom: 20px;
+      font-family: Arial, sans-serif;
+    }
+    .pedido-topo { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; margin-bottom: 14px; }
+    .pedido-topo h3 { font-family: Georgia, serif; color: var(--roxo); font-size: 17px; }
+    .pedido-status {
+      font-size: 11.5px; font-weight: 700; padding: 5px 12px; border-radius: 50px;
+      color: #fff; text-transform: uppercase; letter-spacing: 0.5px;
+    }
+    .pedido-data { font-size: 12px; opacity: 0.75; }
+    .pedido-linha { display: flex; justify-content: space-between; font-size: 13.5px; padding: 4px 0; }
+    .pedido-linha.total { font-weight: 800; color: var(--roxo); border-top: 1px solid rgba(139,45,143,0.15); margin-top: 8px; padding-top: 10px; }
+
+    .msg, .bloqueio { text-align: center; font-family: Arial, sans-serif; padding: 50px 20px; }
+    .bloqueio a {
+      display: inline-block; margin-top: 16px; padding: 12px 28px;
+      background: var(--roxo); color: #fff; border-radius: 50px; text-decoration: none; font-weight: 700;
+    }
+
+    .secao-titulo {
+      font-family: Georgia, serif; font-size: 18px; color: var(--roxo);
+      margin: 6px 0 14px; text-shadow: 1px 1px 0 var(--dourado);
+    }
+    .ebook-card {
+      display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
+      background: rgba(255,255,255,0.5); backdrop-filter: blur(10px);
+      border: 2px solid rgba(139,45,143,0.2); border-radius: 16px;
+      padding: 16px 22px; margin-bottom: 14px; font-family: Arial, sans-serif;
+    }
+    .ebook-card .info strong { color: var(--roxo); font-family: Georgia, serif; font-size: 15px; }
+    .ebook-card .info span { display: block; font-size: 11.5px; opacity: 0.75; margin-top: 3px; }
+    .btn-ler {
+      padding: 10px 22px; background: var(--roxo); color: #fff; border-radius: 50px;
+      text-decoration: none; font-weight: 700; font-size: 12.5px; white-space: nowrap;
+    }
+    .btn-ler:hover { background: var(--roxo-esc); }
+
+    @media (max-width: 700px) { .page { padding: 90px 20px 60px; } header { padding: 12px 16px; } }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="logo" href="index.html">BIFFI.ONLINE</a>
+    <a class="voltar-loja" href="loja.html"><i class="fa-solid fa-arrow-left"></i> Voltar à loja</a>
+  </header>
+
+  <div class="page">
+    <div class="page-title">
+      <span class="emoji">📦</span>
+      <h1>Meus Pedidos</h1>
+    </div>
+    <div id="meus-livros"></div>
+    <div id="pedidos-conteudo">
+      <p class="msg">Carregando... 🐝</p>
+    </div>
+  </div>
+
+  <script src="js/shop-api.js"></script>
+  <script>
+    async function carregarLivros() {
+      const container = document.getElementById('meus-livros');
+      if (!SHOP_API.token()) return;
+      try {
+        const { livros } = await SHOP_API.meusLivros();
+        if (!livros || livros.length === 0) return;
+        container.innerHTML = `
+          <h2 class="secao-titulo">📚 Meus e-books</h2>
+          ${livros.map(l => `
+            <div class="ebook-card">
+              <div class="info">
+                <strong>${l.nome}</strong>
+                <span>${l.total_paginas} páginas · leitura protegida, direto no navegador</span>
+              </div>
+              <a class="btn-ler" href="leitor.html?produto=${l.produto_id}"><i class="fa-solid fa-book-open"></i> Ler agora</a>
+            </div>
+          `).join('')}
+        `;
+      } catch (err) { /* silencioso — seção simplesmente não aparece */ }
+    }
+
+    async function carregar() {
+      const container = document.getElementById('pedidos-conteudo');
+
+      if (!SHOP_API.token()) {
+        container.innerHTML = `
+          <div class="bloqueio">
+            <p>Entre na sua conta para ver seus pedidos.</p>
+            <a href="NectarMine/login.html?redirect=${encodeURIComponent('../meus-pedidos.html')}">Entrar / Criar conta</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const { pedidos } = await SHOP_API.meusPedidos();
+        if (!pedidos || pedidos.length === 0) {
+          container.innerHTML = `<p class="msg">Você ainda não fez nenhum pedido. <a href="loja.html">Ir para a loja →</a></p>`;
+          return;
+        }
+
+        container.innerHTML = pedidos.map(p => {
+          const st = STATUS_LABEL[p.status] || { texto: p.status, cor: '#888' };
+          const data = new Date(p.created_at.replace(' ', 'T') + 'Z').toLocaleDateString('pt-BR');
+          return `
+            <div class="pedido-card">
+              <div class="pedido-topo">
+                <h3>Pedido #${p.id}</h3>
+                <span class="pedido-status" style="background:${st.cor};">${st.texto}</span>
+              </div>
+              <div class="pedido-data">Feito em ${data} · ${p.metodo_pagamento}</div>
+              <div class="pedido-linha"><span>Subtotal</span><span>${formatarReais(p.subtotal_cents)}</span></div>
+              <div class="pedido-linha"><span>Frete</span><span>${p.frete_cents === 0 ? 'Grátis' : formatarReais(p.frete_cents)}</span></div>
+              <div class="pedido-linha total"><span>Total</span><span>${formatarReais(p.total_cents)}</span></div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<p class="msg">Não foi possível carregar seus pedidos agora.</p>`;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => { carregarLivros(); carregar(); });
+  </script>
+
+</body>
+</html>

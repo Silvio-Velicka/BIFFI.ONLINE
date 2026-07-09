@@ -87,7 +87,9 @@
     .btn-sair:hover { background: rgba(139,45,143,0.1); }
 
     /* ── CONTEÚDO ── */
-    .content { flex: 1; padding: 40px 48px; max-width: 720px; }
+    .content { flex: 1; padding: 40px 48px; max-width: 900px; }
+    .view { display: none; }
+    .view.active { display: block; }
 
     .content h1 {
       font-family: Georgia, serif;
@@ -104,6 +106,7 @@
       border: 2px solid rgba(139,45,143,0.15);
       border-radius: 18px;
       padding: 28px 30px;
+      margin-bottom: 24px;
     }
 
     .field { margin-bottom: 20px; }
@@ -116,7 +119,7 @@
       letter-spacing: 1px;
       margin-bottom: 7px;
     }
-    .field input, .field textarea {
+    .field input, .field textarea, .field select {
       width: 100%;
       padding: 11px 14px;
       border-radius: 10px;
@@ -130,7 +133,9 @@
       transition: border-color 0.2s;
     }
     .field textarea { min-height: 80px; line-height: 1.5; }
-    .field input:focus, .field textarea:focus { border-color: var(--roxo); }
+    .field input:focus, .field textarea:focus, .field select:focus { border-color: var(--roxo); }
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+    .field-row3 { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 16px; }
 
     .toggle-row {
       display: flex;
@@ -143,7 +148,7 @@
     }
     .toggle-row input { width: 18px; height: 18px; accent-color: var(--roxo); cursor: pointer; }
 
-    .actions { display: flex; align-items: center; gap: 14px; }
+    .actions { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
 
     .btn-salvar {
       padding: 12px 26px;
@@ -160,7 +165,7 @@
     .btn-salvar:hover { background: var(--roxo-esc); transform: translateY(-1px); }
     .btn-salvar:disabled { opacity: 0.6; cursor: wait; }
 
-    .btn-preview {
+    .btn-preview, .btn-secundario {
       padding: 12px 20px;
       border: 2px solid var(--roxo);
       border-radius: 10px;
@@ -171,7 +176,19 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-preview:hover { background: rgba(139,45,143,0.08); }
+    .btn-preview:hover, .btn-secundario:hover { background: rgba(139,45,143,0.08); }
+
+    .btn-excluir {
+      padding: 8px 14px;
+      border: none;
+      border-radius: 8px;
+      background: rgba(180,40,40,0.12);
+      color: #a02020;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .btn-excluir:hover { background: rgba(180,40,40,0.22); }
 
     .save-msg {
       display: none;
@@ -184,11 +201,56 @@
     .save-msg.ok { background: rgba(80,180,120,0.15); color: #2e7d4f; display: block; }
     .save-msg.err { background: rgba(139,45,143,0.12); color: var(--roxo-esc); display: block; }
 
+    /* ── LISTA DE PRODUTOS ── */
+    .produto-row {
+      display: grid;
+      grid-template-columns: 46px 1.6fr 90px 80px 70px 70px auto;
+      gap: 10px;
+      align-items: center;
+      padding: 10px 0;
+      border-bottom: 1px solid rgba(139,45,143,0.12);
+      font-size: 12.5px;
+    }
+    .produto-row.header { font-weight: bold; color: var(--roxo); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; }
+    .produto-row input[type="text"], .produto-row input[type="number"] {
+      padding: 7px 9px; border-radius: 7px; border: 1.5px solid rgba(139,45,143,0.18);
+      background: rgba(255,255,255,0.7); font-size: 12.5px; width: 100%;
+    }
+    .produto-thumb-mini {
+      width: 36px; height: 36px; border-radius: 8px; background: rgba(255,255,255,0.6);
+      display: flex; align-items: center; justify-content: center; font-size: 18px; overflow: hidden;
+    }
+    .produto-thumb-mini img { width: 100%; height: 100%; object-fit: cover; }
+    .produto-row .chk { justify-self: center; }
+
+    /* ── LISTA DE PEDIDOS ── */
+    .pedido-row {
+      padding: 14px 0;
+      border-bottom: 1px solid rgba(139,45,143,0.12);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      font-size: 13px;
+    }
+    .pedido-row .info strong { color: var(--roxo); }
+    .pedido-row .info .sub { font-size: 11.5px; opacity: 0.75; display: block; margin-top: 2px; }
+    .pedido-row select {
+      padding: 7px 10px; border-radius: 8px; border: 1.5px solid rgba(139,45,143,0.2);
+      background: rgba(255,255,255,0.7); font-size: 12px; font-weight: bold; color: var(--roxo-esc);
+    }
+
+    .filtro-status { display: flex; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 12.5px; }
+    .filtro-status select { padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(139,45,143,0.18); background: rgba(255,255,255,0.65); }
+
     @media (max-width: 700px) {
       body { flex-direction: column; }
       .sidebar { width: 100%; min-height: auto; flex-direction: row; overflow-x: auto; }
       .sidebar .logo, .sidebar-footer { display: none; }
       .content { padding: 24px 20px; }
+      .field-row, .field-row3 { grid-template-columns: 1fr; }
+      .produto-row { grid-template-columns: 1fr; }
     }
   </style>
 </head>
@@ -200,6 +262,12 @@
     <div class="nav-item active" data-view="anuncio">
       <span class="icon">📢</span> Modal do Jogo
     </div>
+    <div class="nav-item" data-view="produtos">
+      <span class="icon">🛒</span> Produtos
+    </div>
+    <div class="nav-item" data-view="pedidos">
+      <span class="icon">📦</span> Pedidos
+    </div>
 
     <div class="sidebar-footer">
       <button class="btn-sair" id="btn-sair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
@@ -207,48 +275,131 @@
   </div>
 
   <div class="content">
-    <h1>📢 Modal do Jogo</h1>
-    <p class="subtitle">Mensagem que aparece toda vez que alguém abre a tela de login/cadastro do NectarMine.</p>
 
-    <div class="card">
-      <form id="form-anuncio">
-        <div class="toggle-row">
-          <input type="checkbox" id="f-ativo" checked>
-          <label for="f-ativo" style="margin:0;text-transform:none;letter-spacing:0;">Modal ativo (exibir para os jogadores)</label>
-        </div>
+    <!-- ═══ VIEW: MODAL DO JOGO ═══ -->
+    <div class="view active" id="view-anuncio">
+      <h1>📢 Modal do Jogo</h1>
+      <p class="subtitle">Mensagem que aparece toda vez que alguém abre a tela de login/cadastro do NectarMine.</p>
 
-        <div class="field">
-          <label>Título</label>
-          <input type="text" id="f-titulo" maxlength="120" required>
-        </div>
+      <div class="card">
+        <form id="form-anuncio">
+          <div class="toggle-row">
+            <input type="checkbox" id="f-ativo" checked>
+            <label for="f-ativo" style="margin:0;text-transform:none;letter-spacing:0;">Modal ativo (exibir para os jogadores)</label>
+          </div>
 
-        <div class="field">
-          <label>Texto</label>
-          <textarea id="f-texto" maxlength="500" required></textarea>
-        </div>
+          <div class="field">
+            <label>Título</label>
+            <input type="text" id="f-titulo" maxlength="120" required>
+          </div>
 
-        <div class="field">
-          <label>Subtítulo</label>
-          <input type="text" id="f-subtitulo" maxlength="120">
-        </div>
+          <div class="field">
+            <label>Texto</label>
+            <textarea id="f-texto" maxlength="500" required></textarea>
+          </div>
 
-        <div class="field">
-          <label>Texto</label>
-          <textarea id="f-texto2" maxlength="500"></textarea>
-        </div>
+          <div class="field">
+            <label>Subtítulo</label>
+            <input type="text" id="f-subtitulo" maxlength="120">
+          </div>
 
-        <div class="actions">
-          <button type="submit" class="btn-salvar" id="btn-salvar">
-            <i class="fa-solid fa-floppy-disk"></i> Salvar
-          </button>
-          <button type="button" class="btn-preview" id="btn-preview">
-            <i class="fa-solid fa-eye"></i> Ver como fica
-          </button>
-        </div>
+          <div class="field">
+            <label>Texto</label>
+            <textarea id="f-texto2" maxlength="500"></textarea>
+          </div>
 
-        <div class="save-msg" id="save-msg"></div>
-      </form>
+          <div class="actions">
+            <button type="submit" class="btn-salvar" id="btn-salvar">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar
+            </button>
+            <button type="button" class="btn-preview" id="btn-preview">
+              <i class="fa-solid fa-eye"></i> Ver como fica
+            </button>
+          </div>
+
+          <div class="save-msg" id="save-msg"></div>
+        </form>
+      </div>
     </div>
+
+    <!-- ═══ VIEW: PRODUTOS ═══ -->
+    <div class="view" id="view-produtos">
+      <h1>🛒 Produtos da Loja</h1>
+      <p class="subtitle">Cadastre e edite os produtos que aparecem em biffi.online/loja.html.</p>
+
+      <div class="card">
+        <h2 style="font-family:Georgia,serif;color:var(--roxo);font-size:16px;margin-bottom:16px;">➕ Novo produto</h2>
+        <form id="form-novo-produto">
+          <div class="field-row">
+            <div class="field">
+              <label>Nome</label>
+              <input type="text" id="np-nome" required>
+            </div>
+            <div class="field">
+              <label>Preço (R$)</label>
+              <input type="number" id="np-preco" step="0.01" min="0" required>
+            </div>
+          </div>
+          <div class="field">
+            <label>Descrição</label>
+            <textarea id="np-descricao"></textarea>
+          </div>
+          <div class="field-row3">
+            <div class="field">
+              <label>Imagem (emoji ou nome do arquivo)</label>
+              <input type="text" id="np-imagem" placeholder="📓 ou Capa BIFFI .jpeg">
+            </div>
+            <div class="field">
+              <label>Categoria</label>
+              <input type="text" id="np-categoria">
+            </div>
+            <div class="field">
+              <label>Estoque (0 = ilimitado)</label>
+              <input type="number" id="np-estoque" min="0" value="0">
+            </div>
+          </div>
+          <div class="toggle-row">
+            <input type="checkbox" id="np-destaque">
+            <label for="np-destaque" style="margin:0;text-transform:none;letter-spacing:0;">Produto em destaque (aparece no topo da loja)</label>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn-salvar"><i class="fa-solid fa-plus"></i> Adicionar produto</button>
+          </div>
+          <div class="save-msg" id="np-msg"></div>
+        </form>
+      </div>
+
+      <div class="card">
+        <h2 style="font-family:Georgia,serif;color:var(--roxo);font-size:16px;margin-bottom:12px;">📋 Produtos cadastrados</h2>
+        <div class="produto-row header">
+          <span></span><span>Nome / Preço</span><span>Preço R$</span><span>Estoque</span><span>Destaque</span><span>Ativo</span><span></span>
+        </div>
+        <div id="lista-produtos"><p style="font-size:12.5px;padding:14px 0;">Carregando...</p></div>
+      </div>
+    </div>
+
+    <!-- ═══ VIEW: PEDIDOS ═══ -->
+    <div class="view" id="view-pedidos">
+      <h1>📦 Pedidos</h1>
+      <p class="subtitle">Pedidos feitos na loja pelos clientes.</p>
+
+      <div class="filtro-status">
+        <label>Filtrar por status:</label>
+        <select id="filtro-status">
+          <option value="">Todos</option>
+          <option value="aguardando_pagamento">Aguardando pagamento</option>
+          <option value="pago">Pago</option>
+          <option value="enviado">Enviado</option>
+          <option value="entregue">Entregue</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+      </div>
+
+      <div class="card">
+        <div id="lista-pedidos"><p style="font-size:12.5px;">Carregando...</p></div>
+      </div>
+    </div>
+
   </div>
 
   <script src="js/admin.js"></script>
@@ -256,10 +407,25 @@
   <script>
     BiffiAdmin.requireAuth();
 
+    /* ── NAVEGAÇÃO ENTRE VIEWS ── */
+    document.querySelectorAll('.nav-item[data-view]').forEach(item => {
+      item.addEventListener('click', () => {
+        document.querySelectorAll('.nav-item[data-view]').forEach(i => i.classList.remove('active'));
+        document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+        item.classList.add('active');
+        document.getElementById('view-' + item.dataset.view).classList.add('active');
+        if (item.dataset.view === 'produtos') carregarProdutos();
+        if (item.dataset.view === 'pedidos') carregarPedidos();
+      });
+    });
+
+    document.getElementById('btn-sair').addEventListener('click', () => BiffiAdmin.logout());
+
+    /* ═══ MODAL DO JOGO (já existia) ═══ */
     const form = document.getElementById('form-anuncio');
     const msg = document.getElementById('save-msg');
 
-    async function carregar() {
+    async function carregarAnuncio() {
       try {
         const a = await BiffiAdmin.getAnnouncement();
         document.getElementById('f-ativo').checked = !!a.ativo;
@@ -272,7 +438,7 @@
         msg.textContent = 'Não foi possível carregar os dados atuais: ' + err.message;
       }
     }
-    carregar();
+    carregarAnuncio();
 
     form.addEventListener('submit', async (e) => {
       e.preventDefault();
@@ -313,7 +479,147 @@
       });
     });
 
-    document.getElementById('btn-sair').addEventListener('click', () => BiffiAdmin.logout());
+    /* ═══ PRODUTOS ═══ */
+    function imagemMini(imagem) {
+      if (imagem && /\.(jpe?g|png|webp|gif|svg)$/i.test(imagem)) return `<img src="../${imagem}" alt="">`;
+      return imagem || '🛍️';
+    }
+
+    async function carregarProdutos() {
+      const lista = document.getElementById('lista-produtos');
+      try {
+        const { produtos } = await BiffiAdmin.getProdutos();
+        if (!produtos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum produto cadastrado ainda.</p>'; return; }
+
+        lista.innerHTML = produtos.map(p => `
+          <div class="produto-row" data-id="${p.id}">
+            <div class="produto-thumb-mini">${imagemMini(p.imagem)}</div>
+            <input type="text" class="p-nome" value="${p.nome}">
+            <input type="number" class="p-preco" step="0.01" value="${(p.preco_cents / 100).toFixed(2)}">
+            <input type="number" class="p-estoque" min="0" value="${p.estoque}">
+            <input type="checkbox" class="p-destaque chk" ${p.destaque ? 'checked' : ''}>
+            <input type="checkbox" class="p-ativo chk" ${p.ativo ? 'checked' : ''}>
+            <div style="display:flex;gap:6px;">
+              <button type="button" class="btn-preview btn-salvar-produto" style="padding:6px 10px;font-size:11px;">Salvar</button>
+              <button type="button" class="btn-excluir">Excluir</button>
+            </div>
+          </div>
+        `).join('');
+
+        lista.querySelectorAll('.btn-salvar-produto').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const row = btn.closest('.produto-row');
+            const id = row.dataset.id;
+            btn.disabled = true;
+            try {
+              await BiffiAdmin.atualizarProduto(id, {
+                nome: row.querySelector('.p-nome').value,
+                preco_cents: Math.round(parseFloat(row.querySelector('.p-preco').value) * 100),
+                estoque: parseInt(row.querySelector('.p-estoque').value, 10) || 0,
+                destaque: row.querySelector('.p-destaque').checked,
+                ativo: row.querySelector('.p-ativo').checked,
+              });
+              btn.textContent = '✔ Salvo';
+              setTimeout(() => { btn.textContent = 'Salvar'; }, 1500);
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+            } finally {
+              btn.disabled = false;
+            }
+          });
+        });
+
+        lista.querySelectorAll('.btn-excluir').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const row = btn.closest('.produto-row');
+            const id = row.dataset.id;
+            const confirmar = await Swal.fire({
+              title: 'Excluir produto?', icon: 'warning', showCancelButton: true,
+              confirmButtonText: 'Excluir', cancelButtonText: 'Cancelar', confirmButtonColor: '#a02020',
+            });
+            if (!confirmar.isConfirmed) return;
+            try {
+              await BiffiAdmin.excluirProduto(id);
+              carregarProdutos();
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+            }
+          });
+        });
+      } catch (err) {
+        lista.innerHTML = `<p style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById('form-novo-produto').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const msgEl = document.getElementById('np-msg');
+      msgEl.className = 'save-msg'; msgEl.style.display = 'none';
+      try {
+        await BiffiAdmin.criarProduto({
+          nome: document.getElementById('np-nome').value,
+          preco_cents: Math.round(parseFloat(document.getElementById('np-preco').value) * 100),
+          descricao: document.getElementById('np-descricao').value,
+          imagem: document.getElementById('np-imagem').value,
+          categoria: document.getElementById('np-categoria').value,
+          estoque: parseInt(document.getElementById('np-estoque').value, 10) || 0,
+          ilimitado: (parseInt(document.getElementById('np-estoque').value, 10) || 0) === 0,
+          destaque: document.getElementById('np-destaque').checked,
+        });
+        e.target.reset();
+        msgEl.className = 'save-msg ok';
+        msgEl.textContent = '✔ Produto adicionado!';
+        carregarProdutos();
+      } catch (err) {
+        msgEl.className = 'save-msg err';
+        msgEl.textContent = 'Erro: ' + err.message;
+      }
+    });
+
+    /* ═══ PEDIDOS ═══ */
+    const STATUS_LABEL = {
+      aguardando_pagamento: { texto: 'Aguardando pagamento', cor: '#B8860B' },
+      pago:      { texto: 'Pago', cor: '#2e7d4f' },
+      enviado:   { texto: 'Enviado', cor: '#2563eb' },
+      entregue:  { texto: 'Entregue', cor: '#2e7d4f' },
+      cancelado: { texto: 'Cancelado', cor: '#b91c1c' },
+    };
+
+    async function carregarPedidos() {
+      const lista = document.getElementById('lista-pedidos');
+      const statusFiltro = document.getElementById('filtro-status').value;
+      try {
+        const { pedidos } = await BiffiAdmin.getPedidos(statusFiltro);
+        if (!pedidos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum pedido encontrado.</p>'; return; }
+
+        lista.innerHTML = pedidos.map(p => `
+          <div class="pedido-row" data-id="${p.id}">
+            <div class="info">
+              <strong>#${p.id} — ${p.username}</strong>
+              <span class="sub">${p.nome_destinatario} · ${p.cidade}/${p.estado} · R$ ${(p.total_cents / 100).toFixed(2)} · ${p.metodo_pagamento}</span>
+            </div>
+            <select class="select-status">
+              ${Object.entries(STATUS_LABEL).map(([v, o]) => `<option value="${v}" ${p.status === v ? 'selected' : ''}>${o.texto}</option>`).join('')}
+            </select>
+          </div>
+        `).join('');
+
+        lista.querySelectorAll('.select-status').forEach(sel => {
+          sel.addEventListener('change', async () => {
+            const row = sel.closest('.pedido-row');
+            try {
+              await BiffiAdmin.atualizarStatusPedido(row.dataset.id, sel.value);
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+            }
+          });
+        });
+      } catch (err) {
+        lista.innerHTML = `<p style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById('filtro-status').addEventListener('change', carregarPedidos);
   </script>
 </body>
 </html>

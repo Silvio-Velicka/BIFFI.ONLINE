@@ -58,5 +58,31 @@ const BiffiAdmin = {
     }
     if (!res.ok) throw new Error(data.error || 'Erro ao salvar.');
     return data;
-  }
+  },
+
+  /* ── LOJINHA: PRODUTOS ── */
+  async _fetch(path, method = 'GET', body = null) {
+    const res = await fetch(this.base + path, {
+      method,
+      headers: { 'Content-Type': 'application/json', 'x-admin-key': this.key() || '' },
+      body: body ? JSON.stringify(body) : null,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 403) {
+      localStorage.removeItem('biffi_admin_key');
+      location.href = 'login.html?expirado=1';
+      throw new Error('Sessão expirada.');
+    }
+    if (!res.ok) throw new Error(data.error || 'Erro na comunicação com o servidor.');
+    return data;
+  },
+
+  getProdutos() { return this._fetch('/api/admin/products'); },
+  criarProduto(payload) { return this._fetch('/api/admin/products', 'POST', payload); },
+  atualizarProduto(id, payload) { return this._fetch(`/api/admin/products/${id}`, 'PUT', payload); },
+  excluirProduto(id) { return this._fetch(`/api/admin/products/${id}`, 'DELETE'); },
+
+  /* ── LOJINHA: PEDIDOS ── */
+  getPedidos(status) { return this._fetch('/api/admin/pedidos' + (status ? `?status=${status}` : '')); },
+  atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },
 };

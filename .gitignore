@@ -1,0 +1,12 @@
+# Arquivos-fonte originais de e-books (NUNCA subir — só as páginas processadas
+# em NectarMine/server/biblioteca-privada/ devem ir para o repositório).
+/Livros/
+
+# Banco de dados local (runtime — em produção fica no volume do Railway)
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+
+# Dependências (instaladas automaticamente pelo Railway via package.json)
+node_modules/

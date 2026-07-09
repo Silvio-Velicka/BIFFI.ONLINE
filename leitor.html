@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Leitor — BIFFI.ONLINE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <script src="https://cdn.jsdelivr.net/npm/page-flip@2.0.7/dist/js/page-flip.browser.js"></script>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    :root {
+      --rosa: #FFB6D9; --rosa-med: #F472B6; --roxo: #8B2D8F;
+      --roxo-esc: #5B1060; --dourado: #FFD700; --branco: #fff;
+    }
+
+    html, body {
+      height: 100%;
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #2b0e30 0%, #3d1440 55%, #2b0e30 100%);
+      color: #fff;
+      overflow: hidden;
+      /* Deterrentes básicos contra cópia — nada disso bloqueia print de tela,
+         só dificulta o caminho mais fácil (selecionar/arrastar/inspecionar). */
+      -webkit-user-select: none; -moz-user-select: none; user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 12px 24px;
+      background: rgba(0,0,0,0.35);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(255,255,255,0.08);
+    }
+    .logo { font-size: 18px; font-weight: 900; letter-spacing: 2px; color: var(--dourado); text-decoration: none; }
+    .voltar { font-family: Arial, sans-serif; font-size: 12.5px; font-weight: 700; color: #fff; text-decoration: none; opacity: 0.85; }
+    .voltar:hover { opacity: 1; }
+    .titulo-livro { font-family: Arial, sans-serif; font-size: 13px; opacity: 0.8; }
+
+    .palco {
+      position: fixed;
+      top: 60px; bottom: 70px; left: 0; right: 0;
+      display: flex; align-items: center; justify-content: center;
+    }
+
+    #livro { touch-action: none; }
+
+    .controles {
+      position: fixed; bottom: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: center; gap: 22px;
+      padding: 14px; background: rgba(0,0,0,0.35); backdrop-filter: blur(10px);
+      border-top: 1px solid rgba(255,255,255,0.08);
+      font-family: Arial, sans-serif;
+    }
+    .btn-nav {
+      width: 42px; height: 42px; border-radius: 50%; border: 2px solid var(--dourado);
+      background: rgba(255,255,255,0.06); color: var(--dourado); font-size: 16px;
+      cursor: pointer; display: flex; align-items: center; justify-content: center;
+      transition: background 0.2s;
+    }
+    .btn-nav:hover { background: rgba(255,255,255,0.18); }
+    .btn-nav:disabled { opacity: 0.3; cursor: default; }
+    .pagina-indicador { font-size: 13px; font-weight: 700; min-width: 110px; text-align: center; }
+
+    .estado {
+      position: fixed; inset: 0; display: flex; align-items: center; justify-content: center;
+      flex-direction: column; gap: 14px; text-align: center; padding: 30px;
+      font-family: Arial, sans-serif;
+    }
+    .estado .emoji { font-size: 50px; }
+    .estado a {
+      margin-top: 10px; padding: 12px 28px; background: var(--roxo); color: #fff;
+      border-radius: 50px; text-decoration: none; font-weight: 700; font-size: 13px;
+    }
+
+    .aviso-seguranca {
+      position: fixed; top: 60px; left: 0; right: 0; text-align: center;
+      font-family: Arial, sans-serif; font-size: 10.5px; opacity: 0.35; padding: 4px; z-index: 150;
+      pointer-events: none;
+    }
+
+    @media print {
+      body * { display: none !important; }
+      body::before { content: "A impressão deste conteúdo não está disponível."; display: block !important; padding: 40px; }
+    }
+
+    @media (max-width: 700px) {
+      header { padding: 10px 14px; }
+      .titulo-livro { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="logo" href="index.html">BIFFI.ONLINE</a>
+    <span class="titulo-livro" id="titulo-livro">Carregando...</span>
+    <a class="voltar" href="meus-pedidos.html"><i class="fa-solid fa-arrow-left"></i> Meus pedidos</a>
+  </header>
+
+  <div class="aviso-seguranca">Leitura pessoal e intransferível — cada página é identificada com os dados de quem comprou.</div>
+
+  <div class="palco" id="palco">
+    <div class="estado" id="estado">
+      <span class="emoji">🐝</span>
+      <p>Carregando seu livro...</p>
+    </div>
+  </div>
+
+  <div class="controles" id="controles" style="display:none;">
+    <button class="btn-nav" id="btn-prev"><i class="fa-solid fa-chevron-left"></i></button>
+    <span class="pagina-indicador" id="pagina-indicador">Página 1 de 1</span>
+    <button class="btn-nav" id="btn-next"><i class="fa-solid fa-chevron-right"></i></button>
+  </div>
+
+  <script src="js/shop-api.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const produtoId = params.get('produto');
+    const estadoEl = document.getElementById('estado');
+    const palco = document.getElementById('palco');
+    const controles = document.getElementById('controles');
+
+    function mostrarEstado(emoji, mensagem, linkHtml) {
+      controles.style.display = 'none';
+      estadoEl.style.display = 'flex';
+      estadoEl.innerHTML = `<span class="emoji">${emoji}</span><p>${mensagem}</p>${linkHtml || ''}`;
+      if (!palco.contains(estadoEl)) palco.appendChild(estadoEl);
+    }
+
+    if (!produtoId) {
+      mostrarEstado('🐝', 'Nenhum livro selecionado.', '<a href="loja.html">Ir para a loja</a>');
+    } else if (!SHOP_API.token()) {
+      const destino = encodeURIComponent(`../leitor.html?produto=${produtoId}`);
+      mostrarEstado('🔒', 'Você precisa entrar na sua conta para ler este e-book.', `<a href="NectarMine/login.html?redirect=${destino}">Entrar / Criar conta</a>`);
+    } else {
+      iniciarLeitor();
+    }
+
+    async function iniciarLeitor() {
+      let info;
+      try {
+        info = await SHOP_API.call(`/api/livraria/${produtoId}/info`);
+      } catch (err) {
+        mostrarEstado('🔒', err.message || 'Você ainda não comprou este e-book.', '<a href="loja.html">Ir para a loja</a>');
+        return;
+      }
+
+      document.getElementById('titulo-livro').textContent = info.titulo;
+      document.title = info.titulo + ' — BIFFI.ONLINE';
+
+      const totalPaginas = info.total_paginas;
+      const cache = new Map(); // pagina -> blob URL
+      const emVoo = new Map(); // pagina -> Promise (evita pedir a mesma página 2x)
+      const JANELA = 2; // mantém carregadas: atual ± JANELA
+
+      function urlPagina(n) {
+        return `${SHOP_API.base}/api/livraria/${produtoId}/pagina/${n}`;
+      }
+
+      async function buscarPagina(n) {
+        if (cache.has(n)) return cache.get(n);
+        if (emVoo.has(n)) return emVoo.get(n);
+        const p = (async () => {
+          const res = await fetch(urlPagina(n), { headers: { 'Authorization': 'Bearer ' + SHOP_API.token() } });
+          if (!res.ok) throw new Error('Falha ao carregar página ' + n);
+          const blob = await res.blob();
+          const url = URL.createObjectURL(blob);
+          cache.set(n, url);
+          return url;
+        })();
+        emVoo.set(n, p);
+        try { return await p; } finally { emVoo.delete(n); }
+      }
+
+      function liberarForaDaJanela(atual) {
+        for (const [n, url] of cache) {
+          if (Math.abs(n - atual) > JANELA + 1) {
+            URL.revokeObjectURL(url);
+            cache.delete(n);
+          }
+        }
+      }
+
+      // placeholder leve enquanto a página real não chega
+      const PLACEHOLDER = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+        '<svg xmlns="http://www.w3.org/2000/svg" width="500" height="750"><rect width="100%" height="100%" fill="%23f3eef7"/><text x="50%" y="50%" font-family="Arial" font-size="22" fill="%238B2D8F" text-anchor="middle">🐝</text></svg>'
+      );
+
+      // Carrega a primeira página real pra descobrir a proporção certa do livro
+      let primeiraUrl;
+      try {
+        primeiraUrl = await buscarPagina(1);
+      } catch (err) {
+        mostrarEstado('😕', 'Não foi possível carregar o livro agora. Tente novamente em instantes.');
+        return;
+      }
+
+      const dimensoes = await new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => resolve({ w: img.naturalWidth || 500, h: img.naturalHeight || 750 });
+        img.onerror = () => resolve({ w: 500, h: 750 });
+        img.src = primeiraUrl;
+      });
+
+      // Monta a área do leitor
+      estadoEl.style.display = 'none';
+      const bookEl = document.createElement('div');
+      bookEl.id = 'livro';
+      palco.innerHTML = '';
+      palco.appendChild(bookEl);
+      controles.style.display = 'flex';
+
+      const maxW = Math.min(window.innerWidth * 0.92, 1000);
+      const maxH = window.innerHeight - 140;
+      let pageW = dimensoes.w, pageH = dimensoes.h;
+      const escala = Math.min(maxW / (pageW * 2), maxH / pageH, 1);
+      pageW = Math.round(pageW * escala);
+      pageH = Math.round(pageH * escala);
+
+      const pageFlip = new St.PageFlip(bookEl, {
+        width: pageW,
+        height: pageH,
+        size: 'fixed',
+        minWidth: 200,
+        maxWidth: 1200,
+        minHeight: 300,
+        maxHeight: 1600,
+        maxShadowOpacity: 0.4,
+        showCover: false,
+        mobileScrollSupport: false,
+        usePortrait: true,
+      });
+
+      const hrefs = new Array(totalPaginas).fill(PLACEHOLDER);
+      hrefs[0] = primeiraUrl;
+      pageFlip.loadFromImages(hrefs);
+      cache.set(1, primeiraUrl);
+
+      function atualizarIndicador() {
+        const atual = pageFlip.getCurrentPageIndex() + 1;
+        document.getElementById('pagina-indicador').textContent = `Página ${atual} de ${totalPaginas}`;
+        document.getElementById('btn-prev').disabled = atual <= 1;
+        document.getElementById('btn-next').disabled = atual >= totalPaginas;
+      }
+      atualizarIndicador();
+
+      async function carregarJanelaAoRedor(pagina1based) {
+        const alvo = [];
+        for (let d = -JANELA; d <= JANELA; d++) {
+          const n = pagina1based + d;
+          if (n >= 1 && n <= totalPaginas) alvo.push(n);
+        }
+        await Promise.all(alvo.map(n => buscarPagina(n).catch(() => null)));
+
+        const novosHrefs = new Array(totalPaginas).fill(PLACEHOLDER);
+        for (const [n, url] of cache) novosHrefs[n - 1] = url;
+        pageFlip.updateFromImages(novosHrefs);
+        liberarForaDaJanela(pagina1based);
+      }
+
+      carregarJanelaAoRedor(1);
+
+      pageFlip.on('flip', (e) => {
+        const atual = e.data + 1; // biblioteca usa índice 0-based
+        atualizarIndicador();
+        carregarJanelaAoRedor(atual);
+      });
+
+      document.getElementById('btn-prev').addEventListener('click', () => pageFlip.flipPrev());
+      document.getElementById('btn-next').addEventListener('click', () => pageFlip.flipNext());
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+        if (e.key === 'ArrowRight') pageFlip.flipNext();
+      });
+    }
+
+    /* ── Deterrentes contra cópia fácil (não impedem print de tela) ── */
+    document.addEventListener('contextmenu', (e) => e.preventDefault());
+    document.addEventListener('selectstart', (e) => e.preventDefault());
+    document.addEventListener('dragstart', (e) => e.preventDefault());
+    document.addEventListener('keydown', (e) => {
+      const bloquear =
+        e.key === 'F12' ||
+        (e.ctrlKey && e.shiftKey && ['I', 'J', 'C', 'i', 'j', 'c'].includes(e.key)) ||
+        (e.ctrlKey && ['u', 'U', 's', 'S', 'p', 'P'].includes(e.key));
+      if (bloquear) e.preventDefault();
+    });
+  </script>
+
+</body>
+</html>
