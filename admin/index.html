@@ -358,12 +358,16 @@
               <input type="number" id="np-estoque" min="0" value="0">
             </div>
           </div>
+          <div class="field">
+            <label>PDF do e-book (opcional — sobe e já converte em livro digital automaticamente)</label>
+            <input type="file" id="np-pdf" accept="application/pdf">
+          </div>
           <div class="toggle-row">
             <input type="checkbox" id="np-destaque">
             <label for="np-destaque" style="margin:0;text-transform:none;letter-spacing:0;">Produto em destaque (aparece no topo da loja)</label>
           </div>
           <div class="actions">
-            <button type="submit" class="btn-salvar"><i class="fa-solid fa-plus"></i> Adicionar produto</button>
+            <button type="submit" class="btn-salvar" id="np-btn-salvar"><i class="fa-solid fa-plus"></i> Adicionar produto</button>
           </div>
           <div class="save-msg" id="np-msg"></div>
         </form>
@@ -494,60 +498,45 @@
         ]);
         if (!produtos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum produto cadastrado ainda.</p>'; return; }
 
-        function opcoesPastas(p) {
-          let opts = '<option value="">— Produto físico (sem e-book) —</option>';
-          opts += pastas.map(pasta => `
-            <option value="${pasta.slug}" data-paginas="${pasta.total_paginas}" ${p.ebook_slug === pasta.slug ? 'selected' : ''}>
-              ${pasta.slug} (${pasta.total_paginas} páginas)
-            </option>
-          `).join('');
-          return opts;
-        }
-
         lista.innerHTML = produtos.map(p => `
           <div class="produto-row" data-id="${p.id}" style="grid-template-columns: 46px 1.4fr 90px 70px 60px 60px 1.3fr auto;">
             <div class="produto-thumb-mini">${imagemMini(p.imagem)}</div>
-            <input type="text" class="p-nome" value="${p.nome}">
-            <input type="number" class="p-preco" step="0.01" value="${(p.preco_cents / 100).toFixed(2)}">
-            <input type="number" class="p-estoque" min="0" value="${p.estoque}">
+            <span style="font-weight:bold;">${p.nome}</span>
+            <span>R$ ${(p.preco_cents / 100).toFixed(2)}</span>
+            <span>${p.ilimitado ? '∞' : p.estoque}</span>
             <input type="checkbox" class="p-destaque chk" title="Destaque" ${p.destaque ? 'checked' : ''}>
             <input type="checkbox" class="p-ativo chk" title="Ativo" ${p.ativo ? 'checked' : ''}>
-            <select class="p-ebook" title="Vincular a um e-book">${opcoesPastas(p)}</select>
+            <span>${p.ebook_slug ? `📖 ${p.ebook_total_paginas}p` : '—'}</span>
             <div style="display:flex;gap:6px;">
-              <button type="button" class="btn-preview btn-salvar-produto" style="padding:6px 10px;font-size:11px;">Salvar</button>
+              <button type="button" class="btn-preview btn-editar-produto" style="padding:6px 10px;font-size:11px;">Editar</button>
               <button type="button" class="btn-excluir">Excluir</button>
             </div>
           </div>
         `).join('');
 
-        lista.querySelectorAll('.btn-salvar-produto').forEach(btn => {
-          btn.addEventListener('click', async () => {
-            const row = btn.closest('.produto-row');
+        // Toggle rápido de destaque/ativo direto na lista (sem abrir o modal)
+        lista.querySelectorAll('.p-destaque, .p-ativo').forEach(chk => {
+          chk.addEventListener('change', async () => {
+            const row = chk.closest('.produto-row');
             const id = row.dataset.id;
-            btn.disabled = true;
             try {
               await BiffiAdmin.atualizarProduto(id, {
-                nome: row.querySelector('.p-nome').value,
-                preco_cents: Math.round(parseFloat(row.querySelector('.p-preco').value) * 100),
-                estoque: parseInt(row.querySelector('.p-estoque').value, 10) || 0,
                 destaque: row.querySelector('.p-destaque').checked,
                 ativo: row.querySelector('.p-ativo').checked,
               });
-
-              const selectEbook = row.querySelector('.p-ebook');
-              const slugEscolhido = selectEbook.value;
-              if (slugEscolhido) {
-                const totalPaginas = Number(selectEbook.selectedOptions[0].dataset.paginas);
-                await BiffiAdmin.vincularLivroDigital(id, slugEscolhido, totalPaginas);
-              }
-
-              btn.textContent = '✔ Salvo';
-              setTimeout(() => { btn.textContent = 'Salvar'; }, 1500);
             } catch (err) {
               Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
-            } finally {
-              btn.disabled = false;
+              carregarProdutos();
             }
+          });
+        });
+
+        lista.querySelectorAll('.btn-editar-produto').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const row = btn.closest('.produto-row');
+            const id = Number(row.dataset.id);
+            const produto = produtos.find(x => x.id === id);
+            if (produto) abrirEditarProduto(produto, pastas);
           });
         });
 
@@ -573,12 +562,130 @@
       }
     }
 
+    // Modal completo de edição — expõe todos os campos do produto (inclusive
+    // descrição/imagem/categoria, que não tinham como ser editados antes),
+    // além de vincular/enviar o e-book.
+    async function abrirEditarProduto(p, pastas) {
+      const opcoesPastasHtml = pastas.map(pasta => `
+        <option value="${pasta.slug}" data-paginas="${pasta.total_paginas}" ${p.ebook_slug === pasta.slug ? 'selected' : ''}>
+          ${pasta.slug} (${pasta.total_paginas} páginas)
+        </option>
+      `).join('');
+
+      const esc = (s) => String(s ?? '').replace(/"/g, '&quot;');
+
+      const html = `
+        <div style="text-align:left;font-size:13px;max-height:60vh;overflow-y:auto;padding-right:4px;">
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Nome</label>
+          <input id="edit-nome" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.nome)}">
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Descrição</label>
+          <textarea id="edit-descricao" class="swal2-textarea" style="margin:0;width:100%;">${p.descricao || ''}</textarea>
+
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Preço (R$)</label>
+              <input id="edit-preco" type="number" step="0.01" min="0" class="swal2-input" style="margin:0;width:100%;" value="${(p.preco_cents / 100).toFixed(2)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Estoque (0 = ilimitado)</label>
+              <input id="edit-estoque" type="number" min="0" class="swal2-input" style="margin:0;width:100%;" value="${p.ilimitado ? 0 : p.estoque}">
+            </div>
+          </div>
+
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Imagem (emoji ou nome do arquivo)</label>
+              <input id="edit-imagem" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.imagem)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Categoria</label>
+              <input id="edit-categoria" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.categoria)}">
+            </div>
+          </div>
+
+          <div style="margin:14px 0;display:flex;gap:20px;">
+            <label style="font-weight:bold;"><input id="edit-destaque" type="checkbox" ${p.destaque ? 'checked' : ''}> Destaque</label>
+            <label style="font-weight:bold;"><input id="edit-ativo" type="checkbox" ${p.ativo ? 'checked' : ''}> Ativo</label>
+          </div>
+
+          <hr style="margin:14px 0;border:none;border-top:1px solid rgba(139,45,143,0.15);">
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">📖 E-book — vincular a uma pasta já processada</label>
+          <select id="edit-ebook-pasta" class="swal2-input" style="margin:0;width:100%;">
+            <option value="">— Produto físico (sem e-book) —</option>
+            ${opcoesPastasHtml}
+          </select>
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Ou enviar um novo PDF (converte e vincula automaticamente)</label>
+          <input id="edit-pdf" type="file" accept="application/pdf" class="swal2-input" style="margin:0;width:100%;padding:8px;">
+        </div>
+      `;
+
+      const result = await Swal.fire({
+        title: 'Editar produto',
+        html,
+        width: 560,
+        showCancelButton: true,
+        confirmButtonText: 'Salvar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#8B2D8F',
+        focusConfirm: false,
+        preConfirm: () => {
+          const nome = document.getElementById('edit-nome').value.trim();
+          if (!nome) { Swal.showValidationMessage('Nome é obrigatório.'); return false; }
+          const precoCents = Math.round(parseFloat(document.getElementById('edit-preco').value) * 100);
+          if (!isFinite(precoCents) || precoCents <= 0) { Swal.showValidationMessage('Preço inválido.'); return false; }
+          const estoque = parseInt(document.getElementById('edit-estoque').value, 10) || 0;
+          const ebookSelect = document.getElementById('edit-ebook-pasta');
+          return {
+            nome, precoCents, estoque,
+            descricao: document.getElementById('edit-descricao').value,
+            imagem: document.getElementById('edit-imagem').value,
+            categoria: document.getElementById('edit-categoria').value,
+            destaque: document.getElementById('edit-destaque').checked,
+            ativo: document.getElementById('edit-ativo').checked,
+            ilimitado: estoque === 0,
+            ebookSlug: ebookSelect.value,
+            ebookTotalPaginas: ebookSelect.value ? Number(ebookSelect.selectedOptions[0].dataset.paginas) : null,
+            pdfFile: document.getElementById('edit-pdf').files[0] || null,
+          };
+        },
+      });
+
+      if (!result.isConfirmed) return;
+      const v = result.value;
+
+      Swal.fire({ title: 'Salvando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+      try {
+        await BiffiAdmin.atualizarProduto(p.id, {
+          nome: v.nome, descricao: v.descricao, preco_cents: v.precoCents, imagem: v.imagem,
+          categoria: v.categoria, estoque: v.estoque, ilimitado: v.ilimitado, destaque: v.destaque, ativo: v.ativo,
+        });
+
+        if (v.pdfFile) {
+          Swal.update({ title: 'Convertendo PDF em e-book... isso pode levar alguns minutos.' });
+          await BiffiAdmin.enviarPdfEbook(p.id, v.pdfFile);
+        } else if (v.ebookSlug) {
+          await BiffiAdmin.vincularLivroDigital(p.id, v.ebookSlug, v.ebookTotalPaginas);
+        }
+
+        Swal.fire({ icon: 'success', title: 'Produto atualizado!', timer: 1400, showConfirmButton: false });
+        carregarProdutos();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+      }
+    }
+
     document.getElementById('form-novo-produto').addEventListener('submit', async (e) => {
       e.preventDefault();
       const msgEl = document.getElementById('np-msg');
+      const btnSalvar = document.getElementById('np-btn-salvar');
+      const pdfFile = document.getElementById('np-pdf').files[0] || null;
       msgEl.className = 'save-msg'; msgEl.style.display = 'none';
+      btnSalvar.disabled = true;
       try {
-        await BiffiAdmin.criarProduto({
+        const { id } = await BiffiAdmin.criarProduto({
           nome: document.getElementById('np-nome').value,
           preco_cents: Math.round(parseFloat(document.getElementById('np-preco').value) * 100),
           descricao: document.getElementById('np-descricao').value,
@@ -588,13 +695,24 @@
           ilimitado: (parseInt(document.getElementById('np-estoque').value, 10) || 0) === 0,
           destaque: document.getElementById('np-destaque').checked,
         });
+
+        if (pdfFile) {
+          msgEl.className = 'save-msg ok';
+          msgEl.style.display = 'block';
+          msgEl.textContent = '📖 Produto criado! Convertendo PDF em e-book, aguarde...';
+          await BiffiAdmin.enviarPdfEbook(id, pdfFile);
+          msgEl.textContent = '✔ Produto adicionado e e-book convertido com sucesso!';
+        } else {
+          msgEl.className = 'save-msg ok';
+          msgEl.textContent = '✔ Produto adicionado!';
+        }
         e.target.reset();
-        msgEl.className = 'save-msg ok';
-        msgEl.textContent = '✔ Produto adicionado!';
         carregarProdutos();
       } catch (err) {
         msgEl.className = 'save-msg err';
         msgEl.textContent = 'Erro: ' + err.message;
+      } finally {
+        btnSalvar.disabled = false;
       }
     });
 

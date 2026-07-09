@@ -7,8 +7,10 @@
 
 const http = require('node:http');
 const fs = require('node:fs');
+const os = require('node:os');
 const path = require('node:path');
 const crypto = require('node:crypto');
+const { execFile } = require('node:child_process');
 const { DatabaseSync } = require('node:sqlite');
 
 const PORT = process.env.PORT || 3000;
@@ -340,6 +342,39 @@ async function gerarPaginaComMarcaDagua(caminhoArquivo, linhaRodape, textoDiagon
   img.print({ font: fontRodape, x: 10, y: img.height - 22, text: linhaRodape });
 
   return img.getBuffer(JimpMime.png);
+}
+
+// Gera um nome de pasta seguro a partir do nome do produto (sem acentos/espaços)
+const DIACRITICOS_RE = new RegExp('[̀-ͯ]', 'g');
+function slugify(texto) {
+  return String(texto)
+    .normalize('NFD').replace(DIACRITICOS_RE, '')
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'livro';
+}
+
+// Converte um PDF em páginas PNG (via pdftoppm, do pacote poppler-utils —
+// ver NectarMine/nixpacks.toml) e renomeia pro padrão pagina-0001.png que o
+// leitor espera. Roda uma vez, no upload feito pelo admin; nunca em tempo real.
+function converterPdfEmPaginas(pdfPath, destDir) {
+  return new Promise((resolve, reject) => {
+    execFile('pdftoppm', ['-png', '-r', '150', pdfPath, path.join(destDir, 'pagina')],
+      { maxBuffer: 1024 * 1024 * 20 },
+      (err) => {
+        if (err) return reject(err);
+        try {
+          const arquivos = fs.readdirSync(destDir)
+            .filter(f => /^pagina-?\d+\.png$/.test(f))
+            .sort((a, b) => Number(a.match(/(\d+)/)[1]) - Number(b.match(/(\d+)/)[1]));
+          arquivos.forEach((f, i) => {
+            const novoNome = `pagina-${String(i + 1).padStart(4, '0')}.png`;
+            if (f !== novoNome) fs.renameSync(path.join(destDir, f), path.join(destDir, novoNome));
+          });
+          resolve(arquivos.length);
+        } catch (e) { reject(e); }
+      });
+  });
 }
 
 /* ── LOJINHA: INTEGRAÇÃO DE PAGAMENTO (Mercado Pago / PayPal) ──
@@ -800,6 +835,80 @@ const routes = {
       ON CONFLICT(produto_id) DO UPDATE SET slug = excluded.slug, total_paginas = excluded.total_paginas
     `).run(produtoId, slug, totalPaginas);
     json(res, 200, { ok: true });
+  },
+
+  // Upload de PDF: converte em páginas-imagem e já vincula ao produto como e-book.
+  // O PDF nunca é salvo em disco de forma permanente — só um arquivo temporário
+  // durante a conversão, apagado logo em seguida.
+  'POST /api/admin/livros-digitais/upload': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+
+    const busboy = require('busboy');
+    let bb;
+    try {
+      bb = busboy({ headers: req.headers, limits: { fileSize: 100 * 1024 * 1024 } }); // até 100MB
+    } catch (e) {
+      return json(res, 400, { error: 'Requisição de upload inválida.' });
+    }
+
+    let produtoId = null;
+    let tmpPath = null;
+    let fileTooBig = false;
+    let recebeuArquivo = false;
+
+    const aguardaUpload = new Promise((resolve, reject) => {
+      bb.on('field', (name, val) => { if (name === 'produto_id') produtoId = Number(val); });
+      bb.on('file', (name, stream, info) => {
+        if (name !== 'pdf') { stream.resume(); return; }
+        recebeuArquivo = true;
+        tmpPath = path.join(os.tmpdir(), `upload-${Date.now()}-${crypto.randomBytes(6).toString('hex')}.pdf`);
+        const out = fs.createWriteStream(tmpPath);
+        stream.on('limit', () => { fileTooBig = true; });
+        stream.pipe(out);
+        out.on('error', reject);
+      });
+      bb.on('close', () => resolve());
+      bb.on('error', reject);
+    });
+
+    try {
+      req.pipe(bb);
+      await aguardaUpload;
+    } catch (e) {
+      if (tmpPath) fs.unlink(tmpPath, () => {});
+      return json(res, 400, { error: 'Erro ao receber o arquivo enviado.' });
+    }
+
+    if (fileTooBig) { if (tmpPath) fs.unlink(tmpPath, () => {}); return json(res, 400, { error: 'PDF muito grande (máximo 100MB).' }); }
+    if (!produtoId) { if (tmpPath) fs.unlink(tmpPath, () => {}); return json(res, 400, { error: 'produto_id é obrigatório.' }); }
+    if (!recebeuArquivo || !tmpPath || !fs.existsSync(tmpPath)) return json(res, 400, { error: 'Nenhum PDF foi enviado (campo "pdf").' });
+
+    const produto = db.prepare('SELECT * FROM produtos WHERE id = ?').get(produtoId);
+    if (!produto) { fs.unlink(tmpPath, () => {}); return json(res, 404, { error: 'Produto não encontrado.' }); }
+
+    const slug = `${slugify(produto.nome)}-${produto.id}`;
+    const pastaDestino = path.join(LIVRARIA_DIR, slug);
+    fs.mkdirSync(pastaDestino, { recursive: true });
+
+    let totalPaginas;
+    try {
+      totalPaginas = await converterPdfEmPaginas(tmpPath, pastaDestino);
+    } catch (e) {
+      console.error('Erro ao converter PDF:', e);
+      fs.unlink(tmpPath, () => {});
+      return json(res, 500, { error: 'Não foi possível converter o PDF. Verifique se o arquivo não está corrompido.' });
+    }
+    fs.unlink(tmpPath, () => {}); // o PDF original nunca fica salvo
+
+    if (!totalPaginas) return json(res, 500, { error: 'O PDF não gerou nenhuma página.' });
+
+    db.prepare('DELETE FROM livros_digitais WHERE slug = ? AND produto_id != ?').run(slug, produtoId);
+    db.prepare(`
+      INSERT INTO livros_digitais (produto_id, slug, total_paginas) VALUES (?, ?, ?)
+      ON CONFLICT(produto_id) DO UPDATE SET slug = excluded.slug, total_paginas = excluded.total_paginas
+    `).run(produtoId, slug, totalPaginas);
+
+    json(res, 200, { ok: true, slug, total_paginas: totalPaginas });
   },
 
   // Lista/atualiza status dos pedidos

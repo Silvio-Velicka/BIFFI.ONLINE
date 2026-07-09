@@ -88,6 +88,28 @@ const BiffiAdmin = {
     return this._fetch('/api/admin/livros-digitais', 'POST', { produto_id: produtoId, slug, total_paginas: totalPaginas });
   },
 
+  // Envia um PDF direto pro produto: o servidor converte em páginas-imagem e
+  // já vincula como e-book automaticamente (sem precisar escolher pasta depois).
+  async enviarPdfEbook(produtoId, file) {
+    const formData = new FormData();
+    formData.append('produto_id', produtoId);
+    formData.append('pdf', file);
+    const res = await fetch(this.base + '/api/admin/livros-digitais/upload', {
+      method: 'POST',
+      // Sem Content-Type manual — o navegador define o boundary do multipart sozinho.
+      headers: { 'x-admin-key': this.key() || '' },
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 403) {
+      localStorage.removeItem('biffi_admin_key');
+      location.href = 'login.html?expirado=1';
+      throw new Error('Sessão expirada.');
+    }
+    if (!res.ok) throw new Error(data.error || 'Erro ao enviar o PDF.');
+    return data;
+  },
+
   /* ── LOJINHA: PEDIDOS ── */
   getPedidos(status) { return this._fetch('/api/admin/pedidos' + (status ? `?status=${status}` : '')); },
   atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },

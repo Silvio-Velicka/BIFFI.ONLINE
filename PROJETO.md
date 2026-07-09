@@ -118,12 +118,17 @@ O PDF enviado (`Livros/Mulheres na Teologia - Veronica Biffi..pdf`, 124 páginas
 
 **Importante — o PDF original não deve ir para o GitHub.** Foi criado um `.gitignore` na raiz do projeto que já exclui a pasta `Livros/` (e bancos `.db`, `node_modules/`) de qualquer commit — assim o PDF fonte nunca é publicado, só as páginas processadas (que já ficam protegidas dentro de `server/`). Mesmo assim, recomendo mover ou apagar o PDF de `Livros/` depois de conferir que as páginas ficaram boas, só por organização — ele não é mais necessário ali.
 
-### Para adicionar outro e-book no futuro
-1. Converter o PDF em páginas PNG (`pdftoppm -png -r 150 arquivo.pdf pagina`) e renomear pro padrão `pagina-0001.png`, `pagina-0002.png`, etc (4 dígitos).
-2. Colocar a pasta em `NectarMine/server/biblioteca-privada/<slug-do-livro>/`.
-3. Cadastrar o produto na loja pelo admin (🛒 Produtos → "Novo produto").
-4. Na lista de produtos, cada linha tem um seletor **"E-book"** com todas as pastas de páginas já processadas (detectadas automaticamente em `biblioteca-privada/`). Escolher a pasta certa e clicar em "Salvar" — vincula na hora, sem precisar mexer em código nem reiniciar o servidor.
-   - (O vínculo automático via `vinculosAutomaticos` em `server.js`, casado por nome exato do produto, continua existindo como atalho pro primeiro deploy — mas o seletor no admin é o jeito normal de vincular/revincular depois.)
+### Para adicionar outro e-book no futuro (sessão 09/07/2026 — upload automático)
+Agora não precisa mais converter o PDF manualmente. É só:
+1. Cadastrar o produto na loja pelo admin (🛒 Produtos → "Novo produto") **e anexar o PDF no campo "PDF do e-book"** do próprio formulário — ao salvar, o servidor já converte o PDF em páginas e vincula tudo sozinho (o campo é opcional; sem PDF, o produto é tratado como físico).
+2. Para um produto que já existe, clicar em **"Editar"** na lista → o modal tem um campo de upload de PDF (basta escolher um arquivo nesse campo pra reprocessar o e-book daquele produto) e também um seletor de pastas já processadas, caso prefira reaproveitar um vínculo existente.
+3. Por baixo dos panos: `POST /api/admin/livros-digitais/upload` recebe o PDF (multipart, via `busboy`), salva num arquivo temporário, roda `pdftoppm` (pacote de sistema `poppler-utils`, instalado via `NectarMine/nixpacks.toml`) pra gerar as páginas PNG em `biblioteca-privada/<slug-gerado>/`, apaga o PDF temporário, e vincula o produto automaticamente (`livros_digitais`). O PDF original nunca fica salvo no servidor.
+4. A conversão de um livro de ~120 páginas leva cerca de 1 minuto — o admin mostra uma mensagem de "Convertendo..." enquanto isso acontece.
+
+O jeito manual antigo (`pdftoppm` na mão + seletor de pasta) continua funcionando como alternativa, caso precise reaproveitar páginas já processadas de outra forma:
+- Converter o PDF em páginas PNG (`pdftoppm -png -r 150 arquivo.pdf pagina`), renomear pro padrão `pagina-0001.png` (4 dígitos) e colocar a pasta em `biblioteca-privada/<slug-do-livro>/`.
+- No modal de edição do produto, o seletor **"E-book — vincular a uma pasta já processada"** lista todas as pastas detectadas automaticamente.
+- (O vínculo automático via `vinculosAutomaticos` em `server.js`, casado por nome exato do produto, continua existindo como atalho pro primeiro deploy.)
 
 ### Produto físico vs. produto digital do mesmo livro
 Cada produto da loja é uma linha própria — então "Livro BIFFI" físico e uma eventual versão digital são **dois produtos separados** (nomes, preços e estoque independentes). Se um for excluído e outro criado depois com o mesmo e-book, o seletor da lista de produtos permite vincular a pasta de páginas ao novo produto normalmente (o sistema libera automaticamente o vínculo antigo).
@@ -137,6 +142,7 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
 - **Visual:** identidade BIFFI.ONLINE (rosa/roxo/dourado, Georgia + Arial), sidebar de ícones — pensado para crescer com mais módulos no futuro.
 - **Módulos existentes:**
   - 📢 **Modal do Jogo** — edita Título / Texto / Subtítulo / Texto do modal comunicativo que aparece na tela de login do NectarMine (liga/desliga com o campo "ativo"). Lê/grava na tabela `site_config` do backend do NectarMine.
+  - 🛒 **Produtos** — lista com toggle rápido de Destaque/Ativo direto na linha, e botão **"Editar"** que abre um modal completo com todos os campos do produto (nome, descrição, preço, imagem, categoria, estoque/ilimitado, destaque, ativo) + upload de PDF do e-book ou vínculo a uma pasta já processada. O formulário "Novo produto" também aceita anexar um PDF direto na criação — sobe e converte automaticamente (ver seção "Livraria Digital" acima).
 - **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
 
 ## Design
@@ -159,6 +165,11 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
 
 ## Imagem
 - `Capa BIFFI .jpeg` — capa do livro, usada na home e na loja
+
+## Dependências do backend (NectarMine)
+- `jimp` — marca d'água nas páginas do e-book.
+- `busboy` — parsing do upload de PDF no admin (multipart/form-data).
+- `poppler-utils` (pacote de sistema, não npm) — fornece o binário `pdftoppm` usado na conversão de PDF → PNG; instalado automaticamente no Railway via `NectarMine/nixpacks.toml` (`aptPkgs = ["poppler-utils"]`). Se algum dia trocar de plataforma de deploy (sair do Nixpacks/Railway), lembrar de instalar esse pacote de sistema também no novo ambiente.
 
 ## Pendências
 - [ ] Foto real na página Sobre (substituir emoji 🐝 por `<img>`)

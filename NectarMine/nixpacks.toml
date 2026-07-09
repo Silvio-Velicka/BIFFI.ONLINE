@@ -1,0 +1,5 @@
+# Pacote de sistema necessário para converter PDFs em páginas-imagem
+# (usado pelo upload de e-book no painel admin — server/server.js chama
+# o binário `pdftoppm`, que vem do poppler-utils).
+[phases.setup]
+aptPkgs = ["poppler-utils"]
