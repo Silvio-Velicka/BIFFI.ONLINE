@@ -82,6 +82,12 @@ const BiffiAdmin = {
   atualizarProduto(id, payload) { return this._fetch(`/api/admin/products/${id}`, 'PUT', payload); },
   excluirProduto(id) { return this._fetch(`/api/admin/products/${id}`, 'DELETE'); },
 
+  /* ── LOJINHA: LIVRARIA DIGITAL (e-book) ── */
+  getLivrariaPastas() { return this._fetch('/api/admin/livraria-pastas'); },
+  vincularLivroDigital(produtoId, slug, totalPaginas) {
+    return this._fetch('/api/admin/livros-digitais', 'POST', { produto_id: produtoId, slug, total_paginas: totalPaginas });
+  },
+
   /* ── LOJINHA: PEDIDOS ── */
   getPedidos(status) { return this._fetch('/api/admin/pedidos' + (status ? `?status=${status}` : '')); },
   atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },

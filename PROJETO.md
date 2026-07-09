@@ -121,8 +121,14 @@ O PDF enviado (`Livros/Mulheres na Teologia - Veronica Biffi..pdf`, 124 páginas
 ### Para adicionar outro e-book no futuro
 1. Converter o PDF em páginas PNG (`pdftoppm -png -r 150 arquivo.pdf pagina`) e renomear pro padrão `pagina-0001.png`, `pagina-0002.png`, etc (4 dígitos).
 2. Colocar a pasta em `NectarMine/server/biblioteca-privada/<slug-do-livro>/`.
-3. Cadastrar o produto na loja pelo admin (🛒 Produtos) com o nome exato desejado.
-4. Adicionar uma linha em `vinculosAutomaticos` (dentro de `server.js`, perto de `LIVRARIA_DIR`) com `{ produtoNome: 'Nome do Produto', slug: 'slug-da-pasta' }` — no próximo deploy o vínculo é feito sozinho.
+3. Cadastrar o produto na loja pelo admin (🛒 Produtos → "Novo produto").
+4. Na lista de produtos, cada linha tem um seletor **"E-book"** com todas as pastas de páginas já processadas (detectadas automaticamente em `biblioteca-privada/`). Escolher a pasta certa e clicar em "Salvar" — vincula na hora, sem precisar mexer em código nem reiniciar o servidor.
+   - (O vínculo automático via `vinculosAutomaticos` em `server.js`, casado por nome exato do produto, continua existindo como atalho pro primeiro deploy — mas o seletor no admin é o jeito normal de vincular/revincular depois.)
+
+### Produto físico vs. produto digital do mesmo livro
+Cada produto da loja é uma linha própria — então "Livro BIFFI" físico e uma eventual versão digital são **dois produtos separados** (nomes, preços e estoque independentes). Se um for excluído e outro criado depois com o mesmo e-book, o seletor da lista de produtos permite vincular a pasta de páginas ao novo produto normalmente (o sistema libera automaticamente o vínculo antigo).
+
+Obs: um produto que já tem pedidos associados não pode ser excluído (só desativado, desmarcando "Ativo") — isso evita perder o histórico de compras.
 
 ## Painel Admin (biffi.online/admin/)
 - **URL:** https://biffi.online/admin/ (não linkado no menu público — acesso direto pela URL)

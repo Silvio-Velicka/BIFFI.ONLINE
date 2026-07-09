@@ -371,8 +371,8 @@
 
       <div class="card">
         <h2 style="font-family:Georgia,serif;color:var(--roxo);font-size:16px;margin-bottom:12px;">📋 Produtos cadastrados</h2>
-        <div class="produto-row header">
-          <span></span><span>Nome / Preço</span><span>Preço R$</span><span>Estoque</span><span>Destaque</span><span>Ativo</span><span></span>
+        <div class="produto-row header" style="grid-template-columns: 46px 1.4fr 90px 70px 60px 60px 1.3fr auto;">
+          <span></span><span>Nome / Preço</span><span>Preço R$</span><span>Estoque</span><span>Destaque</span><span>Ativo</span><span>E-book</span><span></span>
         </div>
         <div id="lista-produtos"><p style="font-size:12.5px;padding:14px 0;">Carregando...</p></div>
       </div>
@@ -488,17 +488,31 @@
     async function carregarProdutos() {
       const lista = document.getElementById('lista-produtos');
       try {
-        const { produtos } = await BiffiAdmin.getProdutos();
+        const [{ produtos }, { pastas }] = await Promise.all([
+          BiffiAdmin.getProdutos(),
+          BiffiAdmin.getLivrariaPastas().catch(() => ({ pastas: [] })),
+        ]);
         if (!produtos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum produto cadastrado ainda.</p>'; return; }
 
+        function opcoesPastas(p) {
+          let opts = '<option value="">— Produto físico (sem e-book) —</option>';
+          opts += pastas.map(pasta => `
+            <option value="${pasta.slug}" data-paginas="${pasta.total_paginas}" ${p.ebook_slug === pasta.slug ? 'selected' : ''}>
+              ${pasta.slug} (${pasta.total_paginas} páginas)
+            </option>
+          `).join('');
+          return opts;
+        }
+
         lista.innerHTML = produtos.map(p => `
-          <div class="produto-row" data-id="${p.id}">
+          <div class="produto-row" data-id="${p.id}" style="grid-template-columns: 46px 1.4fr 90px 70px 60px 60px 1.3fr auto;">
             <div class="produto-thumb-mini">${imagemMini(p.imagem)}</div>
             <input type="text" class="p-nome" value="${p.nome}">
             <input type="number" class="p-preco" step="0.01" value="${(p.preco_cents / 100).toFixed(2)}">
             <input type="number" class="p-estoque" min="0" value="${p.estoque}">
-            <input type="checkbox" class="p-destaque chk" ${p.destaque ? 'checked' : ''}>
-            <input type="checkbox" class="p-ativo chk" ${p.ativo ? 'checked' : ''}>
+            <input type="checkbox" class="p-destaque chk" title="Destaque" ${p.destaque ? 'checked' : ''}>
+            <input type="checkbox" class="p-ativo chk" title="Ativo" ${p.ativo ? 'checked' : ''}>
+            <select class="p-ebook" title="Vincular a um e-book">${opcoesPastas(p)}</select>
             <div style="display:flex;gap:6px;">
               <button type="button" class="btn-preview btn-salvar-produto" style="padding:6px 10px;font-size:11px;">Salvar</button>
               <button type="button" class="btn-excluir">Excluir</button>
@@ -519,6 +533,14 @@
                 destaque: row.querySelector('.p-destaque').checked,
                 ativo: row.querySelector('.p-ativo').checked,
               });
+
+              const selectEbook = row.querySelector('.p-ebook');
+              const slugEscolhido = selectEbook.value;
+              if (slugEscolhido) {
+                const totalPaginas = Number(selectEbook.selectedOptions[0].dataset.paginas);
+                await BiffiAdmin.vincularLivroDigital(id, slugEscolhido, totalPaginas);
+              }
+
               btn.textContent = '✔ Salvo';
               setTimeout(() => { btn.textContent = 'Salvar'; }, 1500);
             } catch (err) {

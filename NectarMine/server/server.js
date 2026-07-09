@@ -741,8 +741,28 @@ const routes = {
   // Lista todos os produtos (inclusive inativos) para gerenciar no admin
   'GET /api/admin/products': async (req, res) => {
     if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
-    const rows = db.prepare('SELECT * FROM produtos ORDER BY ordem ASC, id ASC').all();
+    const rows = db.prepare(`
+      SELECT p.*, l.slug AS ebook_slug, l.total_paginas AS ebook_total_paginas
+      FROM produtos p
+      LEFT JOIN livros_digitais l ON l.produto_id = p.id
+      ORDER BY p.ordem ASC, p.id ASC
+    `).all();
     json(res, 200, { produtos: rows });
+  },
+
+  // Lista as pastas de e-book já processadas em biblioteca-privada/ (pra popular
+  // o seletor "vincular e-book" no admin, sem precisar digitar slug/total manualmente)
+  'GET /api/admin/livraria-pastas': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    if (!fs.existsSync(LIVRARIA_DIR)) return json(res, 200, { pastas: [] });
+    const pastas = fs.readdirSync(LIVRARIA_DIR, { withFileTypes: true })
+      .filter(d => d.isDirectory())
+      .map(d => {
+        const totalPaginas = fs.readdirSync(path.join(LIVRARIA_DIR, d.name)).filter(f => /^pagina-\d+\.png$/.test(f)).length;
+        return { slug: d.name, total_paginas: totalPaginas };
+      })
+      .filter(p => p.total_paginas > 0);
+    json(res, 200, { pastas });
   },
 
   'POST /api/admin/products': async (req, res) => {
@@ -772,6 +792,9 @@ const routes = {
     if (!produtoId || !slug || !totalPaginas) return json(res, 400, { error: 'produto_id, slug e total_paginas são obrigatórios.' });
     const produto = db.prepare('SELECT id FROM produtos WHERE id = ?').get(produtoId);
     if (!produto) return json(res, 404, { error: 'Produto não encontrado.' });
+    // Libera esse slug de qualquer outro produto (pode ter ficado "órfão" se o
+    // produto anterior foi excluído), antes de vinculá-lo ao produto atual.
+    db.prepare('DELETE FROM livros_digitais WHERE slug = ? AND produto_id != ?').run(slug, produtoId);
     db.prepare(`
       INSERT INTO livros_digitais (produto_id, slug, total_paginas) VALUES (?, ?, ?)
       ON CONFLICT(produto_id) DO UPDATE SET slug = excluded.slug, total_paginas = excluded.total_paginas
@@ -862,7 +885,15 @@ const paramRoutes = [
     method: 'DELETE', re: /^\/api\/admin\/products\/(\d+)$/,
     handler: async (req, res, url, m) => {
       if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
-      db.prepare('DELETE FROM produtos WHERE id = ?').run(Number(m[1]));
+      const id = Number(m[1]);
+      // Produto com pedidos associados não pode ser excluído (quebraria o
+      // histórico de compras) — nesse caso, oriente a desativar em vez de excluir.
+      const emUso = db.prepare('SELECT 1 FROM pedido_itens WHERE produto_id = ? LIMIT 1').get(id);
+      if (emUso) {
+        return json(res, 409, { error: 'Este produto já tem pedidos associados e não pode ser excluído. Desmarque "Ativo" para escondê-lo da loja em vez de excluir.' });
+      }
+      db.prepare('DELETE FROM livros_digitais WHERE produto_id = ?').run(id); // remove vínculo de e-book, se houver
+      db.prepare('DELETE FROM produtos WHERE id = ?').run(id);
       json(res, 200, { ok: true });
     },
   },
