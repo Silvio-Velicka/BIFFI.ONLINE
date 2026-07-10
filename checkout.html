@@ -181,13 +181,18 @@
     </div>
   </div>
 
+  <script src="js/site-auth.js"></script>
   <script src="js/shop-api.js"></script>
   <script>
     const conteudo = document.getElementById('checkout-conteudo');
 
     async function iniciar() {
-      // Exige login — reaproveita a mesma conta/token do jogo NectarMine
-      if (!SHOP_API.token()) {
+      // Exige login de verdade — consulta o servidor (SITE_AUTH.verificar()),
+      // não só olha se existe um token guardado no localStorage. Assim, um
+      // token expirado/inválido é detectado e limpo automaticamente, em vez
+      // de deixar a tela quebrada mais adiante no processo de compra.
+      const usuario = await SITE_AUTH.verificar();
+      if (!usuario) {
         conteudo.innerHTML = `
           <div class="bloqueio">
             <p>Você precisa entrar na sua conta para finalizar a compra.</p>

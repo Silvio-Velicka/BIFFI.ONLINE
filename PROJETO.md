@@ -40,6 +40,45 @@
 - **Backend:** Node.js 22+ (`node:sqlite`), zero dependências — `NectarMine/server/server.js`, start command `node server/server.js` (via package.json)
 - **Banco:** SQLite persistido em volume Railway `biffi.online-volume`, montado em `/data`; variável `DB_PATH=/data/nectarmine.db`
 
+## Login unificado do site — sessão 09/07/2026
+Antes, só a loja (no checkout) e o jogo pediam login — as páginas principais do
+site (Home, Missão, Sobre, etc.) não sabiam se o visitante estava logado ou
+não, e não tinha nenhum link de "Entrar" fora da loja/jogo. Agora o site
+inteiro mostra o mesmo estado de login, usando a mesma conta/token
+(`localStorage.nm_token`) do jogo NectarMine — quem já logou uma vez consegue
+navegar, comprar na loja e jogar sem precisar entrar de novo em cada lugar.
+
+- **Arquivo novo:** `js/site-auth.js` — inclui em index.html, missao.html,
+  sobre.html, o-sonho.html, biblioteca.html, cafe.html, blog.html,
+  estudos.html, parcerias.html, loja.html, checkout.html e meus-pedidos.html.
+  (Não é usado dentro de `NectarMine/` — lá o próprio jogo já resolve isso via
+  `NectarMine/js/api.js`, que segue funcionando exatamente como antes.)
+- **O que ele mostra:** nas páginas com o menu de ícones (Home, Missão, Sobre
+  etc. e a loja), aparece um ícone a mais no menu — "🔑 Entrar" se ninguém
+  estiver logado, ou "👤 <usuário>" + "🚪 Sair" se estiver. Em checkout.html e
+  meus-pedidos.html (que têm um cabeçalho mais simples, sem o menu de ícones),
+  o mesmo aviso aparece ao lado do link "Voltar à loja".
+- **Deslogar automático (o pedido principal desta sessão):** antes, `checkout.html`
+  e `meus-pedidos.html` só olhavam se *existia* um token guardado no
+  navegador — nunca confirmavam com o servidor se aquele token ainda era
+  válido. Um token vencido (sessão dura 30 dias) ou de alguma forma inválido
+  deixava a tela "quebrada" (formulário aparecia, mas a compra falhava sem
+  explicação). Agora todo mundo usa `SITE_AUTH.verificar()`, que consulta
+  `GET /api/me` de verdade; se o servidor responder que o token não é válido
+  (vencido, revogado ou inexistente), o token é apagado do navegador na hora
+  e a página volta a mostrar "Entrar", em vez de ficar com uma sessão quebrada.
+- **Logout:** o botão "Sair" (em qualquer página) chama `POST /api/logout`
+  (revoga a sessão no servidor) e limpa o token local, do mesmo jeito que o
+  "Sair" de dentro do jogo.
+- **Testado localmente (09/07/2026):** rotina de teste rodando o servidor com
+  banco temporário — token válido → `/api/me` responde 200; token
+  inexistente/forjado → 401; sessão marcada como expirada manualmente no
+  banco → 401; depois de `/api/logout`, o mesmo token passa a responder 401.
+  Também testado com um DOM simulado (jsdom) carregando o `site-auth.js` de
+  verdade: com token válido mostra usuário + Sair; sem token mostra Entrar;
+  com token inválido, limpa o token e cai para Entrar — em ambos os estilos
+  de cabeçalho (menu de ícones e cabeçalho simples).
+
 ## Lojinha (E-commerce) — sessão 09/07/2026
 A lojinha (`loja.html`) virou um e-commerce de verdade, usando **o mesmo banco/backend do jogo NectarMine** (mesmo Railway, mesmo SQLite) — só foram acrescentadas tabelas novas, sem mexer no que já existia. O login também é o mesmo: quem já tem conta no jogo já pode comprar, sem cadastro separado.
 

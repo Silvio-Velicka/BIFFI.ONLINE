@@ -95,11 +95,13 @@
     </div>
   </div>
 
+  <script src="js/site-auth.js"></script>
   <script src="js/shop-api.js"></script>
   <script>
     async function carregarLivros() {
       const container = document.getElementById('meus-livros');
-      if (!SHOP_API.token()) return;
+      const usuario = await SITE_AUTH.verificar();
+      if (!usuario) return;
       try {
         const { livros } = await SHOP_API.meusLivros();
         if (!livros || livros.length === 0) return;
@@ -121,7 +123,8 @@
     async function carregar() {
       const container = document.getElementById('pedidos-conteudo');
 
-      if (!SHOP_API.token()) {
+      const usuario = await SITE_AUTH.verificar();
+      if (!usuario) {
         container.innerHTML = `
           <div class="bloqueio">
             <p>Entre na sua conta para ver seus pedidos.</p>
