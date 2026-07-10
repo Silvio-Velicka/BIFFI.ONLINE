@@ -404,4 +404,16 @@
           </div>
         `;
       } catch (err) {
+        aviso.textContent = err.message || 'Não foi possível finalizar o pedido. Tente novamente em instantes.';
+        aviso.classList.add('erro');
+        btn.disabled = false;
+        btn.textContent = 'Confirmar pedido';
+      }
+    }
+
+    iniciar();
+  </script>
+
+</body>
+</html>
      

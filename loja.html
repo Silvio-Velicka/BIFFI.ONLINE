@@ -555,4 +555,173 @@
       </a>
       <a href="NectarMine/index.html">
         <span class="icon">🎮</span>
-      
+        <span class="label">Game Relax</span>
+      </a>
+    </nav>
+    <button class="btn-cart" id="btn-cart" title="Carrinho">
+      <i class="fa-solid fa-basket-shopping"></i>
+      <span class="cart-badge hidden" id="cart-badge">0</span>
+    </button>
+  </header>
+
+  <div class="page">
+    <div class="page-title">
+      <img class="logo-loja" src="logo-teologia-que-motiva.png" alt="Teologia que Motiva — Fé que ensina, amor que transforma">
+    </div>
+
+    <div id="loja-conteudo">
+      <p class="loja-msg">Carregando produtos... 🐝</p>
+    </div>
+  </div>
+
+  <div class="cart-overlay" id="cart-overlay"></div>
+  <div class="cart-drawer" id="cart-drawer">
+    <div class="cart-header">
+      <h2>🛒 Carrinho</h2>
+      <button class="cart-close" id="cart-close">✕</button>
+    </div>
+    <div class="cart-items" id="cart-items"></div>
+    <div class="cart-footer">
+      <div class="cart-total"><span>Subtotal</span><span id="cart-total-valor">R$ 0,00</span></div>
+      <a class="btn-checkout" href="checkout.html" id="btn-finalizar">Finalizar compra →</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="contacts">
+      <span class="contacts-label">Contatos &rsaquo;</span>
+      <a href="https://wa.me/5511947377498" target="_blank" rel="noopener" title="WhatsApp"><i class="fab fa-whatsapp"></i></a>
+      <a href="#" target="_blank" rel="noopener" title="Instagram"><i class="fab fa-instagram"></i></a>
+      <a href="#" target="_blank" rel="noopener" title="Facebook"><i class="fab fa-facebook"></i></a>
+      <a href="#" target="_blank" rel="noopener" title="Telegram"><i class="fab fa-telegram"></i></a>
+    </div>
+    <p>🐝 &copy; 2025 BIFFI.ONLINE — feito com amor</p>
+    <a class="dev-link" href="https://wa.me/5511947377498" target="_blank" rel="noopener">
+      Dev
+      <span class="dev-tooltip">Desenvolvedor de sites Silvio Velicka<br>para orçamentos clique aqui 💬</span>
+    </a>
+  </footer>
+
+  <script src="js/site-auth.js"></script>
+  <script src="js/shop-api.js"></script>
+  <script>
+    // Todos os produtos aparecem em uma lista simples, um embaixo do outro,
+    // sem separar "destaque" do resto — mesmo tratamento visual pra todos.
+    async function carregarLoja() {
+      const container = document.getElementById('loja-conteudo');
+      try {
+        const { produtos } = await SHOP_API.listarProdutos();
+        if (!produtos || produtos.length === 0) {
+          container.innerHTML = '<p class="loja-msg">Nenhum produto disponível no momento. Volte em breve! 🐝</p>';
+          return;
+        }
+
+        const html = `<div class="product-list">${produtos.map(p => `
+          <div class="product-row-card">
+            <div class="product-row-thumb">${imagemProdutoHTML(p.imagem)}</div>
+            <div class="product-row-info">
+              ${p.ebook ? '<span class="badge">📖 E-book</span>' : ''}
+              <h3>${p.nome}</h3>
+              ${p.descricao ? `<p>${p.descricao}</p>` : ''}
+              <div class="product-row-price">${formatarReais(p.preco_cents)}</div>
+            </div>
+            <div class="product-row-actions">
+              <button class="btn-small" data-add="${p.id}" ${p.disponivel ? '' : 'disabled'}>
+                ${p.disponivel ? 'Adicionar' : 'Indisponível'}
+              </button>
+            </div>
+          </div>
+        `).join('')}</div>`;
+
+        container.innerHTML = html;
+
+        container.querySelectorAll('[data-add]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const id = Number(btn.dataset.add);
+            const prod = produtos.find(p => p.id === id);
+            if (!prod) return;
+            CART.adicionar(prod, 1);
+            abrirCarrinho();
+          });
+        });
+      } catch (err) {
+        container.innerHTML = `<p class="loja-msg">Não foi possível carregar os produtos agora. Tente novamente em instantes.</p>`;
+      }
+    }
+
+    /* ── CARRINHO: UI ── */
+    const drawer = document.getElementById('cart-drawer');
+    const overlay = document.getElementById('cart-overlay');
+
+    function abrirCarrinho() {
+      drawer.classList.add('open');
+      overlay.classList.add('open');
+    }
+    function fecharCarrinho() {
+      drawer.classList.remove('open');
+      overlay.classList.remove('open');
+    }
+    document.getElementById('btn-cart').addEventListener('click', abrirCarrinho);
+    document.getElementById('cart-close').addEventListener('click', fecharCarrinho);
+    overlay.addEventListener('click', fecharCarrinho);
+
+    function renderCarrinho() {
+      const itens = CART.itens();
+      const badge = document.getElementById('cart-badge');
+      const totalItens = CART.totalItens();
+      badge.textContent = totalItens;
+      badge.classList.toggle('hidden', totalItens === 0);
+
+      const cont = document.getElementById('cart-items');
+      const btnFinalizar = document.getElementById('btn-finalizar');
+
+      if (itens.length === 0) {
+        cont.innerHTML = '<p class="cart-empty">Seu carrinho está vazio. 🐝<br>Adicione produtos para continuar.</p>';
+        btnFinalizar.setAttribute('aria-disabled', 'true');
+        btnFinalizar.style.pointerEvents = 'none';
+        btnFinalizar.style.opacity = '0.5';
+      } else {
+        cont.innerHTML = itens.map(i => `
+          <div class="cart-item">
+            <div class="cart-item-thumb">${imagemProdutoHTML(i.imagem)}</div>
+            <div class="cart-item-info">
+              <h4>${i.nome}</h4>
+              <div class="cart-item-price">${formatarReais(i.preco_cents * i.quantidade)}</div>
+              <div class="qty-control">
+                <button data-dec="${i.produto_id}">−</button>
+                <span>${i.quantidade}</span>
+                <button data-inc="${i.produto_id}">+</button>
+              </div>
+            </div>
+            <button class="cart-item-remove" data-remove="${i.produto_id}"><i class="fa-solid fa-trash"></i></button>
+          </div>
+        `).join('');
+
+        cont.querySelectorAll('[data-inc]').forEach(b => b.addEventListener('click', () => {
+          const it = CART.itens().find(x => x.produto_id === Number(b.dataset.inc));
+          CART.atualizarQuantidade(Number(b.dataset.inc), (it ? it.quantidade : 0) + 1);
+        }));
+        cont.querySelectorAll('[data-dec]').forEach(b => b.addEventListener('click', () => {
+          const it = CART.itens().find(x => x.produto_id === Number(b.dataset.dec));
+          CART.atualizarQuantidade(Number(b.dataset.dec), (it ? it.quantidade : 0) - 1);
+        }));
+        cont.querySelectorAll('[data-remove]').forEach(b => b.addEventListener('click', () => {
+          CART.remover(Number(b.dataset.remove));
+        }));
+
+        btnFinalizar.style.pointerEvents = '';
+        btnFinalizar.style.opacity = '';
+      }
+
+      document.getElementById('cart-total-valor').textContent = formatarReais(CART.totalCents());
+    }
+
+    document.addEventListener('cart:changed', renderCarrinho);
+    document.addEventListener('DOMContentLoaded', () => {
+      carregarLoja();
+      renderCarrinho();
+    });
+  </script>
+
+</body>
+</html>

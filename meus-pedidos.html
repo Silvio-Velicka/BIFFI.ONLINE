@@ -118,3 +118,54 @@
           `).join('')}
         `;
       } catch (err) { /* silencioso — seção simplesmente não aparece */ }
+    }
+
+    async function carregar() {
+      const container = document.getElementById('pedidos-conteudo');
+      const usuario = await SITE_AUTH.verificar();
+      if (!usuario) {
+        container.innerHTML = `
+          <div class="bloqueio">
+            <p>Você precisa entrar na sua conta para ver seus pedidos.</p>
+            <p style="font-size:12.5px;opacity:.8;">É a mesma conta usada no Game Relax.</p>
+            <a href="NectarMine/login.html?redirect=${encodeURIComponent('../meus-pedidos.html')}">Entrar / Criar conta</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const { pedidos } = await SHOP_API.meusPedidos();
+        if (!pedidos || pedidos.length === 0) {
+          container.innerHTML = '<p class="msg">Você ainda não fez nenhum pedido. 🐝</p>';
+          return;
+        }
+
+        container.innerHTML = pedidos.map(p => {
+          const status = STATUS_LABEL[p.status] || { texto: p.status, cor: '#7A4A2D' };
+          const data = new Date(p.criado_em).toLocaleDateString('pt-BR');
+          return `
+            <div class="pedido-card">
+              <div class="pedido-topo">
+                <h3>Pedido #${p.id}</h3>
+                <span class="pedido-status" style="background:${status.cor};">${status.texto}</span>
+              </div>
+              <div class="pedido-data">${data}</div>
+              ${(p.itens || []).map(i => `
+                <div class="pedido-linha"><span>${i.quantidade}x ${i.nome}</span><span>${formatarReais(i.preco_cents * i.quantidade)}</span></div>
+              `).join('')}
+              <div class="pedido-linha total"><span>Total</span><span>${formatarReais(p.total_cents)}</span></div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = '<p class="msg">Não foi possível carregar seus pedidos agora. Tente novamente em instantes.</p>';
+      }
+    }
+
+    carregarLivros();
+    carregar();
+  </script>
+
+</body>
+</html>

@@ -604,4 +604,194 @@
 
           <div style="display:flex;gap:10px;">
             <div style="flex:1;">
-              <lab
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Imagem (emoji)</label>
+              <input id="edit-imagem" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.imagem)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Categoria</label>
+              <input id="edit-categoria" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.categoria)}">
+            </div>
+          </div>
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Nova foto/capa (opcional)</label>
+          <input id="edit-foto" type="file" accept="image/*" class="swal2-input" style="margin:0;width:100%;">
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Vincular a um e-book já convertido (opcional)</label>
+          <select id="edit-ebook-pasta" class="swal2-input" style="margin:0;width:100%;">
+            <option value="">— Nenhum —</option>
+            ${opcoesPastasHtml}
+          </select>
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Ou enviar novo PDF (converte automaticamente)</label>
+          <input id="edit-pdf" type="file" accept="application/pdf" class="swal2-input" style="margin:0;width:100%;">
+
+          <div style="display:flex;gap:16px;margin-top:14px;">
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal;">
+              <input type="checkbox" id="edit-destaque" ${p.destaque ? 'checked' : ''}> Destaque
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-weight:normal;">
+              <input type="checkbox" id="edit-ativo" ${p.ativo ? 'checked' : ''}> Ativo
+            </label>
+          </div>
+        </div>
+      `;
+
+      const result = await Swal.fire({
+        title: 'Editar produto',
+        html,
+        width: 560,
+        showCancelButton: true,
+        showDenyButton: true,
+        confirmButtonText: 'Salvar',
+        cancelButtonText: 'Cancelar',
+        denyButtonText: 'Excluir produto',
+        denyButtonColor: '#a02020',
+        confirmButtonColor: '#7A4A2D',
+        focusConfirm: false,
+        preConfirm: () => {
+          return {
+            nome: document.getElementById('edit-nome').value.trim(),
+            descricao: document.getElementById('edit-descricao').value.trim(),
+            preco_cents: Math.round(Number(document.getElementById('edit-preco').value) * 100),
+            estoque: Number(document.getElementById('edit-estoque').value),
+            imagem: document.getElementById('edit-imagem').value.trim(),
+            categoria: document.getElementById('edit-categoria').value.trim(),
+            destaque: document.getElementById('edit-destaque').checked,
+            ativo: document.getElementById('edit-ativo').checked,
+          };
+        },
+      });
+
+      if (result.isDenied) {
+        const confirmar = await Swal.fire({
+          title: 'Excluir produto?', icon: 'warning', showCancelButton: true,
+          confirmButtonText: 'Excluir', cancelButtonText: 'Cancelar', confirmButtonColor: '#a02020',
+        });
+        if (confirmar.isConfirmed) {
+          try {
+            await BiffiAdmin.excluirProduto(p.id);
+            carregarProdutos();
+          } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+          }
+        }
+        return;
+      }
+
+      if (!result.isConfirmed) return;
+
+      try {
+        await BiffiAdmin.atualizarProduto(p.id, result.value);
+
+        const fotoInput = document.getElementById('edit-foto');
+        if (fotoInput && fotoInput.files[0]) {
+          await BiffiAdmin.enviarImagemProduto(p.id, fotoInput.files[0]);
+        }
+
+        const pdfInput = document.getElementById('edit-pdf');
+        if (pdfInput && pdfInput.files[0]) {
+          await BiffiAdmin.enviarPdfEbook(p.id, pdfInput.files[0]);
+        } else {
+          const pastaSelect = document.getElementById('edit-ebook-pasta');
+          if (pastaSelect && pastaSelect.value) {
+            const pastaEscolhida = pastas.find(x => x.slug === pastaSelect.value);
+            if (pastaEscolhida) {
+              await BiffiAdmin.vincularLivroDigital(p.id, pastaEscolhida.slug, pastaEscolhida.total_paginas);
+            }
+          }
+        }
+
+        Swal.fire({ icon: 'success', title: 'Produto atualizado!', timer: 1600, showConfirmButton: false });
+        carregarProdutos();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Erro ao salvar', text: err.message });
+      }
+    }
+
+    /* ═══ NOVO PRODUTO ═══ */
+    document.getElementById('form-novo-produto').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('np-btn-salvar');
+      const msg = document.getElementById('np-msg');
+      btn.disabled = true;
+      msg.className = 'save-msg';
+      msg.style.display = 'none';
+
+      try {
+        const payload = {
+          nome: document.getElementById('np-nome').value.trim(),
+          preco_cents: Math.round(Number(document.getElementById('np-preco').value) * 100),
+          descricao: document.getElementById('np-descricao').value.trim(),
+          imagem: document.getElementById('np-imagem').value.trim(),
+          categoria: document.getElementById('np-categoria').value.trim(),
+          estoque: Number(document.getElementById('np-estoque').value) || 0,
+          destaque: document.getElementById('np-destaque').checked,
+        };
+
+        const { produto } = await BiffiAdmin.criarProduto(payload);
+
+        const fotoInput = document.getElementById('np-foto');
+        if (fotoInput.files[0]) {
+          await BiffiAdmin.enviarImagemProduto(produto.id, fotoInput.files[0]);
+        }
+
+        const pdfInput = document.getElementById('np-pdf');
+        if (pdfInput.files[0]) {
+          await BiffiAdmin.enviarPdfEbook(produto.id, pdfInput.files[0]);
+        }
+
+        msg.className = 'save-msg ok';
+        msg.textContent = '✔ Produto adicionado com sucesso!';
+        document.getElementById('form-novo-produto').reset();
+        carregarProdutos();
+      } catch (err) {
+        msg.className = 'save-msg err';
+        msg.textContent = 'Erro ao adicionar: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    /* ═══ PEDIDOS ═══ */
+    async function carregarPedidos() {
+      const lista = document.getElementById('lista-pedidos');
+      const statusFiltro = document.getElementById('filtro-status').value;
+      try {
+        const { pedidos } = await BiffiAdmin.getPedidos(statusFiltro);
+        if (!pedidos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum pedido encontrado.</p>'; return; }
+
+        lista.innerHTML = pedidos.map(p => `
+          <div class="pedido-row">
+            <div class="info">
+              <strong>Pedido #${p.id} — ${p.nome_cliente || 'Cliente'}</strong>
+              <span class="sub">${new Date(p.criado_em).toLocaleDateString('pt-BR')} · R$ ${(p.total_cents / 100).toFixed(2)}</span>
+            </div>
+            <select data-id="${p.id}" class="select-status-pedido">
+              <option value="aguardando_pagamento" ${p.status === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
+              <option value="pago" ${p.status === 'pago' ? 'selected' : ''}>Pago</option>
+              <option value="enviado" ${p.status === 'enviado' ? 'selected' : ''}>Enviado</option>
+              <option value="entregue" ${p.status === 'entregue' ? 'selected' : ''}>Entregue</option>
+              <option value="cancelado" ${p.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            </select>
+          </div>
+        `).join('');
+
+        lista.querySelectorAll('.select-status-pedido').forEach(sel => {
+          sel.addEventListener('change', async () => {
+            try {
+              await BiffiAdmin.atualizarStatusPedido(sel.dataset.id, sel.value);
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+              carregarPedidos();
+            }
+          });
+        });
+      } catch (err) {
+        lista.innerHTML = `<p style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</p>`;
+      }
+    }
+
+    document.getElementById('filtro-status').addEventListener('change', carregarPedidos);
+  </script>
+</body>
+</html>
