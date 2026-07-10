@@ -23,13 +23,47 @@
 | estudos.html | Biblioteca (cópia própria, mesmo conteúdo de biblioteca.html) | ✅ |
 | dashboard.html | (redireciona → index.html) | ✅ |
 
-## Navegação (ordem no menu)
-🎯 Missão → 🐝 Quem sou → ✨ O Sonho → 📖 Biblioteca de Oração → 🙏 Sala de Oração → 🛍️ Lojinha → 🤝 Parcerias → 🎮 Game Relax
-- Mapeamento: Missão = missao.html (novo) · Quem sou = sobre.html · O Sonho = o-sonho.html (novo) · Biblioteca de Oração = biblioteca.html · Sala de Oração = cafe.html · Lojinha = loja.html · Parcerias = parcerias.html (novo) · Game Relax = NectarMine/index.html.
-- "Blog" saiu do menu principal (o arquivo blog.html continua existindo, só não está mais linkado na navegação).
-- Ícones do menu: width 88px, gap 8px, `flex-wrap: wrap` no nav para não quebrar o layout em telas médias; label permite quebra de linha (sem `white-space: nowrap`) para caber nomes maiores como "Biblioteca de Oração" e "Sala de Oração".
-- "Game Relax" abre na mesma aba: NectarMine/index.html (dentro do próprio domínio biffi.online — importante para anúncios/monetização). O front-end é a cópia estática servida pelo GitHub Pages; ele fala com o backend do Railway por baixo dos panos (ver abaixo).
-- missao.html, o-sonho.html e parcerias.html são páginas novas, criadas apenas com a estrutura visual do site (header/nav/rodapé/abelhas) e um aviso "conteúdo em breve" — o conteúdo definitivo de cada uma será desenvolvido depois, ícone por ícone.
+## Navegação (barra lateral esquerda — sessão 10/07/2026)
+A navegação era um header horizontal fixo no topo, com ícones emoji + label
+embaixo. Agora é uma **barra lateral fixa à esquerda** (`header.sidebar`,
+220px de largura, altura total da tela), com fundo amadeirado (gradiente
+marrom escuro + `repeating-linear-gradient` sutil simulando veios de madeira).
+No topo da barra: o logotipo (`logo-teologia-que-motiva.png`) e o texto
+"BIFFI.ONLINE" abaixo dele. Abaixo do logo: os itens do menu, um embaixo do
+outro, **apenas texto, sem ícones/emojis** (antes cada item tinha um emoji
+grande + label pequeno; isso foi removido a pedido — "sem desenhos").
+
+Ordem dos itens: Missão → Quem sou → O Sonho → Biblioteca de Oração → Sala de
+Oração → Lojinha → Parcerias → Game Relax.
+- Mapeamento: Missão = missao.html · Quem sou = sobre.html · O Sonho =
+  o-sonho.html · Biblioteca de Oração = biblioteca.html · Sala de Oração =
+  cafe.html · Lojinha = loja.html · Parcerias = parcerias.html · Game Relax =
+  NectarMine/index.html.
+- Aplicado nas 10 páginas com nav completo: index, missao, sobre, o-sonho,
+  biblioteca, cafe, loja, estudos, blog, parcerias. `checkout.html` e
+  `meus-pedidos.html` mantiveram o header simples (logo + link "voltar à
+  loja") — não entraram nesta troca. `admin/` tem seu próprio sidebar interno,
+  não mexido. `leitor.html` (modo leitura) não mexido.
+- Como o conteúdo agora abre à esquerda: `body { padding-left: 220px }` (ou
+  130px no mobile, `@media max-width:700px`, onde a barra fica mais estreita
+  e o texto menor). O rodapé (`footer`, fixo embaixo) também passou a começar
+  em `left: 220px` (130px no mobile) pra não ficar atrás da barra.
+- Na Lojinha, o botão do carrinho (antes um ícone circular no header) virou
+  um botão de texto ("Carrinho" + contador) fixado na base da barra lateral
+  via `margin-top: auto` dentro do `header.sidebar` (que é `flex-direction:
+  column`).
+- `js/site-auth.js` — o widget de login/logout injetado no `<nav>` (usuário
+  logado / botão Sair / link Entrar) também deixou de usar ícone, agora é só
+  texto, pra combinar com o resto do menu.
+- "Blog" (blog.html) e "Estudos" (estudos.html, que é uma cópia de
+  biblioteca.html) continuam fora do menu — arquivos existem mas sem link na
+  navegação, como já era antes.
+- "Game Relax" abre na mesma aba: NectarMine/index.html (dentro do próprio
+  domínio biffi.online — importante para anúncios/monetização). O front-end é
+  a cópia estática servida pelo GitHub Pages; ele fala com o backend do
+  Railway por baixo dos panos (ver abaixo).
+- missao.html, o-sonho.html e parcerias.html continuam com aviso "conteúdo em
+  breve" — conteúdo definitivo ainda por vir.
 
 ## NectarMine (jogo) — front-end no próprio domínio, backend no Railway
 - **URL que o usuário vê:** https://biffi.online/NectarMine/ (GitHub Pages, mesmo domínio do site — bom para AdSense/anúncios)

@@ -78,21 +78,12 @@ async function montarWidgetAuth() {
     // Páginas do site principal e a loja: nav com ícone + label, igual aos demais itens.
     if (user) {
       nav.insertAdjacentHTML('beforeend', `
-        <a href="${hrefConta}" title="Ir para o painel do jogo">
-          <span class="icon">👤</span>
-          <span class="label">${siteAuthEscapeHtml(user.username)}</span>
-        </a>
-        <a href="#" id="site-auth-sair">
-          <span class="icon">🚪</span>
-          <span class="label">Sair</span>
-        </a>
+        <a href="${hrefConta}" title="Ir para o painel do jogo">${siteAuthEscapeHtml(user.username)}</a>
+        <a href="#" id="site-auth-sair">Sair</a>
       `);
     } else {
       nav.insertAdjacentHTML('beforeend', `
-        <a href="${hrefLogin}">
-          <span class="icon">🔑</span>
-          <span class="label">Entrar</span>
-        </a>
+        <a href="${hrefLogin}">Entrar</a>
       `);
     }
   } else {
