@@ -199,7 +199,8 @@ Tanto as páginas de e-book geradas pelo upload de PDF quanto as fotos de produt
 A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada dos demais. Agora todos os produtos aparecem numa única lista vertical, um embaixo do outro, com o mesmo tratamento visual (miniatura + nome + descrição + preço + botão "Adicionar"/"Indisponível") — sem nenhuma configuração de destaque na exibição pública (o campo "Destaque" ainda existe no admin, mas hoje não altera a ordem/aparência na loja).
 
 ## Design
-- **Cores:** rosa (#FFB6D9 → #FFD1EB), roxo (#8B2D8F), dourado (#FFD700)
+- **Cores (atualizado 09/07/2026 — estilo colonial/vintage romano, a pedido da dona do site, substituindo a paleta rosa anterior):**
+  `--rosa` (fundo claro/gradiente) `#F2E6D3` → `--rosa-med` `#D9BC8E`, `--roxo` (cor principal — títulos, ícones, bordas) `#7A4A2D` (terracota/marrom), `--roxo-esc` (texto escuro) `#3D2817` (marrom café), `--dourado` `#C9A227` (dourado antigo). Gradiente de fundo do body: `linear-gradient(160deg, #F2E6D3 0%, #EAD7B8 50%, #E3CC9E 100%)` (pergaminho/mármore). Aplicado em todas as páginas do site principal, loja, checkout, meus-pedidos, leitor e admin — o NectarMine (jogo) mantém seu próprio tema escuro, não foi alterado. Cores decorativas cor-de-rosa em blog.html/cafe.html/biblioteca.html/estudos.html/sobre.html (thumbnails, tags, placeholder de foto) também foram trocadas por tons terracota/oliva/dourado da mesma paleta.
 - **Fontes:** Georgia (títulos), Arial (corpo)
 - **Elementos fixos:** Header e Footer em todas as páginas
 - **Abelhas:** 10 animadas em cada página (position: fixed, pointer-events: none)

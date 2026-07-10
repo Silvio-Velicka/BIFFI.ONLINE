@@ -10,17 +10,17 @@
     * { margin: 0; padding: 0; box-sizing: border-box; }
 
     :root {
-      --rosa:      #FFB6D9;
-      --rosa-med:  #F472B6;
-      --roxo:      #8B2D8F;
-      --roxo-esc:  #5B1060;
-      --dourado:   #FFD700;
+      --rosa:      #F2E6D3;
+      --rosa-med:  #D9BC8E;
+      --roxo:      #7A4A2D;
+      --roxo-esc:  #3D2817;
+      --dourado:   #C9A227;
       --branco:    #fff;
     }
 
     body {
       font-family: Arial, sans-serif;
-      background: linear-gradient(160deg, #FFB6D9 0%, #FFC0E0 50%, #FFD1EB 100%);
+      background: linear-gradient(160deg, #F2E6D3 0%, #EAD7B8 50%, #E3CC9E 100%);
       min-height: 100vh;
       color: var(--roxo-esc);
       display: flex;
@@ -32,7 +32,7 @@
       flex-shrink: 0;
       background: rgba(255,255,255,0.4);
       backdrop-filter: blur(10px);
-      border-right: 1px solid rgba(139,45,143,0.15);
+      border-right: 1px solid rgba(122,74,45,0.15);
       min-height: 100vh;
       padding: 24px 0;
       display: flex;
@@ -75,7 +75,7 @@
     .btn-sair {
       width: 100%;
       padding: 10px;
-      border: 1px solid rgba(139,45,143,0.3);
+      border: 1px solid rgba(122,74,45,0.3);
       border-radius: 8px;
       background: transparent;
       color: var(--roxo-esc);
@@ -84,7 +84,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-sair:hover { background: rgba(139,45,143,0.1); }
+    .btn-sair:hover { background: rgba(122,74,45,0.1); }
 
     /* ── CONTEÚDO ── */
     .content { flex: 1; padding: 40px 48px; max-width: 900px; }
@@ -103,7 +103,7 @@
     .card {
       background: rgba(255,255,255,0.5);
       backdrop-filter: blur(10px);
-      border: 2px solid rgba(139,45,143,0.15);
+      border: 2px solid rgba(122,74,45,0.15);
       border-radius: 18px;
       padding: 28px 30px;
       margin-bottom: 24px;
@@ -123,7 +123,7 @@
       width: 100%;
       padding: 11px 14px;
       border-radius: 10px;
-      border: 2px solid rgba(139,45,143,0.18);
+      border: 2px solid rgba(122,74,45,0.18);
       background: rgba(255,255,255,0.65);
       color: var(--roxo-esc);
       font-size: 14px;
@@ -176,7 +176,7 @@
       cursor: pointer;
       transition: all 0.2s;
     }
-    .btn-preview:hover, .btn-secundario:hover { background: rgba(139,45,143,0.08); }
+    .btn-preview:hover, .btn-secundario:hover { background: rgba(122,74,45,0.08); }
 
     .btn-excluir {
       padding: 8px 14px;
@@ -199,7 +199,7 @@
       font-weight: bold;
     }
     .save-msg.ok { background: rgba(80,180,120,0.15); color: #2e7d4f; display: block; }
-    .save-msg.err { background: rgba(139,45,143,0.12); color: var(--roxo-esc); display: block; }
+    .save-msg.err { background: rgba(122,74,45,0.12); color: var(--roxo-esc); display: block; }
 
     /* ── LISTA DE PRODUTOS ── */
     .produto-row {
@@ -208,12 +208,12 @@
       gap: 10px;
       align-items: center;
       padding: 10px 0;
-      border-bottom: 1px solid rgba(139,45,143,0.12);
+      border-bottom: 1px solid rgba(122,74,45,0.12);
       font-size: 12.5px;
     }
     .produto-row.header { font-weight: bold; color: var(--roxo); text-transform: uppercase; font-size: 10.5px; letter-spacing: 0.5px; }
     .produto-row input[type="text"], .produto-row input[type="number"] {
-      padding: 7px 9px; border-radius: 7px; border: 1.5px solid rgba(139,45,143,0.18);
+      padding: 7px 9px; border-radius: 7px; border: 1.5px solid rgba(122,74,45,0.18);
       background: rgba(255,255,255,0.7); font-size: 12.5px; width: 100%;
     }
     .produto-thumb-mini {
@@ -226,7 +226,7 @@
     /* ── LISTA DE PEDIDOS ── */
     .pedido-row {
       padding: 14px 0;
-      border-bottom: 1px solid rgba(139,45,143,0.12);
+      border-bottom: 1px solid rgba(122,74,45,0.12);
       display: flex;
       justify-content: space-between;
       align-items: center;
@@ -237,12 +237,12 @@
     .pedido-row .info strong { color: var(--roxo); }
     .pedido-row .info .sub { font-size: 11.5px; opacity: 0.75; display: block; margin-top: 2px; }
     .pedido-row select {
-      padding: 7px 10px; border-radius: 8px; border: 1.5px solid rgba(139,45,143,0.2);
+      padding: 7px 10px; border-radius: 8px; border: 1.5px solid rgba(122,74,45,0.2);
       background: rgba(255,255,255,0.7); font-size: 12px; font-weight: bold; color: var(--roxo-esc);
     }
 
     .filtro-status { display: flex; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 12.5px; }
-    .filtro-status select { padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(139,45,143,0.18); background: rgba(255,255,255,0.65); }
+    .filtro-status select { padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(122,74,45,0.18); background: rgba(255,255,255,0.65); }
 
     @media (max-width: 700px) {
       body { flex-direction: column; }
@@ -477,13 +477,13 @@
         title: document.getElementById('f-titulo').value || '(sem título)',
         html: `
           ${document.getElementById('f-texto').value ? `<p style="color:#D4C9E8;font-size:14px;line-height:1.7;margin-bottom:16px;">${document.getElementById('f-texto').value}</p>` : ''}
-          ${document.getElementById('f-subtitulo').value ? `<h3 style="color:#FFD700;font-size:15px;margin-bottom:8px;">${document.getElementById('f-subtitulo').value}</h3>` : ''}
+          ${document.getElementById('f-subtitulo').value ? `<h3 style="color:#C9A227;font-size:15px;margin-bottom:8px;">${document.getElementById('f-subtitulo').value}</h3>` : ''}
           ${document.getElementById('f-texto2').value ? `<p style="color:#9E8FC0;font-size:13px;line-height:1.6;">${document.getElementById('f-texto2').value}</p>` : ''}
         `,
         background: '#0A1220',
         color: '#D4C9E8',
         confirmButtonText: 'Continuar',
-        confirmButtonColor: '#FFD700',
+        confirmButtonColor: '#C9A227',
       });
     });
 
@@ -604,191 +604,4 @@
 
           <div style="display:flex;gap:10px;">
             <div style="flex:1;">
-              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Imagem (emoji ou nome do arquivo)</label>
-              <input id="edit-imagem" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.imagem)}">
-            </div>
-            <div style="flex:1;">
-              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Categoria</label>
-              <input id="edit-categoria" class="swal2-input" style="margin:0;width:100%;" value="${esc(p.categoria)}">
-            </div>
-          </div>
-
-          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Ou enviar uma foto/capa (JPG, PNG, WEBP ou GIF, até 8MB)</label>
-          <div style="display:flex;align-items:center;gap:10px;">
-            <div style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;">${imagemMini(p.imagem)}</div>
-            <input id="edit-foto" type="file" accept="image/*" class="swal2-input" style="margin:0;flex:1;padding:8px;">
-          </div>
-
-          <div style="margin:14px 0;display:flex;gap:20px;">
-            <label style="font-weight:bold;"><input id="edit-destaque" type="checkbox" ${p.destaque ? 'checked' : ''}> Destaque</label>
-            <label style="font-weight:bold;"><input id="edit-ativo" type="checkbox" ${p.ativo ? 'checked' : ''}> Ativo</label>
-          </div>
-
-          <hr style="margin:14px 0;border:none;border-top:1px solid rgba(139,45,143,0.15);">
-
-          <label style="display:block;font-weight:bold;margin:10px 0 4px;">📖 E-book — vincular a uma pasta já processada</label>
-          <select id="edit-ebook-pasta" class="swal2-input" style="margin:0;width:100%;">
-            <option value="">— Produto físico (sem e-book) —</option>
-            ${opcoesPastasHtml}
-          </select>
-
-          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Ou enviar um novo PDF (converte e vincula automaticamente)</label>
-          <input id="edit-pdf" type="file" accept="application/pdf" class="swal2-input" style="margin:0;width:100%;padding:8px;">
-        </div>
-      `;
-
-      const result = await Swal.fire({
-        title: 'Editar produto',
-        html,
-        width: 560,
-        showCancelButton: true,
-        confirmButtonText: 'Salvar',
-        cancelButtonText: 'Cancelar',
-        confirmButtonColor: '#8B2D8F',
-        focusConfirm: false,
-        preConfirm: () => {
-          const nome = document.getElementById('edit-nome').value.trim();
-          if (!nome) { Swal.showValidationMessage('Nome é obrigatório.'); return false; }
-          const precoCents = Math.round(parseFloat(document.getElementById('edit-preco').value) * 100);
-          if (!isFinite(precoCents) || precoCents <= 0) { Swal.showValidationMessage('Preço inválido.'); return false; }
-          const estoque = parseInt(document.getElementById('edit-estoque').value, 10) || 0;
-          const ebookSelect = document.getElementById('edit-ebook-pasta');
-          return {
-            nome, precoCents, estoque,
-            descricao: document.getElementById('edit-descricao').value,
-            imagem: document.getElementById('edit-imagem').value,
-            categoria: document.getElementById('edit-categoria').value,
-            destaque: document.getElementById('edit-destaque').checked,
-            ativo: document.getElementById('edit-ativo').checked,
-            ilimitado: estoque === 0,
-            ebookSlug: ebookSelect.value,
-            ebookTotalPaginas: ebookSelect.value ? Number(ebookSelect.selectedOptions[0].dataset.paginas) : null,
-            pdfFile: document.getElementById('edit-pdf').files[0] || null,
-            fotoFile: document.getElementById('edit-foto').files[0] || null,
-          };
-        },
-      });
-
-      if (!result.isConfirmed) return;
-      const v = result.value;
-
-      Swal.fire({ title: 'Salvando...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
-      try {
-        await BiffiAdmin.atualizarProduto(p.id, {
-          nome: v.nome, descricao: v.descricao, preco_cents: v.precoCents, imagem: v.imagem,
-          categoria: v.categoria, estoque: v.estoque, ilimitado: v.ilimitado, destaque: v.destaque, ativo: v.ativo,
-        });
-
-        if (v.fotoFile) {
-          Swal.update({ title: 'Enviando foto...' });
-          await BiffiAdmin.enviarImagemProduto(p.id, v.fotoFile);
-        }
-
-        if (v.pdfFile) {
-          Swal.update({ title: 'Convertendo PDF em e-book... isso pode levar alguns minutos.' });
-          await BiffiAdmin.enviarPdfEbook(p.id, v.pdfFile);
-        } else if (v.ebookSlug) {
-          await BiffiAdmin.vincularLivroDigital(p.id, v.ebookSlug, v.ebookTotalPaginas);
-        }
-
-        Swal.fire({ icon: 'success', title: 'Produto atualizado!', timer: 1400, showConfirmButton: false });
-        carregarProdutos();
-      } catch (err) {
-        Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
-      }
-    }
-
-    document.getElementById('form-novo-produto').addEventListener('submit', async (e) => {
-      e.preventDefault();
-      const msgEl = document.getElementById('np-msg');
-      const btnSalvar = document.getElementById('np-btn-salvar');
-      const pdfFile = document.getElementById('np-pdf').files[0] || null;
-      const fotoFile = document.getElementById('np-foto').files[0] || null;
-      msgEl.className = 'save-msg'; msgEl.style.display = 'none';
-      btnSalvar.disabled = true;
-      try {
-        const { id } = await BiffiAdmin.criarProduto({
-          nome: document.getElementById('np-nome').value,
-          preco_cents: Math.round(parseFloat(document.getElementById('np-preco').value) * 100),
-          descricao: document.getElementById('np-descricao').value,
-          imagem: document.getElementById('np-imagem').value,
-          categoria: document.getElementById('np-categoria').value,
-          estoque: parseInt(document.getElementById('np-estoque').value, 10) || 0,
-          ilimitado: (parseInt(document.getElementById('np-estoque').value, 10) || 0) === 0,
-          destaque: document.getElementById('np-destaque').checked,
-        });
-
-        msgEl.className = 'save-msg ok';
-        msgEl.style.display = 'block';
-        let texto = 'Produto adicionado!';
-
-        if (fotoFile) {
-          msgEl.textContent = '📷 Produto criado! Enviando foto...';
-          await BiffiAdmin.enviarImagemProduto(id, fotoFile);
-          texto = 'Produto adicionado com foto!';
-        }
-
-        if (pdfFile) {
-          msgEl.textContent = '📖 Convertendo PDF em e-book, aguarde...';
-          await BiffiAdmin.enviarPdfEbook(id, pdfFile);
-          texto = fotoFile ? 'Produto, foto e e-book prontos!' : 'Produto adicionado e e-book convertido!';
-        }
-
-        msgEl.textContent = '✔ ' + texto;
-        e.target.reset();
-        carregarProdutos();
-      } catch (err) {
-        msgEl.className = 'save-msg err';
-        msgEl.textContent = 'Erro: ' + err.message;
-      } finally {
-        btnSalvar.disabled = false;
-      }
-    });
-
-    /* ═══ PEDIDOS ═══ */
-    const STATUS_LABEL = {
-      aguardando_pagamento: { texto: 'Aguardando pagamento', cor: '#B8860B' },
-      pago:      { texto: 'Pago', cor: '#2e7d4f' },
-      enviado:   { texto: 'Enviado', cor: '#2563eb' },
-      entregue:  { texto: 'Entregue', cor: '#2e7d4f' },
-      cancelado: { texto: 'Cancelado', cor: '#b91c1c' },
-    };
-
-    async function carregarPedidos() {
-      const lista = document.getElementById('lista-pedidos');
-      const statusFiltro = document.getElementById('filtro-status').value;
-      try {
-        const { pedidos } = await BiffiAdmin.getPedidos(statusFiltro);
-        if (!pedidos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum pedido encontrado.</p>'; return; }
-
-        lista.innerHTML = pedidos.map(p => `
-          <div class="pedido-row" data-id="${p.id}">
-            <div class="info">
-              <strong>#${p.id} — ${p.username}</strong>
-              <span class="sub">${p.nome_destinatario} · ${p.cidade}/${p.estado} · R$ ${(p.total_cents / 100).toFixed(2)} · ${p.metodo_pagamento}</span>
-            </div>
-            <select class="select-status">
-              ${Object.entries(STATUS_LABEL).map(([v, o]) => `<option value="${v}" ${p.status === v ? 'selected' : ''}>${o.texto}</option>`).join('')}
-            </select>
-          </div>
-        `).join('');
-
-        lista.querySelectorAll('.select-status').forEach(sel => {
-          sel.addEventListener('change', async () => {
-            const row = sel.closest('.pedido-row');
-            try {
-              await BiffiAdmin.atualizarStatusPedido(row.dataset.id, sel.value);
-            } catch (err) {
-              Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
-            }
-          });
-        });
-      } catch (err) {
-        lista.innerHTML = `<p style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</p>`;
-      }
-    }
-
-    document.getElementById('filtro-status').addEventListener('change', carregarPedidos);
-  </script>
-</body>
-</html>
+              <lab
