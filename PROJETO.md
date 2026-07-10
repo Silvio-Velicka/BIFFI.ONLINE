@@ -28,10 +28,20 @@ A navegação era um header horizontal fixo no topo, com ícones emoji + label
 embaixo. Agora é uma **barra lateral fixa à esquerda** (`header.sidebar`,
 220px de largura, altura total da tela), com fundo amadeirado (gradiente
 marrom escuro + `repeating-linear-gradient` sutil simulando veios de madeira).
-No topo da barra: o logotipo (`logo-teologia-que-motiva.png`) e o texto
-"BIFFI.ONLINE" abaixo dele. Abaixo do logo: os itens do menu, um embaixo do
-outro, **apenas texto, sem ícones/emojis** (antes cada item tinha um emoji
-grande + label pequeno; isso foi removido a pedido — "sem desenhos").
+No topo da barra: o logotipo (`logo-teologia-que-motiva.png`), em tamanho
+máximo (`width:100%; max-width:190px`, preenchendo a largura útil da barra) —
+**o texto "BIFFI.ONLINE" abaixo do logo foi removido** (`.sidebar-logo-text` e
+o `<span>` correspondente não existem mais; o `alt` da imagem continua
+"BIFFI.ONLINE" para acessibilidade). Abaixo do logo: os itens do menu, um
+embaixo do outro, **apenas texto, sem ícones/emojis** (antes cada item tinha
+um emoji grande + label pequeno; isso foi removido a pedido — "sem desenhos").
+
+**index.html (home) — hero com o logotipo em 400x400px:** a imagem do hero
+(antes "Capa BIFFI .jpeg", a capa do livro, 240×360) foi trocada pelo próprio
+logotipo (`logo-teologia-que-motiva.png`), exibido a `400x400px`,
+`object-fit: contain` (sem crop/box-shadow de capa de livro — só o
+`drop-shadow` suave do wrapper `.hero-book`), centralizado na tela junto com
+o texto de boas-vindas. No mobile, reduz para 200x200px.
 
 Ordem dos itens: Missão → Quem sou → O Sonho → Biblioteca de Oração → Sala de
 Oração → Lojinha → Parcerias → Game Relax.
