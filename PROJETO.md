@@ -145,6 +145,20 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
   - 🛒 **Produtos** — lista com toggle rápido de Destaque/Ativo direto na linha, e botão **"Editar"** que abre um modal completo com todos os campos do produto (nome, descrição, preço, imagem, categoria, estoque/ilimitado, destaque, ativo) + upload de PDF do e-book ou vínculo a uma pasta já processada. O formulário "Novo produto" também aceita anexar um PDF direto na criação — sobe e converte automaticamente (ver seção "Livraria Digital" acima).
 - **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
 
+### Upload de foto/capa do produto (sessão 09/07/2026)
+Antes, o campo "Imagem" só aceitava texto (emoji ou nome de arquivo já existente no repositório) — não dava pra simplesmente anexar uma foto. Agora dá:
+- Tanto no formulário **"Novo produto"** quanto no modal **"Editar"**, existe um campo de upload de arquivo (JPG, PNG, WEBP ou GIF, até 8MB) ao lado do campo de texto "Imagem". Anexando uma foto, ela é enviada e usada automaticamente — não precisa mexer no campo de texto.
+- Por baixo dos panos: `POST /api/admin/products/:id/imagem` (multipart via `busboy`) salva o arquivo em `imagens-produtos/` (nome aleatório, extensão original preservada), apaga a foto antiga do produto se houver, e atualiza o campo `imagem` do produto para `api/imagens/produtos/<arquivo>`. Servido publicamente (sem login) por `GET /api/imagens/produtos/:arquivo`, com cache de 1 ano (o nome do arquivo muda a cada novo upload, então não tem risco de servir versão desatualizada).
+- O front-end (`js/shop-api.js` na loja, `admin/index.html` no admin) já sabe diferenciar: se `imagem` começa com `api/imagens/produtos/`, busca a foto no backend Railway; se for nome de arquivo do próprio repositório (ex.: `Capa BIFFI .jpeg`), busca relativo à raiz do site; senão, mostra como emoji/texto puro.
+
+### Persistência de arquivos enviados — variável `DATA_DIR` (importante para o Railway)
+Tanto as páginas de e-book geradas pelo upload de PDF quanto as fotos de produto enviadas pelo admin são gravadas em disco pelo próprio servidor (não vão para o Git). Sem cuidado, esses arquivos seriam **apagados a cada novo deploy** (o Railway recria o container do zero a cada push), porque só o banco SQLite estava configurado para usar o volume persistente.
+- O servidor agora usa `const DATA_DIR = process.env.DATA_DIR || __dirname;` — tanto `biblioteca-privada/` (páginas de e-book) quanto `imagens-produtos/` (fotos de produto) ficam dentro de `DATA_DIR`.
+- **Recomendação:** configurar a variável de ambiente `DATA_DIR=/data` no Railway (Variables), apontando para o mesmo volume persistente já usado por `DB_PATH`. Sem isso, tudo continua funcionando normalmente entre uma request e outra, mas **fotos e e-books enviados via admin seriam perdidos no próximo deploy**.
+
+### Loja (`loja.html`) — layout simplificado (sessão 09/07/2026)
+A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada dos demais. Agora todos os produtos aparecem numa única lista vertical, um embaixo do outro, com o mesmo tratamento visual (miniatura + nome + descrição + preço + botão "Adicionar"/"Indisponível") — sem nenhuma configuração de destaque na exibição pública (o campo "Destaque" ainda existe no admin, mas hoje não altera a ordem/aparência na loja).
+
 ## Design
 - **Cores:** rosa (#FFB6D9 → #FFD1EB), roxo (#8B2D8F), dourado (#FFD700)
 - **Fontes:** Georgia (títulos), Arial (corpo)
@@ -172,6 +186,7 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
 - `poppler-utils` (pacote de sistema, não npm) — fornece o binário `pdftoppm` usado na conversão de PDF → PNG; instalado automaticamente no Railway via `NectarMine/nixpacks.toml` (`aptPkgs = ["poppler-utils"]`). Se algum dia trocar de plataforma de deploy (sair do Nixpacks/Railway), lembrar de instalar esse pacote de sistema também no novo ambiente.
 
 ## Pendências
+- [ ] Configurar `DATA_DIR=/data` no Railway (Variables) — sem isso, fotos de produto e e-books enviados via admin são perdidos a cada novo deploy (ver seção "Persistência de arquivos enviados" acima)
 - [ ] Foto real na página Sobre (substituir emoji 🐝 por `<img>`)
 - [ ] Texto biográfico real na página Sobre
 - [ ] URLs reais do Instagram, Facebook e Telegram no footer

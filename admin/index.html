@@ -346,8 +346,8 @@
           </div>
           <div class="field-row3">
             <div class="field">
-              <label>Imagem (emoji ou nome do arquivo)</label>
-              <input type="text" id="np-imagem" placeholder="📓 ou Capa BIFFI .jpeg">
+              <label>Imagem (emoji, opcional se anexar foto abaixo)</label>
+              <input type="text" id="np-imagem" placeholder="📓 (ou deixe em branco se for anexar uma foto)">
             </div>
             <div class="field">
               <label>Categoria</label>
@@ -357,6 +357,10 @@
               <label>Estoque (0 = ilimitado)</label>
               <input type="number" id="np-estoque" min="0" value="0">
             </div>
+          </div>
+          <div class="field">
+            <label>Foto/capa do produto (opcional — JPG, PNG, WEBP ou GIF, até 8MB)</label>
+            <input type="file" id="np-foto" accept="image/*">
           </div>
           <div class="field">
             <label>PDF do e-book (opcional — sobe e já converte em livro digital automaticamente)</label>
@@ -484,7 +488,12 @@
     });
 
     /* ═══ PRODUTOS ═══ */
+    // Fotos enviadas via upload ficam salvas no próprio backend (Railway) e
+    // vêm no formato "api/imagens/produtos/arquivo.jpg" — precisam da URL
+    // completa do Railway. Imagens antigas/manuais (ex: "Capa BIFFI .jpeg")
+    // continuam sendo arquivos do próprio repositório, relativos à raiz do site.
     function imagemMini(imagem) {
+      if (imagem && imagem.startsWith('api/imagens/produtos/')) return `<img src="${BiffiAdmin.base}/${imagem}" alt="">`;
       if (imagem && /\.(jpe?g|png|webp|gif|svg)$/i.test(imagem)) return `<img src="../${imagem}" alt="">`;
       return imagem || '🛍️';
     }
@@ -604,6 +613,12 @@
             </div>
           </div>
 
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Ou enviar uma foto/capa (JPG, PNG, WEBP ou GIF, até 8MB)</label>
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:44px;height:44px;border-radius:8px;background:rgba(255,255,255,0.6);display:flex;align-items:center;justify-content:center;font-size:20px;overflow:hidden;flex-shrink:0;">${imagemMini(p.imagem)}</div>
+            <input id="edit-foto" type="file" accept="image/*" class="swal2-input" style="margin:0;flex:1;padding:8px;">
+          </div>
+
           <div style="margin:14px 0;display:flex;gap:20px;">
             <label style="font-weight:bold;"><input id="edit-destaque" type="checkbox" ${p.destaque ? 'checked' : ''}> Destaque</label>
             <label style="font-weight:bold;"><input id="edit-ativo" type="checkbox" ${p.ativo ? 'checked' : ''}> Ativo</label>
@@ -649,6 +664,7 @@
             ebookSlug: ebookSelect.value,
             ebookTotalPaginas: ebookSelect.value ? Number(ebookSelect.selectedOptions[0].dataset.paginas) : null,
             pdfFile: document.getElementById('edit-pdf').files[0] || null,
+            fotoFile: document.getElementById('edit-foto').files[0] || null,
           };
         },
       });
@@ -662,6 +678,11 @@
           nome: v.nome, descricao: v.descricao, preco_cents: v.precoCents, imagem: v.imagem,
           categoria: v.categoria, estoque: v.estoque, ilimitado: v.ilimitado, destaque: v.destaque, ativo: v.ativo,
         });
+
+        if (v.fotoFile) {
+          Swal.update({ title: 'Enviando foto...' });
+          await BiffiAdmin.enviarImagemProduto(p.id, v.fotoFile);
+        }
 
         if (v.pdfFile) {
           Swal.update({ title: 'Convertendo PDF em e-book... isso pode levar alguns minutos.' });
@@ -682,6 +703,7 @@
       const msgEl = document.getElementById('np-msg');
       const btnSalvar = document.getElementById('np-btn-salvar');
       const pdfFile = document.getElementById('np-pdf').files[0] || null;
+      const fotoFile = document.getElementById('np-foto').files[0] || null;
       msgEl.className = 'save-msg'; msgEl.style.display = 'none';
       btnSalvar.disabled = true;
       try {
@@ -696,16 +718,23 @@
           destaque: document.getElementById('np-destaque').checked,
         });
 
-        if (pdfFile) {
-          msgEl.className = 'save-msg ok';
-          msgEl.style.display = 'block';
-          msgEl.textContent = '📖 Produto criado! Convertendo PDF em e-book, aguarde...';
-          await BiffiAdmin.enviarPdfEbook(id, pdfFile);
-          msgEl.textContent = '✔ Produto adicionado e e-book convertido com sucesso!';
-        } else {
-          msgEl.className = 'save-msg ok';
-          msgEl.textContent = '✔ Produto adicionado!';
+        msgEl.className = 'save-msg ok';
+        msgEl.style.display = 'block';
+        let texto = 'Produto adicionado!';
+
+        if (fotoFile) {
+          msgEl.textContent = '📷 Produto criado! Enviando foto...';
+          await BiffiAdmin.enviarImagemProduto(id, fotoFile);
+          texto = 'Produto adicionado com foto!';
         }
+
+        if (pdfFile) {
+          msgEl.textContent = '📖 Convertendo PDF em e-book, aguarde...';
+          await BiffiAdmin.enviarPdfEbook(id, pdfFile);
+          texto = fotoFile ? 'Produto, foto e e-book prontos!' : 'Produto adicionado e e-book convertido!';
+        }
+
+        msgEl.textContent = '✔ ' + texto;
         e.target.reset();
         carregarProdutos();
       } catch (err) {

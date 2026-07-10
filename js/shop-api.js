@@ -78,9 +78,15 @@ function formatarReais(cents) {
   return 'R$ ' + (Number(cents) / 100).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
 
-// "imagem" vem do banco: pode ser um emoji (ex: "📓") ou o nome de um arquivo de
-// imagem (ex: "Capa BIFFI .jpeg"), sempre relativo à raiz do site.
+// "imagem" vem do banco: pode ser um emoji (ex: "📓"), o nome de um arquivo de
+// imagem do próprio repositório (ex: "Capa BIFFI .jpeg", relativo à raiz do
+// site), ou uma foto enviada pelo admin via upload — nesse caso vem no formato
+// "api/imagens/produtos/arquivo.jpg" e precisa ser buscada no backend
+// (Railway), não no domínio do site estático.
 function imagemProdutoHTML(imagem) {
+  if (imagem && imagem.startsWith('api/imagens/produtos/')) {
+    return `<img src="${SHOP_API.base}/${imagem}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
+  }
   if (imagem && /\.(jpe?g|png|webp|gif|svg)$/i.test(imagem)) {
     return `<img src="${imagem}" alt="" style="width:100%;height:100%;object-fit:cover;">`;
   }

@@ -16,6 +16,12 @@ const { DatabaseSync } = require('node:sqlite');
 const PORT = process.env.PORT || 3000;
 const ROOT = path.join(__dirname, '..');            // pasta do site (HTML)
 const DB_PATH = process.env.DB_PATH || path.join(__dirname, 'nectarmine.db'); // usar DB_PATH em produção (ex: volume do Railway)
+// Pasta persistente entre deploys — usada pra arquivos criados via upload no admin
+// (fotos de produto e novos e-books). Em produção, configurar DATA_DIR=/data no
+// Railway (mesmo volume já usado pelo banco) pra esses arquivos não se perderem
+// a cada novo deploy. Sem essa variável, cai de volta na pasta do próprio código
+// (funciona, mas some no próximo deploy — ok pra testar localmente).
+const DATA_DIR = process.env.DATA_DIR || __dirname;
 const SESSION_DAYS = 30;
 
 /* ── BANCO DE DADOS ── */
@@ -271,7 +277,13 @@ function usuarioComprouProduto(userId, produtoId) {
    pelo serveStatic (ver mais abaixo). Cada página só é servida depois de
    confirmar login + compra, e sempre com marca d'água aplicada na hora
    (nunca existe uma cópia "limpa" acessível pela internet). */
-const LIVRARIA_DIR = path.join(__dirname, 'biblioteca-privada');
+const LIVRARIA_DIR = path.join(DATA_DIR, 'biblioteca-privada');
+
+// Fotos de produto enviadas pelo admin (capa do livro físico, etc.) — ficam
+// aqui e são servidas publicamente por GET /api/imagens/produtos/:arquivo,
+// já que a loja (GitHub Pages) precisa conseguir exibi-las por fora.
+const IMAGENS_DIR = path.join(DATA_DIR, 'imagens-produtos');
+fs.mkdirSync(IMAGENS_DIR, { recursive: true });
 
 /* ── AUTO-VÍNCULO produto ↔ e-book ──
    Evita precisar chamar a API manualmente depois de cada deploy: se a pasta
@@ -342,6 +354,20 @@ async function gerarPaginaComMarcaDagua(caminhoArquivo, linhaRodape, textoDiagon
   img.print({ font: fontRodape, x: 10, y: img.height - 22, text: linhaRodape });
 
   return img.getBuffer(JimpMime.png);
+}
+
+// Move um arquivo temporário para o destino final. Usa rename (rápido) quando
+// possível, mas cai pra copiar+apagar se origem e destino estiverem em
+// dispositivos/volumes diferentes (ex: /tmp do sistema vs. volume /data do
+// Railway) — nesse caso um simples renameSync falha com erro EXDEV.
+function moverArquivoSeguro(origem, destino) {
+  try {
+    fs.renameSync(origem, destino);
+  } catch (e) {
+    if (e.code !== 'EXDEV') throw e;
+    fs.copyFileSync(origem, destino);
+    fs.unlinkSync(origem);
+  }
 }
 
 // Gera um nome de pasta seguro a partir do nome do produto (sem acentos/espaços)
@@ -855,6 +881,12 @@ const routes = {
     let tmpPath = null;
     let fileTooBig = false;
     let recebeuArquivo = false;
+    // Promise separada que só resolve quando o arquivo terminou de ser gravado
+    // em disco (evento 'finish' do write stream) — o 'close' do busboy só
+    // significa que ele terminou de LER o corpo da requisição, não que a
+    // escrita em disco já foi concluída. Sem isso, o código seguia em frente
+    // e tentava usar um arquivo ainda incompleto (ou até vazio).
+    let escritaConcluida = Promise.resolve();
 
     const aguardaUpload = new Promise((resolve, reject) => {
       bb.on('field', (name, val) => { if (name === 'produto_id') produtoId = Number(val); });
@@ -863,9 +895,12 @@ const routes = {
         recebeuArquivo = true;
         tmpPath = path.join(os.tmpdir(), `upload-${Date.now()}-${crypto.randomBytes(6).toString('hex')}.pdf`);
         const out = fs.createWriteStream(tmpPath);
+        escritaConcluida = new Promise((res2, rej2) => {
+          out.on('finish', res2);
+          out.on('error', rej2);
+        });
         stream.on('limit', () => { fileTooBig = true; });
         stream.pipe(out);
-        out.on('error', reject);
       });
       bb.on('close', () => resolve());
       bb.on('error', reject);
@@ -874,6 +909,7 @@ const routes = {
     try {
       req.pipe(bb);
       await aguardaUpload;
+      await escritaConcluida;
     } catch (e) {
       if (tmpPath) fs.unlink(tmpPath, () => {});
       return json(res, 400, { error: 'Erro ao receber o arquivo enviado.' });
@@ -1004,6 +1040,103 @@ const paramRoutes = [
       db.prepare('DELETE FROM livros_digitais WHERE produto_id = ?').run(id); // remove vínculo de e-book, se houver
       db.prepare('DELETE FROM produtos WHERE id = ?').run(id);
       json(res, 200, { ok: true });
+    },
+  },
+  // Upload da foto/capa de um produto. A imagem fica salva no servidor (pasta
+  // IMAGENS_DIR) e é servida publicamente por GET /api/imagens/produtos/:arquivo
+  // — necessário porque a loja roda no GitHub Pages e precisa de uma URL
+  // pública pra exibir a foto, diferente do PDF do e-book (que nunca é público).
+  {
+    method: 'POST', re: /^\/api\/admin\/products\/(\d+)\/imagem$/,
+    handler: async (req, res, url, m) => {
+      if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      const produtoId = Number(m[1]);
+      const produto = db.prepare('SELECT * FROM produtos WHERE id = ?').get(produtoId);
+      if (!produto) return json(res, 404, { error: 'Produto não encontrado.' });
+
+      const busboy = require('busboy');
+      let bb;
+      try {
+        bb = busboy({ headers: req.headers, limits: { fileSize: 8 * 1024 * 1024 } }); // até 8MB
+      } catch (e) {
+        return json(res, 400, { error: 'Requisição de upload inválida.' });
+      }
+
+      const EXT_PERMITIDAS = { '.jpg': true, '.jpeg': true, '.png': true, '.webp': true, '.gif': true };
+      let tmpPath = null;
+      let extensao = null;
+      let fileTooBig = false;
+      let recebeuArquivo = false;
+      let tipoInvalido = false;
+      // Ver comentário equivalente na rota de upload de PDF: o 'close' do busboy
+      // não garante que a escrita em disco terminou — precisa esperar o 'finish'
+      // do write stream, senão o arquivo movido/lido em seguida pode vir vazio.
+      let escritaConcluida = Promise.resolve();
+
+      const aguardaUpload = new Promise((resolve, reject) => {
+        bb.on('file', (name, stream, info) => {
+          if (name !== 'imagem') { stream.resume(); return; }
+          const ext = path.extname(info.filename || '').toLowerCase();
+          if (!EXT_PERMITIDAS[ext] || !/^image\//.test(info.mimeType || '')) {
+            tipoInvalido = true;
+            stream.resume();
+            return;
+          }
+          recebeuArquivo = true;
+          extensao = ext;
+          tmpPath = path.join(os.tmpdir(), `img-${Date.now()}-${crypto.randomBytes(6).toString('hex')}${ext}`);
+          const out = fs.createWriteStream(tmpPath);
+          escritaConcluida = new Promise((res2, rej2) => {
+            out.on('finish', res2);
+            out.on('error', rej2);
+          });
+          stream.on('limit', () => { fileTooBig = true; });
+          stream.pipe(out);
+        });
+        bb.on('close', () => resolve());
+        bb.on('error', reject);
+      });
+
+      try {
+        req.pipe(bb);
+        await aguardaUpload;
+        await escritaConcluida;
+      } catch (e) {
+        if (tmpPath) fs.unlink(tmpPath, () => {});
+        return json(res, 400, { error: 'Erro ao receber a imagem enviada.' });
+      }
+
+      if (tipoInvalido) { if (tmpPath) fs.unlink(tmpPath, () => {}); return json(res, 400, { error: 'Formato inválido. Envie uma imagem JPG, PNG, WEBP ou GIF.' }); }
+      if (fileTooBig) { if (tmpPath) fs.unlink(tmpPath, () => {}); return json(res, 400, { error: 'Imagem muito grande (máximo 8MB).' }); }
+      if (!recebeuArquivo || !tmpPath || !fs.existsSync(tmpPath)) return json(res, 400, { error: 'Nenhuma imagem foi enviada (campo "imagem").' });
+
+      const nomeArquivo = `produto-${produtoId}-${Date.now()}${extensao}`;
+      moverArquivoSeguro(tmpPath, path.join(IMAGENS_DIR, nomeArquivo));
+
+      // Apaga a imagem antiga enviada anteriormente pra este produto (se houver), pra não acumular lixo
+      if (produto.imagem && produto.imagem.startsWith('api/imagens/produtos/')) {
+        fs.unlink(path.join(IMAGENS_DIR, path.basename(produto.imagem)), () => {});
+      }
+
+      const caminho = `api/imagens/produtos/${nomeArquivo}`;
+      db.prepare(`UPDATE produtos SET imagem = ?, updated_at = datetime('now') WHERE id = ?`).run(caminho, produtoId);
+
+      json(res, 200, { ok: true, imagem: caminho });
+    },
+  },
+  // Serve publicamente as fotos de produto enviadas pelo admin (sem autenticação —
+  // são imagens de vitrine, precisam aparecer pra qualquer visitante da loja)
+  {
+    method: 'GET', re: /^\/api\/imagens\/produtos\/([a-zA-Z0-9_.-]+)$/,
+    handler: async (req, res, url, m) => {
+      const arquivo = path.join(IMAGENS_DIR, m[1]);
+      if (!arquivo.startsWith(IMAGENS_DIR) || !fs.existsSync(arquivo)) return json(res, 404, { error: 'Imagem não encontrada.' });
+      const mime = { '.jpg': 'image/jpeg', '.jpeg': 'image/jpeg', '.png': 'image/png', '.webp': 'image/webp', '.gif': 'image/gif' }[path.extname(arquivo).toLowerCase()] || 'application/octet-stream';
+      fs.readFile(arquivo, (err, data) => {
+        if (err) return json(res, 404, { error: 'Imagem não encontrada.' });
+        res.writeHead(200, { 'Content-Type': mime, 'Cache-Control': 'public, max-age=31536000, immutable' });
+        res.end(data);
+      });
     },
   },
   // Info do e-book (título + total de páginas) — só pra quem comprou

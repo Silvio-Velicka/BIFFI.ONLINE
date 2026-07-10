@@ -110,6 +110,27 @@ const BiffiAdmin = {
     return data;
   },
 
+  // Envia a foto/capa de um produto (JPG/PNG/WEBP/GIF, até 8MB). O servidor
+  // guarda o arquivo e devolve o caminho já pronto pra usar no campo "imagem".
+  async enviarImagemProduto(produtoId, file) {
+    const formData = new FormData();
+    formData.append('imagem', file);
+    const res = await fetch(this.base + `/api/admin/products/${produtoId}/imagem`, {
+      method: 'POST',
+      // Sem Content-Type manual — o navegador define o boundary do multipart sozinho.
+      headers: { 'x-admin-key': this.key() || '' },
+      body: formData,
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 403) {
+      localStorage.removeItem('biffi_admin_key');
+      location.href = 'login.html?expirado=1';
+      throw new Error('Sessão expirada.');
+    }
+    if (!res.ok) throw new Error(data.error || 'Erro ao enviar a imagem.');
+    return data;
+  },
+
   /* ── LOJINHA: PEDIDOS ── */
   getPedidos(status) { return this._fetch('/api/admin/pedidos' + (status ? `?status=${status}` : '')); },
   atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },
