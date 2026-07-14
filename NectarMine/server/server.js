@@ -67,6 +67,59 @@ db.exec(`
   );
   CREATE INDEX IF NOT EXISTS idx_event ON event_log (tipo, created_at);
 
+  /* ═══ ECONOMIA DO JOGO — Apiários, Metas, Indicações, Mercado ═══
+     Mesma lógica do Martian Gold Rush (projeto irmão): apiários produzem mel
+     (reservatório limitado por capacidade), o jogador "envasa" o mel em potes
+     (evento de produção, alimenta ranking), e potes podem ser vendidos no
+     mercado por NCT. Tudo calculado e validado no servidor — o cliente nunca
+     manda um valor final, só a intenção da ação. */
+
+  CREATE TABLE IF NOT EXISTS apiarios (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    tipo       TEXT    NOT NULL,               -- 'iniciante' | 'regular' | 'adeptos'
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_apiarios_user ON apiarios (user_id);
+
+  CREATE TABLE IF NOT EXISTS metas_diarias (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    data_meta  TEXT    NOT NULL,               -- 'YYYY-MM-DD' (UTC)
+    chave      TEXT    NOT NULL,
+    progresso  REAL    NOT NULL DEFAULT 0,
+    resgatada  INTEGER NOT NULL DEFAULT 0,
+    UNIQUE (user_id, data_meta, chave)
+  );
+
+  CREATE TABLE IF NOT EXISTS indicacoes (
+    id              INTEGER PRIMARY KEY AUTOINCREMENT,
+    indicador_id    INTEGER NOT NULL REFERENCES users(id),
+    indicado_id     INTEGER NOT NULL UNIQUE REFERENCES users(id),
+    validado        INTEGER NOT NULL DEFAULT 0,
+    bonus_creditado INTEGER NOT NULL DEFAULT 0,
+    created_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_indicacoes_indicador ON indicacoes (indicador_id);
+
+  CREATE TABLE IF NOT EXISTS mercado_transacoes (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id    INTEGER NOT NULL REFERENCES users(id),
+    tipo       TEXT    NOT NULL,               -- 'compra' | 'venda'
+    quantidade INTEGER NOT NULL,
+    preco_unit REAL    NOT NULL,
+    total_nct  REAL    NOT NULL,
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_mercado_user ON mercado_transacoes (user_id, created_at);
+
+  CREATE TABLE IF NOT EXISTS mercado_estado (
+    id         INTEGER PRIMARY KEY CHECK (id = 1),
+    preco_pote REAL NOT NULL DEFAULT 24.57,
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+  INSERT OR IGNORE INTO mercado_estado (id) VALUES (1);
+
   -- Modal comunicativo da tela de login (editável futuramente por um painel admin)
   CREATE TABLE IF NOT EXISTS site_config (
     id                INTEGER PRIMARY KEY CHECK (id = 1),
@@ -172,6 +225,21 @@ db.exec(`
   addCol('nome_completo', `TEXT NOT NULL DEFAULT ''`);
   addCol('cpf', `TEXT NOT NULL DEFAULT ''`);
   addCol('telefone', `TEXT NOT NULL DEFAULT ''`);
+  addCol('indicado_por', 'INTEGER'); // id de quem indicou este usuário (referral)
+}
+
+/* ── MIGRAÇÃO LEVE: novas colunas em game_state para a economia real ── */
+{
+  const cols = db.prepare(`PRAGMA table_info(game_state)`).all().map(c => c.name);
+  const addCol = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE game_state ADD COLUMN ${name} ${def}`); };
+  addCol('mel_cap_compras', 'INTEGER NOT NULL DEFAULT 0');       // compras de capacidade do reservatório (máx 5)
+  addCol('relogio_compras', 'INTEGER NOT NULL DEFAULT 0');       // compras de "Flores" / relógio de energia (máx 5)
+  addCol('last_producao_em', 'TEXT');                            // último tick de produção aplicado
+  addCol('bonus_potes_pendente', 'INTEGER NOT NULL DEFAULT 0');  // comissões de referral aguardando resgate
+  addCol('bonus_potes_total', 'INTEGER NOT NULL DEFAULT 0');     // total já resgatado (histórico, só cresce)
+  // Backfill: linhas existentes (criadas antes desta coluna existir) começam
+  // a contar produção a partir de agora, não desde sempre.
+  db.exec(`UPDATE game_state SET last_producao_em = datetime('now') WHERE last_producao_em IS NULL`);
 }
 
 /* ── SEED: produtos iniciais da loja (só roda se a tabela estiver vazia) ── */
@@ -488,11 +556,183 @@ async function criarPagamentoPaypal(pedido, itens, totalCents) {
   }
 }
 
+/* ═══════════════════════════════════════════════════════════
+   ECONOMIA DO JOGO — apiários, produção, metas, indicações, mercado
+   Mesmo raciocínio do Martian Gold Rush (projeto irmão): tudo
+   server-authoritative. O cliente só manda a intenção da ação
+   (comprar, envasar, vender...); preço, produção e saldo são
+   sempre calculados e validados aqui dentro.
+
+   Nota de concorrência: node:sqlite (DatabaseSync) é 100% síncrono.
+   Cada rota só tem UM ponto de await (readBody, no início, antes de
+   qualquer leitura do banco). Depois disso tudo roda síncrono até o
+   fim da resposta — então não existe brecha para duas requisições
+   paralelas intercalarem leitura/escrita do mesmo saldo (dispensa o
+   FOR UPDATE / transação explícita que o Gold Rush precisa no Postgres).
+   ═══════════════════════════════════════════════════════════ */
+
+const APIARIOS = {
+  iniciante: { producao: 5,  energia: 2, preco: 500,  nome: 'Apiário Iniciante', imagem: 'favo1.png' },
+  regular:   { producao: 10, energia: 4, preco: 1200, nome: 'Apiário Regular',   imagem: 'favo2.png' },
+  adeptos:   { producao: 20, energia: 8, preco: 2500, nome: 'Apiário Adeptos',   imagem: 'favo3.png' },
+};
+const APIARIO_STEP_PRECO = 1000;    // cada apiário do mesmo tipo já possuído soma +1000 NCT no preço do próximo
+const APIARIO_MAX_POR_TIPO = 10;    // trava anti-acúmulo infinito (mesmo padrão do Gold Rush)
+
+const CAP_BASE = 100;                // capacidade inicial do reservatório de mel
+const CAP_INCREMENTO = 100;          // +100 de capacidade por compra
+const CAP_PRECO_BASE = 800;
+const CAP_PRECO_STEP = 400;
+const CAP_MAX_COMPRAS = 5;
+
+const RELOGIO_FLORES_POR_COMPRA = 50; // flores (energia) creditadas instantaneamente por compra
+const RELOGIO_PRECO_BASE = 600;
+const RELOGIO_PRECO_STEP = 300;
+const RELOGIO_MAX_COMPRAS = 5;
+
+const BONUS_REFERRAL_UNICO = 50;     // potes, uma única vez, quando o indicado produz pela 1ª vez (validação)
+const COMISSAO_REFERRAL_PCT = 0.10;  // 10% contínuo sobre cada envase do indicado
+
+const METAS = [
+  { chave: 'login_diario',        titulo: 'Login Diário',       descricao: 'Entre no jogo uma vez por dia.',                target: 1,    reward_nct: 300,  reward_flores: 10 },
+  { chave: 'extrair_potes',       titulo: 'Extrair Potes',      descricao: 'Transfira o mel do reservatório para seus potes.', target: 100,  reward_nct: 500,  reward_flores: 0  },
+  { chave: 'recarregar_energia',  titulo: 'Recarregar Energia', descricao: 'Recarregue a energia das suas máquinas extratoras.', target: 1,  reward_nct: 150,  reward_flores: 25 },
+  { chave: 'comprar_mercado',     titulo: 'Comprar no Mercado', descricao: 'Compre potes no mercado global.',                target: 5,    reward_nct: 750,  reward_flores: 0  },
+  { chave: 'vender_mercado',      titulo: 'Vender no Mercado',  descricao: 'Venda potes no mercado global.',                 target: 5,    reward_nct: 750,  reward_flores: 0  },
+  { chave: 'producao_industrial', titulo: 'Produção Industrial',descricao: 'Produza mel usando suas máquinas.',              target: 1000, reward_nct: 2000, reward_flores: 0  },
+];
+
+function hojeStr() { return new Date().toISOString().slice(0, 10); } // 'YYYY-MM-DD' em UTC
+
+function precoMelAtual() {
+  const row = db.prepare('SELECT preco_pote FROM mercado_estado WHERE id = 1').get();
+  return row ? row.preco_pote : 24.57;
+}
+
+function capacidadeReservatorio(state) {
+  return CAP_BASE + (state.mel_cap_compras || 0) * CAP_INCREMENTO;
+}
+function precoProximaCapacidade(state) {
+  const c = state.mel_cap_compras || 0;
+  return c >= CAP_MAX_COMPRAS ? null : CAP_PRECO_BASE + c * CAP_PRECO_STEP;
+}
+function precoProximoRelogio(state) {
+  const c = state.relogio_compras || 0;
+  return c >= RELOGIO_MAX_COMPRAS ? null : RELOGIO_PRECO_BASE + c * RELOGIO_PRECO_STEP;
+}
+function precoProximoApiario(tipo, jaComprados) {
+  return APIARIOS[tipo].preco + jaComprados * APIARIO_STEP_PRECO;
+}
+
+function getApiarios(userId) {
+  return db.prepare('SELECT * FROM apiarios WHERE user_id = ? ORDER BY id ASC').all(userId);
+}
+
+function producaoTotais(apiariosDoUsuario) {
+  let producaoHora = 0, energiaHora = 0;
+  for (const a of apiariosDoUsuario) {
+    const spec = APIARIOS[a.tipo];
+    if (!spec) continue;
+    producaoHora += spec.producao;
+    energiaHora += spec.energia;
+  }
+  return { producaoHora, energiaHora };
+}
+
+// Converte o texto 'YYYY-MM-DD HH:MM:SS' que o SQLite grava (sempre UTC, via
+// datetime('now')) num timestamp confiável. Sem o replace+'Z', o Node
+// interpretaria a string como horário LOCAL do servidor, o que quebraria o
+// cálculo de produção dependendo do fuso configurado no Railway.
+function parseSqliteUTC(texto) {
+  return new Date(texto.replace(' ', 'T') + 'Z').getTime();
+}
+
+// Aplica, de forma síncrona e idempotente, toda a produção acumulada desde o
+// último tick. O mel cresce conforme a produção combinada dos apiários,
+// consumindo flores (energia) proporcionalmente — se as flores acabarem no
+// meio do intervalo, a produção para nesse ponto exato (sem gerar mel de
+// graça). O mel nunca ultrapassa a capacidade do reservatório (excedente é
+// simplesmente não produzido, igual ao Gold Rush pausar quando o estoque
+// enche). Deve ser chamada no início de toda rota que lê ou altera nct/mel/
+// flores, para o estado nunca ficar desatualizado.
+function aplicarProducao(userId) {
+  const state = db.prepare('SELECT * FROM game_state WHERE user_id = ?').get(userId);
+  const { producaoHora, energiaHora } = producaoTotais(getApiarios(userId));
+
+  const agora = Date.now();
+  const ultima = state.last_producao_em ? parseSqliteUTC(state.last_producao_em) : agora;
+  // Trava de segurança: nunca processa mais que 72h de uma vez (evita
+  // acúmulo absurdo se o servidor ficar off-line por dias — mesma lógica
+  // do catch-up do motor de mineração do USMARS).
+  const horasPassadas = Math.min(Math.max(0, (agora - ultima) / 3_600_000), 72);
+
+  let novoMel = state.mel;
+  let novasFlores = state.flores;
+
+  if (horasPassadas > 0 && producaoHora > 0) {
+    const cap = capacidadeReservatorio(state);
+    let horasEfetivas = horasPassadas;
+    if (energiaHora > 0) {
+      const energiaNecessaria = energiaHora * horasPassadas;
+      if (energiaNecessaria > novasFlores) horasEfetivas = novasFlores / energiaHora;
+    }
+    novoMel = Math.min(cap, novoMel + producaoHora * horasEfetivas);
+    novasFlores = Math.max(0, novasFlores - energiaHora * horasEfetivas);
+  }
+
+  db.prepare(`UPDATE game_state SET mel = ?, flores = ?, last_producao_em = datetime('now') WHERE user_id = ?`)
+    .run(novoMel, novasFlores, userId);
+
+  return db.prepare('SELECT * FROM game_state WHERE user_id = ?').get(userId);
+}
+
+// Meta cumulativa (soma progresso a cada chamada) — usada por ações que podem
+// acontecer várias vezes ao dia (envasar, comprar/vender no mercado...).
+function incrementarMeta(userId, chave, quantidade) {
+  db.prepare(`
+    INSERT INTO metas_diarias (user_id, data_meta, chave, progresso) VALUES (?, ?, ?, ?)
+    ON CONFLICT(user_id, data_meta, chave) DO UPDATE SET progresso = progresso + excluded.progresso
+  `).run(userId, hojeStr(), chave, quantidade);
+}
+
+// Meta "uma vez por dia" (login) — grava progresso=1 na primeira chamada do
+// dia e ignora todas as seguintes (ON CONFLICT DO NOTHING), pra não inflar
+// com cada poll de status.
+function marcarLoginDiario(userId) {
+  db.prepare(`
+    INSERT INTO metas_diarias (user_id, data_meta, chave, progresso) VALUES (?, ?, 'login_diario', 1)
+    ON CONFLICT(user_id, data_meta, chave) DO NOTHING
+  `).run(userId, hojeStr());
+}
+
+// Credita comissão de referral (10% contínuo) + bônus único de validação (50
+// potes, na primeira produção do indicado) ao indicador — chamado sempre que
+// o indicado envasa mel. O bônus fica pendente em bonus_potes_pendente até o
+// indicador resgatar manualmente em /api/amigos/resgatar.
+function creditarReferralPorProducao(userId, quantidadeProduzida) {
+  const u = db.prepare('SELECT indicado_por FROM users WHERE id = ?').get(userId);
+  if (!u || !u.indicado_por) return;
+  const indicacao = db.prepare('SELECT * FROM indicacoes WHERE indicado_id = ?').get(userId);
+  if (!indicacao) return;
+
+  let bonusUnico = 0;
+  if (!indicacao.validado) {
+    bonusUnico = BONUS_REFERRAL_UNICO;
+    db.prepare('UPDATE indicacoes SET validado = 1, bonus_creditado = 1 WHERE id = ?').run(indicacao.id);
+  }
+  const comissao = Math.floor(quantidadeProduzida * COMISSAO_REFERRAL_PCT);
+  const total = comissao + bonusUnico;
+  if (total > 0) {
+    db.prepare('UPDATE game_state SET bonus_potes_pendente = bonus_potes_pendente + ? WHERE user_id = ?')
+      .run(total, indicacao.indicador_id);
+  }
+}
+
 /* ── ROTAS DA API ── */
 const routes = {
 
   'POST /api/register': async (req, res) => {
-    const { username, email, password } = await readBody(req);
+    const { username, email, password, ref } = await readBody(req);
     if (!username || username.trim().length < 3) return json(res, 400, { error: 'Nome de usuário precisa de pelo menos 3 caracteres.' });
     if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return json(res, 400, { error: 'E-mail inválido.' });
     if (!password || password.length < 6) return json(res, 400, { error: 'Senha precisa de pelo menos 6 caracteres.' });
@@ -500,12 +740,23 @@ const routes = {
     const exists = db.prepare('SELECT id FROM users WHERE username = ? OR email = ?').get(username.trim(), email.trim());
     if (exists) return json(res, 409, { error: 'Usuário ou e-mail já cadastrado.' });
 
+    // Referral: 'ref' é o username de quem indicou (vem de ?ref= no link de convite).
+    // Auto-indicação e códigos inválidos são simplesmente ignorados (cadastro segue normal).
+    let indicadorId = null;
+    if (ref && typeof ref === 'string' && ref.trim()) {
+      const indicador = db.prepare('SELECT id FROM users WHERE username = ?').get(ref.trim());
+      if (indicador && indicador.id) indicadorId = indicador.id;
+    }
+
     const salt = crypto.randomBytes(16).toString('hex');
     const hash = hashPassword(password, salt);
-    const info = db.prepare('INSERT INTO users (username, email, pass_hash, salt) VALUES (?, ?, ?, ?)')
-                   .run(username.trim(), email.trim().toLowerCase(), hash, salt);
+    const info = db.prepare('INSERT INTO users (username, email, pass_hash, salt, indicado_por) VALUES (?, ?, ?, ?, ?)')
+                   .run(username.trim(), email.trim().toLowerCase(), hash, salt, indicadorId);
     const userId = Number(info.lastInsertRowid);
-    db.prepare('INSERT INTO game_state (user_id) VALUES (?)').run(userId);
+    db.prepare(`INSERT INTO game_state (user_id, last_producao_em) VALUES (?, datetime('now'))`).run(userId);
+    if (indicadorId) {
+      db.prepare('INSERT INTO indicacoes (indicador_id, indicado_id) VALUES (?, ?)').run(indicadorId, userId);
+    }
 
     const token = createSession(userId);
     json(res, 201, { token, user: { id: userId, username: username.trim(), avatar: '🐝', level: 1 } });
@@ -532,45 +783,278 @@ const routes = {
   'GET /api/me': async (req, res) => {
     const user = getUserByToken(req);
     if (!user) return json(res, 401, { error: 'Não autenticado.' });
-    const state = db.prepare('SELECT * FROM game_state WHERE user_id = ?').get(user.id);
+    const state = aplicarProducao(user.id);
     json(res, 200, { user, state: { ...state, data: JSON.parse(state.data || '{}') } });
   },
 
+  // Só persiste o blob livre de preferências de UI (`data`) e o nível.
+  // nct/mel/flores/potes NÃO são mais aceitos aqui — desde que a economia
+  // ficou server-authoritative (apiários, envasar, mercado, metas...), essas
+  // colunas só podem mudar através das rotas dedicadas, nunca por um valor
+  // que o cliente decidiu mandar direto.
   'PUT /api/state': async (req, res) => {
     const user = getUserByToken(req);
     if (!user) return json(res, 401, { error: 'Não autenticado.' });
     const b = await readBody(req);
     const cur = db.prepare('SELECT * FROM game_state WHERE user_id = ?').get(user.id);
-    const num = (v, old) => (typeof v === 'number' && isFinite(v) && v >= 0) ? v : old;
 
-    db.prepare(`
-      UPDATE game_state SET nct=?, mel=?, flores=?, potes=?, data=?, updated_at=datetime('now')
-      WHERE user_id=?
-    `).run(
-      num(b.nct, cur.nct), num(b.mel, cur.mel),
-      Math.floor(num(b.flores, cur.flores)), Math.floor(num(b.potes, cur.potes)),
-      JSON.stringify(b.data ?? JSON.parse(cur.data || '{}')),
-      user.id
-    );
+    db.prepare(`UPDATE game_state SET data = ?, updated_at = datetime('now') WHERE user_id = ?`)
+      .run(JSON.stringify(b.data ?? JSON.parse(cur.data || '{}')), user.id);
     if (typeof b.level === 'number' && b.level >= 1) {
       db.prepare('UPDATE users SET level=? WHERE id=?').run(Math.floor(b.level), user.id);
     }
     json(res, 200, { ok: true });
   },
 
-  // Registra produção/entrega (alimenta rankings e totais)
+  // Registra entrega (encomendas físicas da lojinha — não tem relação com a
+  // economia do jogo). 'producao' foi removido daqui: produção real agora só
+  // acontece via POST /api/jogo/envasar, que já cuida de ranking + metas +
+  // comissão de referral em conjunto — um relato solto aqui não teria como
+  // manter essas três coisas consistentes.
   'POST /api/event': async (req, res) => {
     const user = getUserByToken(req);
     if (!user) return json(res, 401, { error: 'Não autenticado.' });
     const { tipo, amount } = await readBody(req);
     const qtd = Math.floor(Number(amount));
-    if (!['producao', 'entrega'].includes(tipo) || !isFinite(qtd) || qtd <= 0 || qtd > 1e6) {
+    if (tipo !== 'entrega' || !isFinite(qtd) || qtd <= 0 || qtd > 1e6) {
       return json(res, 400, { error: 'Evento inválido.' });
     }
     db.prepare('INSERT INTO event_log (user_id, tipo, amount) VALUES (?, ?, ?)').run(user.id, tipo, qtd);
-    const col = tipo === 'producao' ? 'total_potes' : 'total_entregas';
-    db.prepare(`UPDATE game_state SET ${col} = ${col} + ? WHERE user_id = ?`).run(qtd, user.id);
+    db.prepare(`UPDATE game_state SET total_entregas = total_entregas + ? WHERE user_id = ?`).run(qtd, user.id);
     json(res, 200, { ok: true });
+  },
+
+  /* ═══ JOGO — status combinado, produção, envasar ═══ */
+
+  'GET /api/jogo/status': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    marcarLoginDiario(user.id);
+    const state = aplicarProducao(user.id);
+    const apiariosDoUsuario = getApiarios(user.id);
+    const { producaoHora, energiaHora } = producaoTotais(apiariosDoUsuario);
+    const cap = capacidadeReservatorio(state);
+
+    const contagem = { iniciante: 0, regular: 0, adeptos: 0 };
+    for (const a of apiariosDoUsuario) if (contagem[a.tipo] !== undefined) contagem[a.tipo]++;
+
+    const hoje = hojeStr();
+    const loginRow = db.prepare(`SELECT progresso FROM metas_diarias WHERE user_id=? AND data_meta=? AND chave='login_diario'`).get(user.id, hoje);
+
+    json(res, 200, {
+      nct: state.nct, mel: state.mel, flores: state.flores, potes: state.potes,
+      total_potes: state.total_potes, total_entregas: state.total_entregas,
+      reservatorio: { atual: state.mel, capacidade: cap, cheio: state.mel >= cap },
+      producao_hora: producaoHora, energia_hora: energiaHora,
+      apiarios: apiariosDoUsuario.map(a => ({ id: a.id, tipo: a.tipo, ...APIARIOS[a.tipo], criado_em: a.created_at })),
+      loja: {
+        apiarios: Object.fromEntries(Object.keys(APIARIOS).map(tipo => [tipo, {
+          ...APIARIOS[tipo], tipo, possui: contagem[tipo],
+          preco_atual: precoProximoApiario(tipo, contagem[tipo]),
+          max: APIARIO_MAX_POR_TIPO, bloqueado: contagem[tipo] >= APIARIO_MAX_POR_TIPO,
+        }])),
+        capacidade: { atual: cap, compras: state.mel_cap_compras, proximo_preco: precoProximaCapacidade(state), incremento: CAP_INCREMENTO, max_compras: CAP_MAX_COMPRAS },
+        relogio: { compras: state.relogio_compras, proximo_preco: precoProximoRelogio(state), flores_por_compra: RELOGIO_FLORES_POR_COMPRA, max_compras: RELOGIO_MAX_COMPRAS },
+      },
+      mercado: { preco_pote: precoMelAtual() },
+      bonus_referral_pendente: state.bonus_potes_pendente || 0,
+      checkin_hoje: !!(loginRow && loginRow.progresso >= 1),
+    });
+  },
+
+  'POST /api/jogo/envasar': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const state = aplicarProducao(user.id);
+    const quantidade = Math.floor(state.mel);
+    if (quantidade <= 0) return json(res, 400, { error: 'Não há mel suficiente para envasar.' });
+
+    db.prepare('UPDATE game_state SET mel = mel - ?, potes = potes + ?, total_potes = total_potes + ? WHERE user_id = ?')
+      .run(quantidade, quantidade, quantidade, user.id);
+    db.prepare('INSERT INTO event_log (user_id, tipo, amount) VALUES (?, ?, ?)').run(user.id, 'producao', quantidade);
+    incrementarMeta(user.id, 'extrair_potes', quantidade);
+    incrementarMeta(user.id, 'producao_industrial', quantidade);
+    creditarReferralPorProducao(user.id, quantidade);
+
+    json(res, 200, { ok: true, potes_ganhos: quantidade });
+  },
+
+  /* ═══ LOJA — apiários, capacidade do reservatório, relógio (flores) ═══ */
+
+  'POST /api/loja/apiario': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const { tipo } = await readBody(req);
+    if (!APIARIOS[tipo]) return json(res, 400, { error: 'Tipo de apiário inválido.' });
+
+    const state = aplicarProducao(user.id);
+    const { n } = db.prepare('SELECT COUNT(*) AS n FROM apiarios WHERE user_id=? AND tipo=?').get(user.id, tipo);
+    if (n >= APIARIO_MAX_POR_TIPO) return json(res, 400, { error: `Limite de ${APIARIO_MAX_POR_TIPO} apiários do tipo ${tipo} atingido.` });
+
+    const preco = precoProximoApiario(tipo, n);
+    if (state.nct < preco) return json(res, 400, { error: `Néctar insuficiente. Necessário: ${preco} NCT.` });
+
+    db.prepare('UPDATE game_state SET nct = nct - ? WHERE user_id = ?').run(preco, user.id);
+    db.prepare('INSERT INTO apiarios (user_id, tipo) VALUES (?, ?)').run(user.id, tipo);
+
+    json(res, 200, { ok: true, tipo, preco_pago: preco });
+  },
+
+  'POST /api/loja/capacidade': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const state = aplicarProducao(user.id);
+    if ((state.mel_cap_compras || 0) >= CAP_MAX_COMPRAS) return json(res, 400, { error: 'Capacidade máxima já comprada.' });
+    const preco = precoProximaCapacidade(state);
+    if (state.nct < preco) return json(res, 400, { error: `Néctar insuficiente. Necessário: ${preco} NCT.` });
+
+    db.prepare('UPDATE game_state SET nct = nct - ?, mel_cap_compras = mel_cap_compras + 1 WHERE user_id = ?').run(preco, user.id);
+    json(res, 200, { ok: true, preco_pago: preco, nova_capacidade: CAP_BASE + (state.mel_cap_compras + 1) * CAP_INCREMENTO });
+  },
+
+  'POST /api/loja/relogio': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const state = aplicarProducao(user.id);
+    if ((state.relogio_compras || 0) >= RELOGIO_MAX_COMPRAS) return json(res, 400, { error: 'Limite de compras do relógio atingido.' });
+    const preco = precoProximoRelogio(state);
+    if (state.nct < preco) return json(res, 400, { error: `Néctar insuficiente. Necessário: ${preco} NCT.` });
+
+    db.prepare('UPDATE game_state SET nct = nct - ?, relogio_compras = relogio_compras + 1, flores = flores + ? WHERE user_id = ?')
+      .run(preco, RELOGIO_FLORES_POR_COMPRA, user.id);
+    incrementarMeta(user.id, 'recarregar_energia', 1);
+    json(res, 200, { ok: true, preco_pago: preco, flores_ganhas: RELOGIO_FLORES_POR_COMPRA });
+  },
+
+  /* ═══ METAS (DESAFIOS) ═══ */
+
+  'GET /api/desafios': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    marcarLoginDiario(user.id);
+    const hoje = hojeStr();
+    const linhas = db.prepare('SELECT chave, progresso, resgatada FROM metas_diarias WHERE user_id=? AND data_meta=?').all(user.id, hoje);
+    const porChave = Object.fromEntries(linhas.map(l => [l.chave, l]));
+    const metas = METAS.map(m => {
+      const l = porChave[m.chave] || { progresso: 0, resgatada: 0 };
+      return {
+        chave: m.chave, titulo: m.titulo, descricao: m.descricao, target: m.target,
+        reward_nct: m.reward_nct, reward_flores: m.reward_flores,
+        progresso: Math.min(l.progresso, m.target),
+        completa: l.progresso >= m.target,
+        resgatada: !!l.resgatada,
+      };
+    });
+    json(res, 200, { metas });
+  },
+
+  'POST /api/desafios/resgatar': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const { chave } = await readBody(req);
+    const meta = METAS.find(m => m.chave === chave);
+    if (!meta) return json(res, 400, { error: 'Meta inválida.' });
+    const hoje = hojeStr();
+
+    // Update condicional atômico: só marca resgatada=1 se ainda não estava
+    // E o progresso já bate o alvo — se changes===0, alguém já resgatou (ou
+    // não tinha completado), então nunca paga duas vezes.
+    const info = db.prepare(`
+      UPDATE metas_diarias SET resgatada = 1
+      WHERE user_id=? AND data_meta=? AND chave=? AND resgatada=0 AND progresso >= ?
+    `).run(user.id, hoje, chave, meta.target);
+    if (info.changes === 0) return json(res, 400, { error: 'Meta ainda não concluída ou já resgatada.' });
+
+    db.prepare('UPDATE game_state SET nct = nct + ?, flores = flores + ? WHERE user_id = ?')
+      .run(meta.reward_nct, meta.reward_flores, user.id);
+
+    json(res, 200, { ok: true, reward_nct: meta.reward_nct, reward_flores: meta.reward_flores });
+  },
+
+  /* ═══ AMIGOS (REFERRAL) ═══ */
+
+  'GET /api/amigos': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const state = db.prepare('SELECT bonus_potes_pendente, bonus_potes_total FROM game_state WHERE user_id=?').get(user.id);
+    const indicados = db.prepare(`
+      SELECT u.username, u.created_at, i.validado, i.created_at AS indicado_em
+      FROM indicacoes i JOIN users u ON u.id = i.indicado_id
+      WHERE i.indicador_id = ?
+      ORDER BY i.id DESC
+    `).all(user.id);
+    json(res, 200, {
+      codigo: user.username,
+      link: `https://biffi.online/NectarMine/login.html?ref=${encodeURIComponent(user.username)}`,
+      total_indicados: indicados.length,
+      validados: indicados.filter(i => i.validado).length,
+      bonus_pendente: state.bonus_potes_pendente || 0,
+      bonus_total: state.bonus_potes_total || 0,
+      indicados: indicados.map(i => ({ username: i.username, validado: !!i.validado, indicado_em: i.indicado_em })),
+    });
+  },
+
+  'POST /api/amigos/resgatar': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const state = db.prepare('SELECT bonus_potes_pendente FROM game_state WHERE user_id=?').get(user.id);
+    const pendente = state.bonus_potes_pendente || 0;
+    if (pendente <= 0) return json(res, 400, { error: 'Nenhum bônus disponível para resgatar.' });
+
+    db.prepare(`
+      UPDATE game_state
+      SET potes = potes + ?, bonus_potes_pendente = 0, bonus_potes_total = bonus_potes_total + ?
+      WHERE user_id = ?
+    `).run(pendente, pendente, user.id);
+
+    json(res, 200, { ok: true, potes_resgatados: pendente });
+  },
+
+  /* ═══ MERCADO — comprar/vender potes por NCT ═══ */
+
+  'GET /api/mercado': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const historico = db.prepare('SELECT tipo, quantidade, preco_unit, total_nct, created_at FROM mercado_transacoes WHERE user_id=? ORDER BY id DESC LIMIT 30').all(user.id);
+    json(res, 200, { preco_pote: precoMelAtual(), historico });
+  },
+
+  'POST /api/mercado/vender': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const { quantidade } = await readBody(req);
+    const qtd = Math.floor(Number(quantidade));
+    if (!isFinite(qtd) || qtd <= 0) return json(res, 400, { error: 'Quantidade inválida.' });
+
+    const state = db.prepare('SELECT * FROM game_state WHERE user_id=?').get(user.id);
+    if (state.potes < qtd) return json(res, 400, { error: 'Você não tem potes suficientes.' });
+
+    const preco = precoMelAtual();
+    const total = qtd * preco;
+    db.prepare('UPDATE game_state SET potes = potes - ?, nct = nct + ? WHERE user_id=?').run(qtd, total, user.id);
+    db.prepare(`INSERT INTO mercado_transacoes (user_id, tipo, quantidade, preco_unit, total_nct) VALUES (?, 'venda', ?, ?, ?)`).run(user.id, qtd, preco, total);
+    incrementarMeta(user.id, 'vender_mercado', qtd);
+
+    json(res, 200, { ok: true, quantidade: qtd, preco_unit: preco, total_recebido: total });
+  },
+
+  'POST /api/mercado/comprar': async (req, res) => {
+    const user = getUserByToken(req);
+    if (!user) return json(res, 401, { error: 'Não autenticado.' });
+    const { quantidade } = await readBody(req);
+    const qtd = Math.floor(Number(quantidade));
+    if (!isFinite(qtd) || qtd <= 0) return json(res, 400, { error: 'Quantidade inválida.' });
+
+    const preco = precoMelAtual();
+    const total = qtd * preco;
+    const state = db.prepare('SELECT * FROM game_state WHERE user_id=?').get(user.id);
+    if (state.nct < total) return json(res, 400, { error: 'Néctar insuficiente.' });
+
+    db.prepare('UPDATE game_state SET nct = nct - ?, potes = potes + ? WHERE user_id=?').run(total, qtd, user.id);
+    db.prepare(`INSERT INTO mercado_transacoes (user_id, tipo, quantidade, preco_unit, total_nct) VALUES (?, 'compra', ?, ?, ?)`).run(user.id, qtd, preco, total);
+    incrementarMeta(user.id, 'comprar_mercado', qtd);
+
+    json(res, 200, { ok: true, quantidade: qtd, preco_unit: preco, total_pago: total });
   },
 
   'GET /api/ranking': async (req, res, url) => {

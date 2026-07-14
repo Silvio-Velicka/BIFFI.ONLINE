@@ -100,6 +100,11 @@
     return r || 'dashboard.html';
   }
 
+  // Link de convite (referral): login.html?ref=NOMEDOINDICADOR — se presente,
+  // abre direto na aba de cadastro com o código já pronto pra ser aplicado.
+  const REF_CODE = new URLSearchParams(location.search).get('ref');
+  if (REF_CODE) document.addEventListener('DOMContentLoaded', () => switchTab('criar'));
+
   // Se já está logado, vai direto ao destino (dashboard por padrão)
   if (localStorage.getItem('nm_token')) {
     NM_API.me().then(() => location.href = destinoAposLogin()).catch(() => localStorage.removeItem('nm_token'));
@@ -138,7 +143,8 @@
       await NM_API.register(
         document.getElementById('rg-user').value,
         document.getElementById('rg-email').value,
-        document.getElementById('rg-senha').value
+        document.getElementById('rg-senha').value,
+        REF_CODE
       );
       await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
       location.href = destinoAposLogin();

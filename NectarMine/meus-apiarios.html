@@ -17,7 +17,7 @@
     .sum-card strong { display:block; font-size:22px; color:var(--amarelo); }
     .sum-card span   { font-size:11px; color:var(--texto3); }
 
-    /* Grid de máquinas */
+    /* Grid de apiários possuídos */
     .machines-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(300px,1fr)); gap:18px; }
     .machine-card {
       background:var(--card); backdrop-filter:blur(10px);
@@ -31,13 +31,11 @@
       border-bottom:1px solid var(--borda2);
       display:flex; align-items:center; gap:12px;
     }
-    .machine-emoji { font-size:28px; }
+    .machine-emoji { width:40px; height:40px; border-radius:8px; object-fit:cover; flex-shrink:0; }
     .machine-card-header h3 { font-size:15px; color:var(--branco); }
     .machine-card-header .level { font-size:11px; color:var(--texto3); }
     .machine-badge-status { margin-left:auto; font-size:10px; padding:3px 10px; border-radius:20px; font-weight:bold; }
     .badge-ativo    { background:var(--verde-bg);  color:var(--verde);   border:1px solid var(--verde); }
-    .badge-inativo  { background:rgba(239,68,68,.1); color:var(--vermelho); border:1px solid var(--vermelho); }
-    .badge-upgrade  { background:var(--roxo-bg); color:var(--roxo2); border:1px solid var(--roxo); }
 
     .machine-card-body { padding:14px 16px; }
     .machine-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:12px; }
@@ -45,11 +43,9 @@
     .mstat label { font-size:10px; color:var(--texto3); display:block; }
     .mstat strong { font-size:14px; color:var(--amarelo); }
 
-    .machine-progress-wrap { margin-bottom:12px; }
-    .machine-progress-wrap label { font-size:11px; color:var(--texto2); display:flex; justify-content:space-between; margin-bottom:4px; }
     .machine-card-footer { display:flex; gap:8px; }
 
-    /* Adicionar máquina */
+    /* Adicionar apiário */
     .add-machine-card {
       background:var(--amarelo-bg2); border:2px dashed var(--borda);
       border-radius:var(--radius); padding:32px;
@@ -60,18 +56,21 @@
     .add-machine-card i { font-size:32px; color:var(--texto3); }
     .add-machine-card span { color:var(--texto2); font-size:14px; }
 
-    /* Loja de máquinas (modal interno) */
+    /* Loja (modal interno) */
     .shop-overlay { display:none; position:fixed; inset:0; z-index:200; background:rgba(0,0,0,.7); backdrop-filter:blur(4px); align-items:center; justify-content:center; }
     .shop-overlay.open { display:flex; }
-    .shop-modal { background:var(--preto3); border:1px solid var(--borda); border-radius:var(--radius-lg); padding:28px; width:700px; max-width:95vw; max-height:85vh; overflow-y:auto; }
-    .shop-modal h2 { font-size:18px; color:var(--branco); margin-bottom:18px; }
+    .shop-modal { background:var(--preto3); border:1px solid var(--borda); border-radius:var(--radius-lg); padding:28px; width:760px; max-width:95vw; max-height:85vh; overflow-y:auto; }
+    .shop-modal h2 { font-size:18px; color:var(--branco); margin-bottom:6px; }
+    .shop-section-label { font-size:11px; color:var(--texto3); text-transform:uppercase; letter-spacing:1px; margin:18px 0 10px; }
     .shop-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(190px,1fr)); gap:14px; }
     .shop-item { background:var(--card); border:1px solid var(--borda2); border-radius:var(--radius); padding:16px; text-align:center; transition:border-color .2s; }
     .shop-item:hover { border-color:var(--borda); }
+    .shop-item .shop-img { width:64px; height:64px; object-fit:cover; border-radius:10px; margin:0 auto 8px; display:block; }
     .shop-item .emoji { font-size:32px; margin-bottom:6px; }
     .shop-item h4 { font-size:13px; color:var(--branco); margin-bottom:4px; }
     .shop-item p  { font-size:11px; color:var(--texto3); margin-bottom:10px; }
     .shop-item .price { font-size:15px; color:var(--amarelo); font-weight:bold; margin-bottom:10px; }
+    .shop-item .price.maxed { color:var(--texto3); font-size:12px; }
 
     @media(max-width:900px){ .prod-summary{grid-template-columns:1fr 1fr;} }
     @media(max-width:600px){ .prod-summary{grid-template-columns:1fr;} }
@@ -91,132 +90,25 @@
 
     <div class="page-header">
       <h1><i class="fa-solid fa-industry" style="color:var(--amarelo)"></i> Meus Apiários</h1>
-      <button class="btn btn-primary" onclick="document.querySelector('.shop-overlay').classList.add('open')">
+      <button class="btn btn-primary" onclick="abrirLoja()">
         <i class="fa-solid fa-plus"></i> Comprar Apiário
       </button>
     </div>
 
     <!-- Sumário -->
     <div class="prod-summary">
-      <div class="sum-card"><strong>4</strong><span>Apiários ativos</span></div>
-      <div class="sum-card"><strong>312/h</strong><span>Produção total</span></div>
-      <div class="sum-card"><strong>7.488/dia</strong><span>Potes / dia</span></div>
-      <div class="sum-card"><strong>4.800</strong><span>🌸 Flores restantes</span></div>
+      <div class="sum-card"><strong id="sum-ativos">0</strong><span>Apiários ativos</span></div>
+      <div class="sum-card"><strong id="sum-producao">0/h</strong><span>Produção total</span></div>
+      <div class="sum-card"><strong id="sum-dia">0/dia</strong><span>Potes / dia</span></div>
+      <div class="sum-card"><strong id="sum-flores">0</strong><span>🌸 Flores restantes</span></div>
     </div>
 
     <!-- AD mid -->
     <div class="anuncio anuncio-300" style="float:right;margin:0 0 16px 20px;"><!-- AD 300×250 -->Pub 300×250</div>
 
-    <!-- Grid de máquinas -->
-    <div class="machines-grid" style="clear:both;">
-
-      <!-- Máquina 1 -->
-      <div class="machine-card">
-        <div class="machine-card-header">
-          <div class="machine-emoji">🏭</div>
-          <div><h3>Colmeia Industrial</h3><div class="level">Nível 3 · Capacidade 800 potes</div></div>
-          <span class="machine-badge-status badge-ativo">ATIVO</span>
-        </div>
-        <div class="machine-card-body">
-          <div class="machine-stats">
-            <div class="mstat"><label>Produção</label><strong>120/h</strong></div>
-            <div class="mstat"><label>Custo flores</label><strong>24/h</strong></div>
-            <div class="mstat"><label>Potes acumulados</label><strong>480</strong></div>
-            <div class="mstat"><label>Próximo upgrade</label><strong>5.000 NCT</strong></div>
-          </div>
-          <div class="machine-progress-wrap">
-            <label><span>Capacidade</span><span>480 / 800</span></label>
-            <div class="progress-bar"><div class="progress-fill" id="cap1" style="width:0%"></div></div>
-          </div>
-          <div class="machine-card-footer">
-            <button class="btn btn-sm btn-primary" onclick="coletarMaquina('Colmeia Industrial', 480)"><i class="fa-solid fa-jar"></i> Coletar</button>
-            <button class="btn btn-sm btn-roxo" onclick="upgradeMaquina('Colmeia Industrial', 5000)"><i class="fa-solid fa-arrow-trend-up"></i> Upgrade</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Máquina 2 -->
-      <div class="machine-card">
-        <div class="machine-card-header">
-          <div class="machine-emoji">🐝</div>
-          <div><h3>Apiário Avançado</h3><div class="level">Nível 2 · Capacidade 500 potes</div></div>
-          <span class="machine-badge-status badge-ativo">ATIVO</span>
-        </div>
-        <div class="machine-card-body">
-          <div class="machine-stats">
-            <div class="mstat"><label>Produção</label><strong>96/h</strong></div>
-            <div class="mstat"><label>Custo flores</label><strong>18/h</strong></div>
-            <div class="mstat"><label>Potes acumulados</label><strong>384</strong></div>
-            <div class="mstat"><label>Próximo upgrade</label><strong>3.000 NCT</strong></div>
-          </div>
-          <div class="machine-progress-wrap">
-            <label><span>Capacidade</span><span>384 / 500</span></label>
-            <div class="progress-bar"><div class="progress-fill" id="cap2" style="width:0%"></div></div>
-          </div>
-          <div class="machine-card-footer">
-            <button class="btn btn-sm btn-primary" onclick="coletarMaquina('Apiário Avançado', 384)"><i class="fa-solid fa-jar"></i> Coletar</button>
-            <button class="btn btn-sm btn-roxo" onclick="upgradeMaquina('Apiário Avançado', 3000)"><i class="fa-solid fa-arrow-trend-up"></i> Upgrade</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Máquina 3 -->
-      <div class="machine-card">
-        <div class="machine-card-header">
-          <div class="machine-emoji">🌺</div>
-          <div><h3>Apiário Floral</h3><div class="level">Nível 1 · Capacidade 300 potes</div></div>
-          <span class="machine-badge-status badge-ativo">ATIVO</span>
-        </div>
-        <div class="machine-card-body">
-          <div class="machine-stats">
-            <div class="mstat"><label>Produção</label><strong>56/h</strong></div>
-            <div class="mstat"><label>Custo flores</label><strong>10/h</strong></div>
-            <div class="mstat"><label>Potes acumulados</label><strong>224</strong></div>
-            <div class="mstat"><label>Próximo upgrade</label><strong>1.500 NCT</strong></div>
-          </div>
-          <div class="machine-progress-wrap">
-            <label><span>Capacidade</span><span>224 / 300</span></label>
-            <div class="progress-bar"><div class="progress-fill" id="cap3" style="width:0%"></div></div>
-          </div>
-          <div class="machine-card-footer">
-            <button class="btn btn-sm btn-primary" onclick="coletarMaquina('Apiário Floral', 224)"><i class="fa-solid fa-jar"></i> Coletar</button>
-            <button class="btn btn-sm btn-roxo" onclick="upgradeMaquina('Apiário Floral', 1500)"><i class="fa-solid fa-arrow-trend-up"></i> Upgrade</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Máquina 4 -->
-      <div class="machine-card">
-        <div class="machine-card-header">
-          <div class="machine-emoji">🔬</div>
-          <div><h3>Plataforma Quântica</h3><div class="level">Nível 1 · Capacidade 200 potes</div></div>
-          <span class="machine-badge-status badge-ativo">ATIVO</span>
-        </div>
-        <div class="machine-card-body">
-          <div class="machine-stats">
-            <div class="mstat"><label>Produção</label><strong>40/h</strong></div>
-            <div class="mstat"><label>Custo flores</label><strong>8/h</strong></div>
-            <div class="mstat"><label>Potes acumulados</label><strong>159</strong></div>
-            <div class="mstat"><label>Próximo upgrade</label><strong>2.000 NCT</strong></div>
-          </div>
-          <div class="machine-progress-wrap">
-            <label><span>Capacidade</span><span>159 / 200</span></label>
-            <div class="progress-bar"><div class="progress-fill" id="cap4" style="width:0%"></div></div>
-          </div>
-          <div class="machine-card-footer">
-            <button class="btn btn-sm btn-primary" onclick="coletarMaquina('Plataforma Quântica', 159)"><i class="fa-solid fa-jar"></i> Coletar</button>
-            <button class="btn btn-sm btn-roxo" onclick="upgradeMaquina('Plataforma Quântica', 2000)"><i class="fa-solid fa-arrow-trend-up"></i> Upgrade</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Adicionar nova -->
-      <div class="add-machine-card" onclick="document.querySelector('.shop-overlay').classList.add('open')" style="cursor:pointer;">
-        <i class="fa-solid fa-plus"></i>
-        <span>Comprar novo apiário</span>
-        <small style="color:var(--texto3);font-size:11px;">A partir de 500 NCT</small>
-      </div>
-
+    <!-- Grid de apiários -->
+    <div class="machines-grid" id="machines-grid" style="clear:both;">
+      <div style="color:var(--texto3);font-size:13px;">Carregando seus apiários...</div>
     </div>
 
     <!-- Propagandas do rodapé -->
@@ -245,55 +137,22 @@
 <!-- LOJA MODAL -->
 <div class="shop-overlay" id="shop">
   <div class="shop-modal">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;">
       <h2>🏪 Loja de Apiários</h2>
-      <button class="btn btn-sm btn-ghost" onclick="document.querySelector('.shop-overlay').classList.remove('open')"><i class="fa-solid fa-xmark"></i></button>
+      <button class="btn btn-sm btn-ghost" onclick="fecharLoja()"><i class="fa-solid fa-xmark"></i></button>
     </div>
     <div class="anuncio anuncio-728" style="margin-bottom:16px;"><!-- AD 728×90 -->Publicidade 728×90</div>
-    <div class="shop-grid">
-      <div class="shop-item">
-        <div class="emoji">🐣</div>
-        <h4>Apiário Iniciante</h4>
-        <p>20 potes/h · 200 cap</p>
-        <div class="price">500 NCT</div>
-        <button class="btn btn-sm btn-primary btn-block" onclick="comprarMaquina('Apiário Iniciante', 500)">Comprar</button>
-      </div>
-      <div class="shop-item">
-        <div class="emoji">🌺</div>
-        <h4>Apiário Floral</h4>
-        <p>56 potes/h · 300 cap</p>
-        <div class="price">1.200 NCT</div>
-        <button class="btn btn-sm btn-primary btn-block" onclick="comprarMaquina('Apiário Floral', 1200)">Comprar</button>
-      </div>
-      <div class="shop-item">
-        <div class="emoji">🐝</div>
-        <h4>Apiário Avançado</h4>
-        <p>96 potes/h · 500 cap</p>
-        <div class="price">2.500 NCT</div>
-        <button class="btn btn-sm btn-primary btn-block" onclick="comprarMaquina('Apiário Avançado', 2500)">Comprar</button>
-      </div>
-      <div class="shop-item">
-        <div class="emoji">🏭</div>
-        <h4>Colmeia Industrial</h4>
-        <p>120 potes/h · 800 cap</p>
-        <div class="price">4.500 NCT</div>
-        <button class="btn btn-sm btn-primary btn-block" onclick="comprarMaquina('Colmeia Industrial', 4500)">Comprar</button>
-      </div>
-      <div class="shop-item">
-        <div class="emoji">🔬</div>
-        <h4>Plataforma Quântica</h4>
-        <p>40 potes/h · 200 cap · bônus +5%</p>
-        <div class="price">1.800 NCT</div>
-        <button class="btn btn-sm btn-primary btn-block" onclick="comprarMaquina('Plataforma Quântica', 1800)">Comprar</button>
-      </div>
-      <div class="shop-item" style="border-color:var(--borda-roxo);">
-        <div class="emoji">🌌</div>
-        <h4>Mega Colmeia</h4>
-        <p>280 potes/h · 2000 cap</p>
-        <div class="price" style="color:var(--roxo2);">16.500 NCT</div>
-        <button class="btn btn-sm btn-roxo btn-block" onclick="comprarMaquina('Mega Colmeia', 16500)">Comprar</button>
-      </div>
+
+    <div class="shop-section-label">Apiários</div>
+    <div class="shop-grid" id="shop-apiarios">
+      <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
     </div>
+
+    <div class="shop-section-label">Capacidade do Reservatório</div>
+    <div class="shop-grid" id="shop-capacidade"></div>
+
+    <div class="shop-section-label">Relógio (Flores / Energia)</div>
+    <div class="shop-grid" id="shop-relogio"></div>
   </div>
 </div>
 
@@ -301,32 +160,169 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
-  window.addEventListener('load', () => {
-    setTimeout(() => {
-      nmAnimateProgress('#cap1', 60);
-      nmAnimateProgress('#cap2', 76.8);
-      nmAnimateProgress('#cap3', 74.7);
-      nmAnimateProgress('#cap4', 79.5);
-    }, 2600);
-  });
+  let STATUS = null;
 
-  async function coletarMaquina(nome, potes) {
-    const { isConfirmed } = await NM_SWAL.withAd(
-      `🍯 Coletar ${nome}`,
-      `Você vai coletar <strong>${nmFormatInt(potes)} potes</strong> deste apiário.`,
-      'Coletar agora', 'ad-coletar-modal'
-    );
-    if (isConfirmed) NM_SWAL.success('Coletado!', `<strong>${nmFormatInt(potes)} potes</strong> adicionados ao seu estoque.`);
+  document.addEventListener('nm:ready', carregar);
+
+  async function carregar() {
+    try {
+      STATUS = await NM_API.jogoStatus();
+      renderSumario();
+      renderApiarios();
+      renderLoja();
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
   }
 
-  async function comprarMaquina(nome, preco) {
+  function renderSumario() {
+    const s = STATUS;
+    document.getElementById('sum-ativos').textContent = nmFormatInt(s.apiarios.length);
+    document.getElementById('sum-producao').textContent = nmFormatInt(s.producao_hora) + '/h';
+    document.getElementById('sum-dia').textContent = nmFormatInt(s.producao_hora * 24) + '/dia';
+    document.getElementById('sum-flores').textContent = nmFormatInt(Math.floor(s.flores));
+  }
+
+  function renderApiarios() {
+    const grid = document.getElementById('machines-grid');
+    const contagem = {};
+    for (const a of STATUS.apiarios) contagem[a.tipo] = (contagem[a.tipo] || 0) + 1;
+
+    const tipos = Object.keys(contagem);
+    if (tipos.length === 0) {
+      grid.innerHTML = `
+        <div class="add-machine-card" onclick="abrirLoja()" style="cursor:pointer;grid-column:1/-1;">
+          <i class="fa-solid fa-plus"></i>
+          <span>Você ainda não tem nenhum apiário</span>
+          <small style="color:var(--texto3);font-size:11px;">A partir de ${nmFormatInt(STATUS.loja.apiarios.iniciante.preco)} NCT</small>
+        </div>`;
+      return;
+    }
+
+    let html = '';
+    for (const tipo of tipos) {
+      const spec = STATUS.loja.apiarios[tipo];
+      const qtd = contagem[tipo];
+      html += `
+        <div class="machine-card">
+          <div class="machine-card-header">
+            <img class="machine-emoji" src="${spec.imagem}" alt="${spec.nome}"/>
+            <div><h3>${spec.nome}</h3><div class="level">${qtd}x possuído${qtd > 1 ? 's' : ''}</div></div>
+            <span class="machine-badge-status badge-ativo">ATIVO</span>
+          </div>
+          <div class="machine-card-body">
+            <div class="machine-stats">
+              <div class="mstat"><label>Produção unitária</label><strong>${spec.producao}/h</strong></div>
+              <div class="mstat"><label>Custo flores unit.</label><strong>${spec.energia}/h</strong></div>
+              <div class="mstat"><label>Produção total</label><strong>${nmFormatInt(spec.producao * qtd)}/h</strong></div>
+              <div class="mstat"><label>${spec.bloqueado ? 'Limite atingido' : 'Próximo custa'}</label><strong>${spec.bloqueado ? '—' : nmFormatInt(spec.preco_atual) + ' NCT'}</strong></div>
+            </div>
+            <div class="machine-card-footer">
+              <button class="btn btn-sm btn-primary" ${spec.bloqueado ? 'disabled' : ''} onclick="comprarApiario('${tipo}')">
+                <i class="fa-solid fa-plus"></i> Comprar mais um
+              </button>
+            </div>
+          </div>
+        </div>`;
+    }
+
+    html += `
+      <div class="add-machine-card" onclick="abrirLoja()" style="cursor:pointer;">
+        <i class="fa-solid fa-plus"></i>
+        <span>Comprar novo apiário</span>
+        <small style="color:var(--texto3);font-size:11px;">Veja todos os tipos na loja</small>
+      </div>`;
+    grid.innerHTML = html;
+  }
+
+  function renderLoja() {
+    const l = STATUS.loja;
+
+    document.getElementById('shop-apiarios').innerHTML = Object.values(l.apiarios).map(spec => `
+      <div class="shop-item">
+        <img class="shop-img" src="${spec.imagem}" alt="${spec.nome}"/>
+        <h4>${spec.nome}</h4>
+        <p>${spec.producao} potes/h · ${spec.energia} flores/h · ${spec.possui} possuído(s)</p>
+        ${spec.bloqueado
+          ? `<div class="price maxed">Limite de ${spec.max} atingido</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
+          : `<div class="price">${nmFormatInt(spec.preco_atual)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarApiario('${spec.tipo}')">Comprar</button>`
+        }
+      </div>
+    `).join('');
+
+    const cap = l.capacidade;
+    document.getElementById('shop-capacidade').innerHTML = `
+      <div class="shop-item">
+        <div class="emoji">🏺</div>
+        <h4>+${cap.incremento} de capacidade</h4>
+        <p>Atual: ${nmFormatInt(cap.atual)} · Compras: ${cap.compras}/${cap.max_compras}</p>
+        ${cap.proximo_preco === null
+          ? `<div class="price maxed">Limite atingido</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
+          : `<div class="price">${nmFormatInt(cap.proximo_preco)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarCapacidade()">Comprar</button>`
+        }
+      </div>`;
+
+    const rel = l.relogio;
+    document.getElementById('shop-relogio').innerHTML = `
+      <div class="shop-item">
+        <div class="emoji">🌼</div>
+        <h4>+${rel.flores_por_compra} Flores</h4>
+        <p>Compras: ${rel.compras}/${rel.max_compras}</p>
+        ${rel.proximo_preco === null
+          ? `<div class="price maxed">Limite atingido</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
+          : `<div class="price">${nmFormatInt(rel.proximo_preco)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarRelogio()">Comprar</button>`
+        }
+      </div>`;
+  }
+
+  function abrirLoja() { document.getElementById('shop').classList.add('open'); }
+  function fecharLoja() { document.getElementById('shop').classList.remove('open'); }
+
+  async function comprarApiario(tipo) {
+    const spec = STATUS.loja.apiarios[tipo];
     const { isConfirmed } = await NM_SWAL.confirm(
-      `Comprar ${nome}`,
-      `Custo: <strong>${nmFormatInt(preco)} NCT</strong><br/>Este apiário será ativado imediatamente.`
+      `Comprar ${spec.nome}`,
+      `Custo: <strong>${nmFormatInt(spec.preco_atual)} NCT</strong><br/>Este apiário será ativado imediatamente.`
     );
-    if (isConfirmed) {
-      document.querySelector('.shop-overlay').classList.remove('open');
-      NM_SWAL.success('Compra realizada!', `<strong>${nome}</strong> foi adicionado à sua colmeia e já está produzindo mel!`);
+    if (!isConfirmed) return;
+    try {
+      await NM_API.comprarApiario(tipo);
+      await carregar();
+      NM_SWAL.success('Compra realizada!', `<strong>${spec.nome}</strong> foi adicionado à sua colmeia e já está produzindo mel!`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  async function comprarCapacidade() {
+    const cap = STATUS.loja.capacidade;
+    const { isConfirmed } = await NM_SWAL.confirm(
+      'Ampliar Capacidade',
+      `Custo: <strong>${nmFormatInt(cap.proximo_preco)} NCT</strong><br/>+${cap.incremento} de capacidade no reservatório.`
+    );
+    if (!isConfirmed) return;
+    try {
+      await NM_API.comprarCapacidade();
+      await carregar();
+      NM_SWAL.success('Capacidade ampliada!', 'Seu reservatório agora comporta mais mel.');
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  async function comprarRelogio() {
+    const rel = STATUS.loja.relogio;
+    const { isConfirmed } = await NM_SWAL.confirm(
+      'Comprar Flores',
+      `Custo: <strong>${nmFormatInt(rel.proximo_preco)} NCT</strong><br/>+${rel.flores_por_compra} flores imediatamente.`
+    );
+    if (!isConfirmed) return;
+    try {
+      await NM_API.comprarRelogio();
+      await carregar();
+      NM_SWAL.success('Flores recarregadas!', `+${rel.flores_por_compra} flores adicionadas.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
     }
   }
 </script>

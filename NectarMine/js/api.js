@@ -24,8 +24,8 @@ const NM_API = {
   },
 
   /* ── Autenticação ── */
-  async register(username, email, password) {
-    const d = await NM_API.call('/api/register', 'POST', { username, email, password });
+  async register(username, email, password, ref) {
+    const d = await NM_API.call('/api/register', 'POST', { username, email, password, ref });
     localStorage.setItem('nm_token', d.token);
     return d.user;
   },
@@ -56,6 +56,26 @@ const NM_API = {
 
   // Modal comunicativo da tela de login (conteúdo editável no futuro painel admin)
   announcement: () => NM_API.call('/api/announcement'),
+
+  /* ── Jogo (economia real: apiários, produção, loja) ── */
+  jogoStatus: () => NM_API.call('/api/jogo/status'),
+  envasar: () => NM_API.call('/api/jogo/envasar', 'POST'),
+  comprarApiario: (tipo) => NM_API.call('/api/loja/apiario', 'POST', { tipo }),
+  comprarCapacidade: () => NM_API.call('/api/loja/capacidade', 'POST'),
+  comprarRelogio: () => NM_API.call('/api/loja/relogio', 'POST'),
+
+  /* ── Desafios (metas diárias) ── */
+  desafios: () => NM_API.call('/api/desafios'),
+  resgatarDesafio: (chave) => NM_API.call('/api/desafios/resgatar', 'POST', { chave }),
+
+  /* ── Amigos (referral) ── */
+  amigos: () => NM_API.call('/api/amigos'),
+  resgatarBonusAmigos: () => NM_API.call('/api/amigos/resgatar', 'POST'),
+
+  /* ── Mercado (compra/venda real de potes) ── */
+  mercado: () => NM_API.call('/api/mercado'),
+  venderMercado: (quantidade) => NM_API.call('/api/mercado/vender', 'POST', { quantidade }),
+  comprarMercado: (quantidade) => NM_API.call('/api/mercado/comprar', 'POST', { quantidade }),
 };
 
 /* ── GUARD DE AUTENTICAÇÃO ──

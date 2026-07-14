@@ -292,31 +292,31 @@
           <div class="stat-icon yellow">🍯</div>
           <div class="stat-info">
             <label>Néctar Total</label>
-            <strong id="stat-nectar">48.320</strong>
-            <small>+1.240 hoje</small>
+            <strong id="stat-nectar">0</strong>
+            <small>saldo atual</small>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon yellow">📦</div>
           <div class="stat-info">
             <label>Potes em Estoque</label>
-            <strong id="stat-potes">1.247</strong>
-            <small>Pronto para envasar</small>
+            <strong id="stat-potes">0</strong>
+            <small>prontos para vender</small>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon verde">🌸</div>
           <div class="stat-info">
             <label>Flores (Energia)</label>
-            <strong id="stat-flores">4.800</strong>
-            <small id="flores-pct">80% do tank</small>
+            <strong id="stat-flores">0</strong>
+            <small id="flores-pct">—</small>
           </div>
         </div>
         <div class="stat-card">
           <div class="stat-icon roxo">⚙️</div>
           <div class="stat-info">
             <label>Produção / hora</label>
-            <strong id="stat-prod">312</strong>
+            <strong id="stat-prod">0</strong>
             <small>potes/hora</small>
           </div>
         </div>
@@ -338,26 +338,26 @@
           </div>
           <div class="dash-card-body">
             <div class="producao-gauge">
-              <div class="gauge-value" id="potes-disp">1.247</div>
-              <div class="gauge-unit">potes acumulados</div>
-              <div class="gauge-sub">Última coleta: há 2 horas</div>
+              <div class="gauge-value" id="potes-disp">0</div>
+              <div class="gauge-unit">de mel acumulado (pronto para envasar)</div>
+              <div class="gauge-sub" id="reservatorio-sub">—</div>
             </div>
             <div class="producao-stats">
               <div class="prod-stat">
-                <strong id="prod-hora">312</strong>
+                <strong id="prod-hora">0</strong>
                 <span>Potes / hora</span>
               </div>
               <div class="prod-stat">
-                <strong id="prod-dia">7.488</strong>
+                <strong id="prod-dia">0</strong>
                 <span>Potes / dia</span>
               </div>
               <div class="prod-stat">
-                <strong id="prod-preco">24,57</strong>
+                <strong id="prod-preco">0,00</strong>
                 <span>Preço atual (NCT)</span>
               </div>
               <div class="prod-stat">
-                <strong id="prod-valor">30.614</strong>
-                <span>Valor em NCT</span>
+                <strong id="prod-valor">0</strong>
+                <span>Valor estimado (NCT)</span>
               </div>
             </div>
 
@@ -365,7 +365,7 @@
             <div class="flores-bar">
               <div class="flores-label">
                 <span>🌸 Flores (energia)</span>
-                <strong>4.800 / 6.000</strong>
+                <strong id="flores-label-val">0</strong>
               </div>
               <div class="progress-bar">
                 <div class="progress-fill" id="flores-fill" style="width:0%"></div>
@@ -390,59 +390,12 @@
             <div class="colmeia-ad-wrap anuncio-desktop">
               <div class="anuncio anuncio-160" id="ad-colmeia-1"><!-- AD 160×200 -->Pub 160×200</div>
             </div>
-            <div class="machine-list">
-              <div class="machine-item">
-                <div class="machine-icon">🏭</div>
-                <div class="machine-info">
-                  <strong>Colmeia Industrial</strong>
-                  <span>Nível 3 · Capacity 800 potes</span>
-                </div>
-                <div class="machine-prod">
-                  <strong>120/h</strong>
-                  <span>potes</span>
-                </div>
-                <span class="machine-badge ativo">ATIVO</span>
-              </div>
-              <div class="machine-item">
-                <div class="machine-icon">🐝</div>
-                <div class="machine-info">
-                  <strong>Apiário Avançado</strong>
-                  <span>Nível 2 · Capacity 500 potes</span>
-                </div>
-                <div class="machine-prod">
-                  <strong>96/h</strong>
-                  <span>potes</span>
-                </div>
-                <span class="machine-badge ativo">ATIVO</span>
-              </div>
-              <div class="machine-item">
-                <div class="machine-icon">🌺</div>
-                <div class="machine-info">
-                  <strong>Apiário Floral</strong>
-                  <span>Nível 1 · Capacity 300 potes</span>
-                </div>
-                <div class="machine-prod">
-                  <strong>56/h</strong>
-                  <span>potes</span>
-                </div>
-                <span class="machine-badge ativo">ATIVO</span>
-              </div>
-              <div class="machine-item">
-                <div class="machine-icon">🔬</div>
-                <div class="machine-info">
-                  <strong>Plataforma Quântica</strong>
-                  <span>Nível 1 · Capacity 200 potes</span>
-                </div>
-                <div class="machine-prod">
-                  <strong>40/h</strong>
-                  <span>potes</span>
-                </div>
-                <span class="machine-badge ativo">ATIVO</span>
-              </div>
+            <div class="machine-list" id="colmeia-list">
+              <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
             </div>
             <div style="margin-top:12px;">
               <a href="meus-apiarios.html" class="btn btn-block btn-roxo btn-sm">
-                <i class="fa-solid fa-arrow-trend-up"></i> Fazer Upgrade
+                <i class="fa-solid fa-arrow-trend-up"></i> Comprar / Expandir
               </a>
             </div>
           </div>
@@ -462,8 +415,8 @@
           <div id="chart-mercado"></div>
           <div class="mercado-info">
             <div class="mercado-price">
-              <strong>24,57 NCT</strong>
-              <span>▲ +6.51%</span>
+              <strong id="mercado-preco-mini">0,00 NCT</strong>
+              <span style="color:var(--texto3);font-size:11px;">por pote</span>
             </div>
             <button class="btn-vender" onclick="envasar()">
               <i class="fa-solid fa-jar"></i> Envasar agora
@@ -481,37 +434,8 @@
             <span class="badge badge-muted">Top produtores</span>
           </div>
           <div class="dash-card-body">
-            <div class="ranking-list">
-              <div class="rank-item">
-                <div class="rank-pos gold">🥇</div>
-                <div class="rank-avatar">👑</div>
-                <div class="rank-name">MelRainha</div>
-                <div class="rank-val">24.850 potes</div>
-              </div>
-              <div class="rank-item">
-                <div class="rank-pos silver">🥈</div>
-                <div class="rank-avatar">🐝</div>
-                <div class="rank-name">AbelhaFuriosa</div>
-                <div class="rank-val">19.320 potes</div>
-              </div>
-              <div class="rank-item">
-                <div class="rank-pos bronze">🥉</div>
-                <div class="rank-avatar">🍯</div>
-                <div class="rank-name">NectarKing</div>
-                <div class="rank-val">15.744 potes</div>
-              </div>
-              <div class="rank-item">
-                <div class="rank-pos other">4</div>
-                <div class="rank-avatar">🌺</div>
-                <div class="rank-name">FloralMaster</div>
-                <div class="rank-val">12.100 potes</div>
-              </div>
-              <div class="rank-item" style="background:var(--amarelo-bg);border-radius:6px;padding:6px 8px;">
-                <div class="rank-pos other" style="color:var(--amarelo)">28</div>
-                <div class="rank-avatar" style="border-color:var(--borda)">😎</div>
-                <div class="rank-name me">BIFFI (você)</div>
-                <div class="rank-val">1.247 potes</div>
-              </div>
+            <div class="ranking-list" id="ranking-list">
+              <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
             </div>
             <a href="ranking-producao.html" class="rank-see-all">Ver ranking completo →</a>
           </div>
@@ -527,47 +451,8 @@
             <a href="desafios.html" class="btn btn-sm btn-ghost">Ver todas</a>
           </div>
           <div class="dash-card-body">
-            <div class="mission-list">
-              <div class="mission-item">
-                <div class="mission-top">
-                  <strong>🍯 Produzir 500 potes</strong>
-                  <span>347 / 500</span>
-                </div>
-                <div class="mission-bottom">
-                  <div class="progress-bar"><div class="progress-fill" id="m1" style="width:0%"></div></div>
-                  <span class="mission-reward">+200 NCT</span>
-                </div>
-              </div>
-              <div class="mission-item">
-                <div class="mission-top">
-                  <strong>💧 Envasar 100 potes</strong>
-                  <span>100 / 100 ✅</span>
-                </div>
-                <div class="mission-bottom">
-                  <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-                  <span class="mission-reward" style="color:var(--verde)">CONCLUÍDA</span>
-                </div>
-              </div>
-              <div class="mission-item">
-                <div class="mission-top">
-                  <strong>🌸 Recarregar flores (x1)</strong>
-                  <span>0 / 1</span>
-                </div>
-                <div class="mission-bottom">
-                  <div class="progress-bar"><div class="progress-fill" id="m3" style="width:0%"></div></div>
-                  <span class="mission-reward">+100 NCT</span>
-                </div>
-              </div>
-              <div class="mission-item">
-                <div class="mission-top">
-                  <strong>👥 Convidar 1 amigo</strong>
-                  <span>0 / 1</span>
-                </div>
-                <div class="mission-bottom">
-                  <div class="progress-bar"><div class="progress-fill" id="m4" style="width:0%"></div></div>
-                  <span class="mission-reward">+500 NCT</span>
-                </div>
-              </div>
+            <div class="mission-list" id="mission-list">
+              <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
             </div>
           </div>
         </div>
@@ -637,28 +522,140 @@
     chart.render();
   }
 
-  /* ── ENVASAR (com anúncio modal) ── */
-  async function envasar() {
-    const { isConfirmed } = await NM_SWAL.withAd(
-      '🍯 Envasar Potes',
-      'Você tem <strong>1.247 potes</strong> prontos para envasar.<br/>Valor estimado: <strong>30.614 NCT</strong>.',
-      'Envasar tudo',
-      'ad-envasar-modal'
-    );
-    if (isConfirmed) {
-      await NM_SWAL.success('Envase concluído!', 'Seus <strong>1.247 potes</strong> foram enviados para o envasamento. <br/>Néctar creditado em breve.');
+  // Referência puramente visual pra barra de flores (não é um teto real no
+  // servidor — só o valor que consideramos "tanque cheio" pra desenhar a
+  // barra). Deve bater com RELOGIO_MAX_COMPRAS(5) * RELOGIO_FLORES_POR_COMPRA(50) + base(100).
+  const FLORES_REF_MAX = 350;
+
+  let STATUS = null;
+
+  document.addEventListener('nm:ready', carregarDashboard);
+
+  async function carregarDashboard() {
+    try {
+      STATUS = await NM_API.jogoStatus();
+      renderStats();
+      renderColmeia();
+      renderMercadoMini();
+      await Promise.all([renderRanking(), renderMissoes()]);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
     }
   }
 
-  /* ── PROGRESS BARS ── */
+  function renderStats() {
+    const s = STATUS;
+    document.getElementById('stat-nectar').textContent = nmFormat(s.nct, 0);
+    document.getElementById('stat-potes').textContent = nmFormatInt(s.potes);
+    document.getElementById('stat-flores').textContent = nmFormatInt(Math.floor(s.flores));
+    document.getElementById('flores-pct').textContent = Math.round(Math.min(100, s.flores / FLORES_REF_MAX * 100)) + '% do tanque';
+    document.getElementById('stat-prod').textContent = nmFormatInt(s.producao_hora);
+
+    document.getElementById('potes-disp').textContent = nmFormatInt(Math.floor(s.mel));
+    document.getElementById('reservatorio-sub').textContent =
+      `${nmFormatInt(Math.floor(s.reservatorio.atual))} / ${nmFormatInt(s.reservatorio.capacidade)} de capacidade${s.reservatorio.cheio ? ' — CHEIO' : ''}`;
+    document.getElementById('prod-hora').textContent = nmFormatInt(s.producao_hora);
+    document.getElementById('prod-dia').textContent = nmFormatInt(s.producao_hora * 24);
+    document.getElementById('prod-preco').textContent = nmFormat(s.mercado.preco_pote);
+    document.getElementById('prod-valor').textContent = nmFormat(s.mel * s.mercado.preco_pote, 0);
+    document.getElementById('flores-label-val').textContent = nmFormatInt(Math.floor(s.flores));
+    nmAnimateProgress('#flores-fill', Math.min(100, s.flores / FLORES_REF_MAX * 100));
+  }
+
+  function renderColmeia() {
+    const el = document.getElementById('colmeia-list');
+    const contagem = {};
+    for (const a of STATUS.apiarios) contagem[a.tipo] = (contagem[a.tipo] || 0) + 1;
+    const tipos = Object.keys(contagem);
+    if (tipos.length === 0) {
+      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Você ainda não tem apiários. <a href="meus-apiarios.html" style="color:var(--amarelo)">Comprar o primeiro →</a></div>`;
+      return;
+    }
+    el.innerHTML = tipos.map(tipo => {
+      const spec = STATUS.loja.apiarios[tipo];
+      const qtd = contagem[tipo];
+      return `
+        <div class="machine-item">
+          <img class="machine-icon" src="${spec.imagem}" alt="${spec.nome}" style="width:22px;height:22px;object-fit:cover;border-radius:4px;"/>
+          <div class="machine-info">
+            <strong>${spec.nome}</strong>
+            <span>${qtd}x possuído${qtd > 1 ? 's' : ''}</span>
+          </div>
+          <div class="machine-prod">
+            <strong>${nmFormatInt(spec.producao * qtd)}/h</strong>
+            <span>potes</span>
+          </div>
+          <span class="machine-badge ativo">ATIVO</span>
+        </div>`;
+    }).join('');
+  }
+
+  function renderMercadoMini() {
+    document.getElementById('mercado-preco-mini').textContent = nmFormat(STATUS.mercado.preco_pote) + ' NCT';
+  }
+
+  async function renderRanking() {
+    const el = document.getElementById('ranking-list');
+    try {
+      const { ranking } = await NM_API.ranking('producao', 'diario');
+      if (!ranking.length) { el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Ninguém produziu ainda hoje.</div>`; return; }
+      const medalhas = ['🥇', '🥈', '🥉'];
+      const classesPos = ['gold', 'silver', 'bronze'];
+      el.innerHTML = ranking.slice(0, 5).map((r, i) => `
+        <div class="rank-item" ${r.me ? 'style="background:var(--amarelo-bg);border-radius:6px;padding:6px 8px;"' : ''}>
+          <div class="rank-pos ${classesPos[i] || 'other'}">${medalhas[i] || (i + 1)}</div>
+          <div class="rank-avatar" ${r.me ? 'style="border-color:var(--borda)"' : ''}>${r.avatar || '🐝'}</div>
+          <div class="rank-name ${r.me ? 'me' : ''}">${r.username}${r.me ? ' (você)' : ''}</div>
+          <div class="rank-val">${nmFormatInt(r.score)} potes</div>
+        </div>`).join('');
+    } catch {
+      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Ranking indisponível.</div>`;
+    }
+  }
+
+  async function renderMissoes() {
+    const el = document.getElementById('mission-list');
+    try {
+      const { metas } = await NM_API.desafios();
+      el.innerHTML = metas.slice(0, 4).map(m => `
+        <div class="mission-item">
+          <div class="mission-top">
+            <strong>${m.titulo}</strong>
+            <span>${nmFormatInt(m.progresso)} / ${nmFormatInt(m.target)}${m.completa ? ' ✅' : ''}</span>
+          </div>
+          <div class="mission-bottom">
+            <div class="progress-bar ${m.completa ? 'progress-bar-verde' : ''}"><div class="progress-fill ${m.completa ? 'progress-fill-verde' : ''}" style="width:${Math.min(100, m.progresso / m.target * 100)}%"></div></div>
+            <span class="mission-reward" style="${m.resgatada ? 'color:var(--verde)' : ''}">${m.resgatada ? 'COLETADA' : '+' + nmFormatInt(m.reward_nct) + ' NCT'}</span>
+          </div>
+        </div>`).join('');
+    } catch {
+      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Missões indisponíveis.</div>`;
+    }
+  }
+
+  /* ── ENVASAR (com anúncio modal) ── */
+  async function envasar() {
+    if (!STATUS || STATUS.mel <= 0) { NM_SWAL.info('Nada para envasar', 'Seu reservatório de mel ainda está vazio.'); return; }
+    const potesEstimados = Math.floor(STATUS.mel);
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '🍯 Envasar Potes',
+      `Você tem <strong>${nmFormatInt(potesEstimados)} de mel</strong> prontos para envasar.`,
+      'Envasar tudo',
+      'ad-envasar-modal'
+    );
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.envasar();
+      await carregarDashboard();
+      await NM_SWAL.success('Envase concluído!', `<strong>${nmFormatInt(r.potes_ganhos)} potes</strong> adicionados ao seu estoque.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  /* ── PROGRESS BARS / CHART ── */
   window.addEventListener('load', () => {
-    setTimeout(() => {
-      nmAnimateProgress('#flores-fill', 80);
-      nmAnimateProgress('#m1', 69.4);
-      nmAnimateProgress('#m3', 0);
-      nmAnimateProgress('#m4', 0);
-      initChart();
-    }, 2600);
+    setTimeout(() => { initChart(); }, 2600);
   });
 </script>
 </body>

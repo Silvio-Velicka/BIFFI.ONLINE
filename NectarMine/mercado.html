@@ -150,17 +150,12 @@
       <!-- Preço atual -->
       <div class="price-header">
         <div>
-          <div class="price-big" id="preco-atual-display">24,57 NCT</div>
-          <div class="price-change" id="preco-change-display">▲ +6.51% (24h)</div>
+          <div class="price-big" id="preco-atual-display">0,00 NCT</div>
+          <div class="price-change" id="preco-change-display">Preço fixado pelo mercado</div>
         </div>
         <div class="price-meta">
           <span>Por pote de mel</span>
           <strong>Atualizado agora</strong>
-        </div>
-        <div class="price-stats">
-          <div class="pstat"><label>MÍNIMA 24H</label><strong>22,10</strong></div>
-          <div class="pstat"><label>MÁXIMA 24H</label><strong>25,80</strong></div>
-          <div class="pstat"><label>VOLUME</label><strong>84.320</strong></div>
         </div>
       </div>
 
@@ -170,15 +165,15 @@
           <div class="market-stat">
             <div class="ms-icon"><i class="fa-solid fa-jar"></i></div>
             <div>
-              <div class="ms-value" id="ms-potes">1.247</div>
+              <div class="ms-value" id="ms-potes">0</div>
               <div class="ms-label">Potes em estoque</div>
             </div>
           </div>
           <div class="market-stat">
             <div class="ms-icon"><i class="fa-solid fa-chart-line"></i></div>
             <div>
-              <div class="ms-value" id="ms-negociado">32.625</div>
-              <div class="ms-label">Potes negociados (total)</div>
+              <div class="ms-value" id="ms-negociado">0</div>
+              <div class="ms-label">Potes negociados (recente)</div>
             </div>
           </div>
           <div class="anuncio anuncio-160"><!-- AD 160×300 -->Publicidade 160×300</div>
@@ -203,8 +198,8 @@
       <div class="trade-panel">
         <div class="trade-card buy">
           <h3><i class="fa-solid fa-cart-plus"></i> Comprar Potes</h3>
-          <div class="trade-row"><span>Preço atual:</span><strong id="preco-compra-label">24,57 NCT/pote</strong></div>
-          <div class="trade-row"><span>Seu saldo:</span><strong id="saldo-nct-label">45.000 NCT</strong></div>
+          <div class="trade-row"><span>Preço atual:</span><strong id="preco-compra-label">0,00 NCT/pote</strong></div>
+          <div class="trade-row"><span>Seu saldo:</span><strong id="saldo-nct-label">0 NCT</strong></div>
           <label style="font-size:11px;color:var(--texto3);">Quantidade de compra</label>
           <div class="trade-input-wrap">
             <input type="number" id="qtd-compra" value="100" min="1" oninput="calcCompra()"/>
@@ -217,7 +212,7 @@
           </div>
           <div class="trade-total">
             <div class="label">Custo total</div>
-            <div class="value" id="total-compra">2.457 NCT</div>
+            <div class="value" id="total-compra">0 NCT</div>
           </div>
           <button class="btn btn-buy btn-block" onclick="comprar()">
             <i class="fa-solid fa-jar"></i> Comprar Agora
@@ -226,21 +221,21 @@
 
         <div class="trade-card sell">
           <h3><i class="fa-solid fa-cart-arrow-down"></i> Vender Potes</h3>
-          <div class="trade-row"><span>Preço atual:</span><strong>24,57 NCT/pote</strong></div>
-          <div class="trade-row"><span>Seus potes:</span><strong id="seus-potes-label">1.247</strong></div>
+          <div class="trade-row"><span>Preço atual:</span><strong id="preco-venda-label">0,00 NCT/pote</strong></div>
+          <div class="trade-row"><span>Seus potes:</span><strong id="seus-potes-label">0</strong></div>
           <label style="font-size:11px;color:var(--texto3);">Quantidade de venda</label>
           <div class="trade-input-wrap">
-            <input type="number" id="qtd-venda" value="500" min="1" max="1247" oninput="calcVenda()"/>
+            <input type="number" id="qtd-venda" value="0" min="1" max="0" oninput="calcVenda()"/>
             <span class="unit">potes</span>
           </div>
           <div class="trade-quick">
             <button class="btn btn-sm btn-ghost" onclick="setQtdVenda(100)">100</button>
             <button class="btn btn-sm btn-ghost" onclick="setQtdVenda(500)">500</button>
-            <button class="btn btn-sm btn-ghost" onclick="setQtdVenda(1247)">Tudo</button>
+            <button class="btn btn-sm btn-ghost" onclick="setQtdVendaMax()">Tudo</button>
           </div>
           <div class="trade-total">
             <div class="label">Você receberá</div>
-            <div class="value" id="total-venda">12.285 NCT</div>
+            <div class="value" id="total-venda">0 NCT</div>
           </div>
           <button class="btn btn-sell btn-block" onclick="vender()">
             <i class="fa-solid fa-jar"></i> Vender Agora
@@ -251,75 +246,11 @@
       <!-- AD mid -->
       <div class="anuncio anuncio-728"><!-- AD 728×90 -->Publicidade 728×90</div>
 
-      <!-- 3 métricas -->
-      <div class="metrics-row">
-        <div class="metric-card">
-          <div class="m-label">Preço do Pote</div>
-          <div class="m-value" id="metric-preco">24,57 NCT</div>
-        </div>
-        <div class="metric-card">
-          <div class="m-label">Variação 24h</div>
-          <div class="m-value up" id="metric-variacao">+6.51%</div>
-        </div>
-        <div class="metric-card">
-          <div class="m-label">Risco de Mercado</div>
-          <div class="m-value"><span class="badge badge-yellow">Moderado</span></div>
-        </div>
-      </div>
-
-      <!-- Ordens Pendentes -->
-      <div>
-        <div class="section-title"><i class="fa-solid fa-clock"></i> Ordens Pendentes</div>
-        <div class="list-card" id="lista-pendentes">
-          <div class="list-row">
-            <div class="list-main">
-              <strong>1.000 potes — venda programada</strong>
-              <span>Executa automaticamente quando o preço atingir 26,00 NCT/pote</span>
-            </div>
-            <span class="status-pill pendente">PENDENTE</span>
-          </div>
-        </div>
-      </div>
-
       <!-- Histórico -->
       <div>
         <div class="section-title"><i class="fa-solid fa-list"></i> Histórico do Mercado</div>
         <div class="list-card" id="lista-historico">
-          <div class="list-row">
-            <div class="list-main">
-              <strong>300 potes vendidos</strong>
-              <span>VENDIDO · Preço 24,57 NCT · Total 7.371 NCT · 30/06 21:45</span>
-            </div>
-            <span class="status-pill executada">EXECUTADA</span>
-          </div>
-          <div class="list-row">
-            <div class="list-main">
-              <strong>1.000 potes comprados</strong>
-              <span>COMPRADO · Preço 23,80 NCT · Total 23.800 NCT · 30/06 18:20</span>
-            </div>
-            <span class="status-pill executada">EXECUTADA</span>
-          </div>
-          <div class="list-row">
-            <div class="list-main">
-              <strong>200 potes vendidos</strong>
-              <span>VENDIDO · Preço 22,40 NCT · Total 4.480 NCT · 30/06 12:05</span>
-            </div>
-            <span class="status-pill executada">EXECUTADA</span>
-          </div>
-          <div class="list-row">
-            <div class="list-main">
-              <strong>750 potes vendidos</strong>
-              <span>VENDIDO · Preço 21,90 NCT · Total 16.425 NCT · 29/06 22:10</span>
-            </div>
-            <span class="status-pill executada">EXECUTADA</span>
-          </div>
-          <div class="list-row">
-            <div class="list-main">
-              <strong>400 potes comprados</strong>
-              <span>COMPRADO · Preço 22,10 NCT · Total 8.840 NCT · 29/06 15:30</span>
-            </div>
-            <span class="status-pill executada">EXECUTADA</span>
-          </div>
+          <div class="list-row"><div class="list-main"><strong>Carregando...</strong></div></div>
         </div>
       </div>
 
@@ -360,8 +291,56 @@
 <script src="js/api.js"></script>
 <script>
   let mainChart;
-  let PRECO_ATUAL = 24.57;
-  let MEUS_POTES = 1247;
+  // O gráfico de candles é puramente ilustrativo — o preço REAL de negociação
+  // (usado em toda compra/venda) é sempre o valor vindo do servidor
+  // (PRECO_ATUAL), nunca um número gerado no gráfico. O NectarMine não tem um
+  // motor de flutuação de preço; o preço é fixo até um admin alterá-lo
+  // (mesmo modelo do Martian Gold Rush).
+  let PRECO_ATUAL = 0;
+  let MEUS_POTES = 0;
+
+  document.addEventListener('nm:ready', carregarMercado);
+
+  async function carregarMercado() {
+    try {
+      const [status, mercado] = await Promise.all([NM_API.jogoStatus(), NM_API.mercado()]);
+      PRECO_ATUAL = mercado.preco_pote;
+      MEUS_POTES = status.potes;
+
+      document.getElementById('preco-atual-display').textContent = nmFormat(PRECO_ATUAL) + ' NCT';
+      document.getElementById('preco-compra-label').textContent = nmFormat(PRECO_ATUAL) + ' NCT/pote';
+      document.getElementById('preco-venda-label').textContent = nmFormat(PRECO_ATUAL) + ' NCT/pote';
+      document.getElementById('saldo-nct-label').textContent = nmFormat(status.nct, 0) + ' NCT';
+      document.getElementById('ms-potes').textContent = nmFormatInt(MEUS_POTES);
+      document.getElementById('seus-potes-label').textContent = nmFormatInt(MEUS_POTES);
+      document.getElementById('qtd-venda').max = MEUS_POTES;
+
+      const negociadoRecente = mercado.historico.reduce((s, h) => s + h.quantidade, 0);
+      document.getElementById('ms-negociado').textContent = nmFormatInt(negociadoRecente);
+
+      const lista = document.getElementById('lista-historico');
+      if (!mercado.historico.length) {
+        lista.innerHTML = `<div class="list-row"><div class="list-main"><strong>Nenhuma negociação ainda.</strong></div></div>`;
+      } else {
+        lista.innerHTML = mercado.historico.map(h => {
+          const data = new Date(h.created_at.replace(' ', 'T') + 'Z').toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+          return `
+            <div class="list-row">
+              <div class="list-main">
+                <strong>${nmFormatInt(h.quantidade)} potes ${h.tipo === 'venda' ? 'vendidos' : 'comprados'}</strong>
+                <span>${h.tipo === 'venda' ? 'VENDIDO' : 'COMPRADO'} · Preço ${nmFormat(h.preco_unit)} NCT · Total ${nmFormat(h.total_nct, 0)} NCT · ${data}</span>
+              </div>
+              <span class="status-pill executada">EXECUTADA</span>
+            </div>`;
+        }).join('');
+      }
+
+      calcCompra();
+      calcVenda();
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
 
   function genCandles(periods, base = 22) {
     const data = []; let p = base;
@@ -404,27 +383,13 @@
     document.getElementById('total-venda').textContent = nmFormat(qtd * PRECO_ATUAL, 0) + ' NCT';
   }
   function setQtdVenda(n) { document.getElementById('qtd-venda').value = n; calcVenda(); }
+  function setQtdVendaMax() { document.getElementById('qtd-venda').value = MEUS_POTES; calcVenda(); }
 
   function calcCompra() {
     const qtd = parseInt(document.getElementById('qtd-compra').value)||0;
     document.getElementById('total-compra').textContent = nmFormat(qtd * PRECO_ATUAL, 0) + ' NCT';
   }
   function setQtdCompra(n) { document.getElementById('qtd-compra').value = n; calcCompra(); }
-
-  function addHistorico(tipo, qtd, total) {
-    const lista = document.getElementById('lista-historico');
-    const row = document.createElement('div');
-    row.className = 'list-row';
-    const agora = new Date().toLocaleString('pt-BR', {day:'2-digit',month:'2-digit',hour:'2-digit',minute:'2-digit'});
-    row.innerHTML = `
-      <div class="list-main">
-        <strong>${nmFormatInt(qtd)} potes ${tipo === 'venda' ? 'vendidos' : 'comprados'}</strong>
-        <span>${tipo === 'venda' ? 'VENDIDO' : 'COMPRADO'} · Preço ${nmFormat(PRECO_ATUAL)} NCT · Total ${nmFormat(total,0)} NCT · ${agora}</span>
-      </div>
-      <span class="status-pill executada">EXECUTADA</span>
-    `;
-    lista.prepend(row);
-  }
 
   async function vender() {
     const qtd = parseInt(document.getElementById('qtd-venda').value)||0;
@@ -436,12 +401,13 @@
       'Vender agora', 'ad-venda-modal'
     );
     if (!isConfirmed) return;
-    MEUS_POTES -= qtd;
-    document.getElementById('ms-potes').textContent = nmFormatInt(MEUS_POTES);
-    document.getElementById('seus-potes-label').textContent = nmFormatInt(MEUS_POTES);
-    document.getElementById('qtd-venda').max = MEUS_POTES;
-    addHistorico('venda', qtd, total);
-    NM_SWAL.success('Venda concluída!', `Você recebeu <strong>${nmFormat(total,0)} NCT</strong> pela venda de ${nmFormatInt(qtd)} potes.`);
+    try {
+      const r = await NM_API.venderMercado(qtd);
+      await carregarMercado();
+      NM_SWAL.success('Venda concluída!', `Você recebeu <strong>${nmFormat(r.total_recebido,0)} NCT</strong> pela venda de ${nmFormatInt(r.quantidade)} potes.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
   }
 
   async function comprar() {
@@ -454,12 +420,13 @@
       'Comprar agora', 'ad-compra-modal'
     );
     if (!isConfirmed) return;
-    MEUS_POTES += qtd;
-    document.getElementById('ms-potes').textContent = nmFormatInt(MEUS_POTES);
-    document.getElementById('seus-potes-label').textContent = nmFormatInt(MEUS_POTES);
-    document.getElementById('qtd-venda').max = MEUS_POTES;
-    addHistorico('compra', qtd, total);
-    NM_SWAL.success('Compra concluída!', `Você adquiriu <strong>${nmFormatInt(qtd)} potes</strong> por ${nmFormat(total,0)} NCT.`);
+    try {
+      const r = await NM_API.comprarMercado(qtd);
+      await carregarMercado();
+      NM_SWAL.success('Compra concluída!', `Você adquiriu <strong>${nmFormatInt(r.quantidade)} potes</strong> por ${nmFormat(r.total_pago,0)} NCT.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
   }
 
   initChart(genCandles(60));

@@ -150,14 +150,14 @@
       <i class="fa-solid fa-user-group" style="color:var(--roxo2)"></i>
       <div>
         <strong style="display:block;font-size:11px;color:var(--texto3);text-transform:uppercase;letter-spacing:.5px;">Total de Parceiros</strong>
-        <span class="ref-info-value" id="ref-total-parceiros">2</span>
+        <span class="ref-info-value" id="ref-total-parceiros">0</span>
       </div>
     </div>
     <div class="info-box info-box-yellow referral-info-box">
       <i class="fa-solid fa-coins" style="color:var(--amarelo)"></i>
       <div>
         <strong style="display:block;font-size:11px;color:var(--texto3);text-transform:uppercase;letter-spacing:.5px;">Potes Disponíveis</strong>
-        <span class="ref-info-value" id="ref-potes-disponiveis">47 potes</span>
+        <span class="ref-info-value" id="ref-potes-disponiveis">0 potes</span>
       </div>
     </div>
   </div>
@@ -167,7 +167,7 @@
     <h3><i class="fa-solid fa-link"></i> Seu link de convite</h3>
     <p>Envie este link para seus amigos. Quando eles jogarem e produzirem, você acumula potes de mel por indicação.</p>
     <div class="referral-link-row">
-      <input type="text" id="referral-link" readonly value="https://biffi.online/NectarMine/login.html?ref=BIFFI"/>
+      <input type="text" id="referral-link" readonly value=""/>
       <button class="btn btn-sm btn-primary" onclick="copiarLinkConvite()"><i class="fa-solid fa-copy"></i> Copiar e convidar agora</button>
     </div>
   </div>
@@ -184,10 +184,9 @@
     <h3><i class="fa-solid fa-users"></i> Parceiros Registrados</h3>
     <div style="overflow-x:auto;">
       <table class="referral-table">
-        <thead><tr><th>Usuário</th><th>Email</th><th>Data Cadastro</th></tr></thead>
-        <tbody>
-          <tr><td class="user">USMARS_SPACE</td><td>gami.henrique@gmail.com</td><td>11/06/2026 07:55</td></tr>
-          <tr><td class="user">BIFFI</td><td>biffitexport@gmail.com</td><td>23/06/2026 18:56</td></tr>
+        <thead><tr><th>Usuário</th><th>Status</th><th>Data Cadastro</th></tr></thead>
+        <tbody id="tabela-parceiros">
+          <tr><td colspan="3" style="color:var(--texto3);">Carregando...</td></tr>
         </tbody>
       </table>
     </div>
@@ -219,19 +218,58 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
+  let AMIGOS = null;
+
+  document.addEventListener('nm:ready', carregarAmigos);
+
+  async function carregarAmigos() {
+    try {
+      AMIGOS = await NM_API.amigos();
+      document.getElementById('ref-total-parceiros').textContent = nmFormatInt(AMIGOS.total_indicados);
+      document.getElementById('ref-potes-disponiveis').textContent = nmFormatInt(AMIGOS.bonus_pendente) + ' potes';
+      document.getElementById('referral-link').value = AMIGOS.link;
+
+      const tbody = document.getElementById('tabela-parceiros');
+      if (!AMIGOS.indicados.length) {
+        tbody.innerHTML = `<tr><td colspan="3" style="color:var(--texto3);">Você ainda não indicou ninguém.</td></tr>`;
+      } else {
+        tbody.innerHTML = AMIGOS.indicados.map(i => `
+          <tr>
+            <td class="user">${i.username}</td>
+            <td>${i.validado ? '<span style="color:var(--verde)">Validado</span>' : '<span style="color:var(--texto3)">Aguardando 1ª produção</span>'}</td>
+            <td>${new Date(i.indicado_em.replace(' ', 'T') + 'Z').toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
+          </tr>`).join('');
+      }
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
   async function copiarLinkConvite() {
     const link = document.getElementById('referral-link').value;
+    if (!link) return;
     try { await navigator.clipboard.writeText(link); } catch (e) {}
     NM_SWAL.success('Link copiado!', `Compartilhe com seus amigos:<br/><code style="color:var(--amarelo)">${link}</code>`);
   }
 
   async function resgatarPotes() {
+    if (!AMIGOS || AMIGOS.bonus_pendente <= 0) {
+      NM_SWAL.info('Nada para resgatar', 'Você ainda não tem potes de comissão acumulados.');
+      return;
+    }
     const { isConfirmed } = await NM_SWAL.confirm(
       '🏺 Resgatar Potes',
-      'Você tem <strong>47 potes de mel</strong> em comissões de indicação disponíveis.<br/>Deseja transferir para o seu estoque agora?',
+      `Você tem <strong>${nmFormatInt(AMIGOS.bonus_pendente)} potes de mel</strong> em comissões de indicação disponíveis.<br/>Deseja transferir para o seu estoque agora?`,
       'Resgatar agora'
     );
-    if (isConfirmed) NM_SWAL.success('Potes resgatados!', '<strong>47 potes de mel</strong> foram adicionados ao seu estoque.');
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.resgatarBonusAmigos();
+      await carregarAmigos();
+      NM_SWAL.success('Potes resgatados!', `<strong>${nmFormatInt(r.potes_resgatados)} potes de mel</strong> foram adicionados ao seu estoque.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
   }
 </script>
 </body>

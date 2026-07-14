@@ -80,117 +80,8 @@
       <p>Complete tarefas diárias, evolua sua operação e receba recompensas em Néctar, XP e Energia.</p>
     </div>
 
-    <div class="missoes-grid">
-
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Login Diário</h4>
-          <div class="mcard-icon">🎁</div>
-        </div>
-        <p class="mcard-desc">Entre no jogo uma vez por dia.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>1 / 1</span></div>
-          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +300</span>
-          <span class="reward-chip xp">XP +100</span>
-          <span class="reward-chip flores">Energia +10</span>
-        </div>
-        <button class="mcard-btn coletada" disabled>Coletada</button>
-      </div>
-
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Extrair Potes</h4>
-          <div class="mcard-icon">🍯</div>
-        </div>
-        <p class="mcard-desc">Transfira o mel do reservatório para seus potes.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>100 / 100</span></div>
-          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +500</span>
-          <span class="reward-chip xp">XP +250</span>
-        </div>
-        <button class="mcard-btn coletada" disabled>Coletada</button>
-      </div>
-
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Recarregar Energia</h4>
-          <div class="mcard-icon">⚡</div>
-        </div>
-        <p class="mcard-desc">Recarregue a energia das suas máquinas extratoras.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>1 / 1</span></div>
-          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +150</span>
-          <span class="reward-chip flores">Energia +25</span>
-        </div>
-        <button class="mcard-btn coletada" disabled>Coletada</button>
-      </div>
-
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Comprar no Mercado</h4>
-          <div class="mcard-icon">📈</div>
-        </div>
-        <p class="mcard-desc">Compre potes no mercado global.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>5 / 5</span></div>
-          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +750</span>
-          <span class="reward-chip xp">XP +300</span>
-        </div>
-        <button class="mcard-btn coletada" disabled>Coletada</button>
-      </div>
-
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Vender no Mercado</h4>
-          <div class="mcard-icon">💰</div>
-        </div>
-        <p class="mcard-desc">Venda potes no mercado global.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>5 / 5</span></div>
-          <div class="progress-bar progress-bar-verde"><div class="progress-fill progress-fill-verde" style="width:100%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +750</span>
-          <span class="reward-chip xp">XP +300</span>
-        </div>
-        <button class="mcard-btn coletada" disabled>Coletada</button>
-      </div>
-
-      <div class="mcard">
-        <div class="mcard-head">
-          <h4>Produção Industrial</h4>
-          <div class="mcard-icon">🏭</div>
-        </div>
-        <p class="mcard-desc">Produza mel usando suas máquinas.</p>
-        <span class="mcard-tipo">Missão diária</span>
-        <div>
-          <div class="mcard-progress-label"><span>Progresso</span><span>150 / 1.000</span></div>
-          <div class="progress-bar"><div class="progress-fill" id="m-prod" style="width:0%"></div></div>
-        </div>
-        <div class="mcard-rewards">
-          <span class="reward-chip nct">Néctar +2.000</span>
-          <span class="reward-chip xp">XP +900</span>
-        </div>
-        <button class="mcard-btn andamento" disabled>Em andamento</button>
-      </div>
-
+    <div class="missoes-grid" id="missoes-grid">
+      <div style="color:var(--texto3);font-size:13px;">Carregando desafios...</div>
     </div>
 
     <!-- Propagandas do rodapé -->
@@ -219,11 +110,58 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
-  window.addEventListener('load',()=>{
-    setTimeout(()=>{
-      nmAnimateProgress('#m-prod',15);
-    },2600);
-  });
+  const ICONES_META = {
+    login_diario: '🎁', extrair_potes: '🍯', recarregar_energia: '⚡',
+    comprar_mercado: '📈', vender_mercado: '💰', producao_industrial: '🏭',
+  };
+
+  document.addEventListener('nm:ready', carregarDesafios);
+
+  async function carregarDesafios() {
+    const grid = document.getElementById('missoes-grid');
+    try {
+      const { metas } = await NM_API.desafios();
+      grid.innerHTML = metas.map(m => {
+        const pct = Math.min(100, m.progresso / m.target * 100);
+        const rewards = `
+          <span class="reward-chip nct">Néctar +${nmFormatInt(m.reward_nct)}</span>
+          ${m.reward_flores > 0 ? `<span class="reward-chip flores">Energia +${m.reward_flores}</span>` : ''}
+        `;
+        let btn;
+        if (m.resgatada) btn = `<button class="mcard-btn coletada" disabled>Coletada</button>`;
+        else if (m.completa) btn = `<button class="mcard-btn coletar" onclick="resgatar('${m.chave}')">Coletar</button>`;
+        else btn = `<button class="mcard-btn andamento" disabled>Em andamento</button>`;
+
+        return `
+          <div class="mcard">
+            <div class="mcard-head">
+              <h4>${m.titulo}</h4>
+              <div class="mcard-icon">${ICONES_META[m.chave] || '🎯'}</div>
+            </div>
+            <p class="mcard-desc">${m.descricao}</p>
+            <span class="mcard-tipo">Missão diária</span>
+            <div>
+              <div class="mcard-progress-label"><span>Progresso</span><span>${nmFormatInt(m.progresso)} / ${nmFormatInt(m.target)}</span></div>
+              <div class="progress-bar ${m.completa ? 'progress-bar-verde' : ''}"><div class="progress-fill ${m.completa ? 'progress-fill-verde' : ''}" style="width:${pct}%"></div></div>
+            </div>
+            <div class="mcard-rewards">${rewards}</div>
+            ${btn}
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = `<div style="color:var(--texto3);font-size:13px;">Não foi possível carregar os desafios.</div>`;
+    }
+  }
+
+  async function resgatar(chave) {
+    try {
+      const r = await NM_API.resgatarDesafio(chave);
+      await carregarDesafios();
+      NM_SWAL.success('Recompensa coletada!', `+${nmFormatInt(r.reward_nct)} NCT${r.reward_flores > 0 ? ` · +${r.reward_flores} flores` : ''}`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
 </script>
 </body>
 </html>
