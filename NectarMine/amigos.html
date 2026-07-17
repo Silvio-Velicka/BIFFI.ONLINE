@@ -280,4 +280,29 @@
   async function copiarLinkConvite() {
     const link = document.getElementById('referral-link').value;
     if (!link) return;
-    try { await navigator.clipboard.writeText(
+    try { await navigator.clipboard.writeText(link); } catch (e) {}
+    NM_SWAL.success('Link copiado!', `Compartilhe com seus amigos:<br/><code style="color:var(--amarelo)">${link}</code>`);
+  }
+
+  async function resgatarPotes() {
+    if (!AMIGOS || AMIGOS.bonus_pendente <= 0) {
+      NM_SWAL.info('Nada para resgatar', 'Você ainda não tem potes de comissão acumulados.');
+      return;
+    }
+    const { isConfirmed } = await NM_SWAL.confirm(
+      '🏺 Resgatar Potes',
+      `Você tem <strong>${nmFormatInt(AMIGOS.bonus_pendente)} potes de mel</strong> em comissões de indicação disponíveis.<br/>Deseja transferir para o seu estoque agora?`,
+      'Resgatar agora'
+    );
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.resgatarBonusAmigos();
+      await carregarAmigos();
+      NM_SWAL.success('Potes resgatados!', `<strong>${nmFormatInt(r.potes_resgatados)} potes de mel</strong> foram adicionados ao seu estoque.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+</script>
+</body>
+</html>

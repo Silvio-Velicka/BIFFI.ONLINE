@@ -194,3 +194,16 @@
     }
   }
 
+  function switchR(tipo, btn) {
+    document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    loadRanking(tipo);
+  }
+
+  document.addEventListener('DOMContentLoaded', () => loadRanking('diario'));
+  let t=23*3600+12*60+44;
+  function updateTimer(){const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('reset').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;if(t>0)t--;}
+  setInterval(updateTimer,1000);
+</script>
+</body>
+</html>

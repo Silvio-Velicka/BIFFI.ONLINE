@@ -456,4 +456,22 @@
     const total = qtd * PRECO_ATUAL;
     const { isConfirmed } = await NM_SWAL.withAd(
       '🍯 Confirmar Compra',
-      `Comprar <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmF
+      `Comprar <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmFormat(PRECO_ATUAL)} NCT/pote</strong><br/>Custo: <strong>${nmFormat(total,0)} NCT</strong>`,
+      'Comprar agora', 'ad-compra-modal'
+    );
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.comprarMercado(qtd);
+      await carregarMercado();
+      NM_SWAL.success('Compra concluída!', `Você adquiriu <strong>${nmFormatInt(r.quantidade)} potes</strong> por ${nmFormat(r.total_pago,0)} NCT.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  initChart(genCandles(60));
+  calcVenda();
+  calcCompra();
+</script>
+</body>
+</html>

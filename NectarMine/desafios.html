@@ -171,4 +171,29 @@
               <div class="mcard-icon">${ICONES_META[m.chave] || '🎯'}</div>
             </div>
             <p class="mcard-desc">${m.descricao}</p>
-            <span class="mcard-tipo">M
+            <span class="mcard-tipo">Missão diária</span>
+            <div>
+              <div class="mcard-progress-label"><span>Progresso</span><span>${nmFormatInt(m.progresso)} / ${nmFormatInt(m.target)}</span></div>
+              <div class="progress-bar ${m.completa ? 'progress-bar-verde' : ''}"><div class="progress-fill ${m.completa ? 'progress-fill-verde' : ''}" style="width:${pct}%"></div></div>
+            </div>
+            <div class="mcard-rewards">${rewards}</div>
+            ${btn}
+          </div>`;
+      }).join('');
+    } catch (e) {
+      grid.innerHTML = `<div style="color:var(--texto3);font-size:13px;">Não foi possível carregar os desafios.</div>`;
+    }
+  }
+
+  async function resgatar(chave) {
+    try {
+      const r = await NM_API.resgatarDesafio(chave);
+      await carregarDesafios();
+      NM_SWAL.success('Recompensa coletada!', `+${nmFormatInt(r.reward_nct)} NCT${r.reward_flores > 0 ? ` · +${r.reward_flores} flores` : ''}`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+</script>
+</body>
+</html>

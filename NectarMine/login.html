@@ -156,4 +156,21 @@
   async function doRegister(e) {
     e.preventDefault();
     const btn = document.getElementById('btn-criar');
-   
+    btn.disabled = true;
+    try {
+      await NM_API.register(
+        document.getElementById('rg-user').value,
+        document.getElementById('rg-email').value,
+        document.getElementById('rg-senha').value,
+        REF_CODE
+      );
+      await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
+      location.href = destinoAposLogin();
+    } catch (err) {
+      NM_SWAL.error('Ops!', err.message);
+      btn.disabled = false;
+    }
+  }
+</script>
+</body>
+</html>

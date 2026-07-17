@@ -265,4 +265,31 @@
     document.querySelectorAll('.crypto-btn').forEach(b=>b.classList.remove('selected'));
     document.getElementById('crypto-'+symbol).classList.add('selected');
     currentCrypto = symbol; currentRate = rate;
-    document.getElemen
+    document.getElementById('crypto-label').textContent = '('+symbol+')';
+    calcSaque();
+  }
+
+  function calcSaque() {
+    const qty = parseInt(document.getElementById('saque-qty').value)||0;
+    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
+    document.getElementById('from-val').textContent = nmFormatInt(qty)+' NCT';
+    document.getElementById('to-val').textContent   = converted+' '+currentCrypto;
+  }
+
+  function setSaqueQty(n) { document.getElementById('saque-qty').value=n; calcSaque(); }
+
+  async function sacar() {
+    const qty = parseInt(document.getElementById('saque-qty').value)||0;
+    const addr = document.getElementById('wallet-addr').value.trim();
+    if (!addr) { NM_SWAL.error('Endereço inválido','Informe o endereço da sua carteira.'); return; }
+    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
+    const {isConfirmed} = await NM_SWAL.withAd(
+      '💸 Confirmar Saque',
+      `Sacar <strong>${nmFormatInt(qty)} NCT</strong> → <strong>${converted} ${currentCrypto}</strong><br/>Para: <code style="font-size:11px;color:var(--texto2);">${addr.substring(0,20)}...</code>`,
+      'Confirmar Saque', 'ad-saque-modal'
+    );
+    if (isConfirmed) NM_SWAL.success('Saque solicitado!', `Seu saque de <strong>${converted} ${currentCrypto}</strong> foi registrado e será processado em até 24h.`);
+  }
+</script>
+</body>
+</html>

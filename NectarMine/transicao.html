@@ -75,4 +75,25 @@
 
   <!-- AD RODAPÉ (zerads 728x90) -->
   <div class="transicao-ad-fixed ad-bottom" id="ad-transicao-bottom">
-    <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></ifr
+    <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+  </div>
+
+  <script src="js/global.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const destino = params.get('to') || 'dashboard.html';
+
+    let idx = 0;
+    const loaderText = document.getElementById('loader-text');
+    const textInterval = setInterval(() => {
+      idx = (idx + 1) % NM_LOADER_TEXTS.length;
+      if (loaderText) loaderText.textContent = NM_LOADER_TEXTS[idx];
+    }, 900);
+
+    setTimeout(() => {
+      clearInterval(textInterval);
+      location.href = destino;
+    }, 12000);
+  </script>
+</body>
+</html>

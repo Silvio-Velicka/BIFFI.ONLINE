@@ -205,4 +205,21 @@
 </div>
 
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="js/global.js"></script
+<script src="js/global.js"></script>
+<script src="js/api.js"></script>
+<script>
+  async function copiarLink() {
+    const link = document.getElementById('ref-link').value;
+    try { await navigator.clipboard.writeText(link); } catch(e){}
+    NM_SWAL.success('Link copiado!', 'Cole em qualquer mensagem para convidar seus amigos.');
+  }
+  async function compartilhar() {
+    if (navigator.share) {
+      await navigator.share({ title: 'NectarMine', text: 'Entre em NectarMine com meu link!', url: 'https://nectarmine.com/ref/BIFFI' });
+    } else {
+      copiarLink();
+    }
+  }
+</script>
+</body>
+</html>

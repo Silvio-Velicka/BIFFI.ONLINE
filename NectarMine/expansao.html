@@ -338,3 +338,22 @@
       NM_SWAL.error('Ops!', e.message);
     }
   }
+
+  async function comprarRelogio() {
+    const rel = STATUS.loja.relogio;
+    const { isConfirmed } = await NM_SWAL.confirm(
+      'Comprar Flores',
+      `Custo: <strong>${nmFormatInt(rel.proximo_preco)} NCT</strong><br/>+${rel.flores_por_compra} flores imediatamente.`
+    );
+    if (!isConfirmed) return;
+    try {
+      await NM_API.comprarRelogio();
+      await carregar();
+      NM_SWAL.success('Flores recarregadas!', `+${rel.flores_por_compra} flores adicionadas.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+</script>
+</body>
+</html>
