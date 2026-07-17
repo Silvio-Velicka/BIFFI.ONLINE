@@ -64,6 +64,24 @@
   </style>
 </head>
 <body>
+
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
 <!-- AD TOPO -->
@@ -96,7 +114,21 @@
           if (window.aclib) { aclib.runBanner({ zoneId: '11566158' }); }
         </script>
       </div>
-      <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+      <div>
+        <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
+        <div style="margin-top:10px;">
+          <script>
+            atOptions = {
+              'key' : '529a0e98573c5a850fbefaa6bae8f225',
+              'format' : 'iframe',
+              'height' : 90,
+              'width' : 728,
+              'params' : {}
+            };
+          </script>
+          <script src="https://www.highperformanceformat.com/529a0e98573c5a850fbefaa6bae8f225/invoke.js"></script>
+        </div>
+      </div>
       <div>
         <script type="text/javascript">
           if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
@@ -139,29 +171,4 @@
               <div class="mcard-icon">${ICONES_META[m.chave] || '🎯'}</div>
             </div>
             <p class="mcard-desc">${m.descricao}</p>
-            <span class="mcard-tipo">Missão diária</span>
-            <div>
-              <div class="mcard-progress-label"><span>Progresso</span><span>${nmFormatInt(m.progresso)} / ${nmFormatInt(m.target)}</span></div>
-              <div class="progress-bar ${m.completa ? 'progress-bar-verde' : ''}"><div class="progress-fill ${m.completa ? 'progress-fill-verde' : ''}" style="width:${pct}%"></div></div>
-            </div>
-            <div class="mcard-rewards">${rewards}</div>
-            ${btn}
-          </div>`;
-      }).join('');
-    } catch (e) {
-      grid.innerHTML = `<div style="color:var(--texto3);font-size:13px;">Não foi possível carregar os desafios.</div>`;
-    }
-  }
-
-  async function resgatar(chave) {
-    try {
-      const r = await NM_API.resgatarDesafio(chave);
-      await carregarDesafios();
-      NM_SWAL.success('Recompensa coletada!', `+${nmFormatInt(r.reward_nct)} NCT${r.reward_flores > 0 ? ` · +${r.reward_flores} flores` : ''}`);
-    } catch (e) {
-      NM_SWAL.error('Ops!', e.message);
-    }
-  }
-</script>
-</body>
-</html>
+            <span class="mcard-tipo">M

@@ -45,6 +45,24 @@
 </head>
 <body>
 
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
+
 <div class="login-wrap">
   <div class="login-card">
     <div class="login-logo">🍯 NectarMine</div>
@@ -125,21 +143,4 @@
 
   async function doRegister(e) {
     e.preventDefault();
-    const btn = document.getElementById('btn-criar');
-    btn.disabled = true;
-    try {
-      await NM_API.register(
-        document.getElementById('rg-user').value,
-        document.getElementById('rg-email').value,
-        document.getElementById('rg-senha').value
-      );
-      await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
-      location.href = 'dashboard.html';
-    } catch (err) {
-      NM_SWAL.error('Ops!', err.message);
-      btn.disabled = false;
-    }
-  }
-</script>
-</body>
-</html>
+    const btn = document.getElementBy

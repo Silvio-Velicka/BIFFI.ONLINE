@@ -73,6 +73,24 @@
   </style>
 </head>
 <body>
+
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
 <!-- AD TOPO -->
@@ -174,7 +192,18 @@
           </div>
         </div>
 
-        <div class="anuncio anuncio-728" style="margin-top:16px;"><!-- AD 728×90 -->Publicidade 728×90</div>
+        <div class="anuncio anuncio-728" style="margin-top:16px;">
+          <script>
+            atOptions = {
+              'key' : '529a0e98573c5a850fbefaa6bae8f225',
+              'format' : 'iframe',
+              'height' : 90,
+              'width' : 728,
+              'params' : {}
+            };
+          </script>
+          <script src="https://www.highperformanceformat.com/529a0e98573c5a850fbefaa6bae8f225/invoke.js"></script>
+        </div>
       </div>
 
       <!-- ASIDE -->
@@ -188,8 +217,19 @@
           <div class="rule-item"><i class="fa-solid fa-triangle-exclamation" style="color:var(--vermelho);"></i><span>Verifique o endereço — transações não são reversíveis.</span></div>
         </div>
 
-        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><!-- AD 300×250 -->Publicidade 300×250</div>
-        <div class="anuncio anuncio-300"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="anuncio anuncio-300" style="margin-bottom:14px;"><iframe src="https://zerads.com/ad/ad.php?width=300&ref=11517" marginwidth="0" marginheight="0" width="300" height="250" scrolling="no" border="0" frameborder="0"></iframe></div>
+        <div class="anuncio anuncio-300">
+          <script>
+            atOptions = {
+              'key' : '52eb13a8f3b629e8982096e4430f5c40',
+              'format' : 'iframe',
+              'height' : 250,
+              'width' : 300,
+              'params' : {}
+            };
+          </script>
+          <script src="https://www.highperformanceformat.com/52eb13a8f3b629e8982096e4430f5c40/invoke.js"></script>
+        </div>
       </div>
     </div>
 
@@ -225,31 +265,4 @@
     document.querySelectorAll('.crypto-btn').forEach(b=>b.classList.remove('selected'));
     document.getElementById('crypto-'+symbol).classList.add('selected');
     currentCrypto = symbol; currentRate = rate;
-    document.getElementById('crypto-label').textContent = '('+symbol+')';
-    calcSaque();
-  }
-
-  function calcSaque() {
-    const qty = parseInt(document.getElementById('saque-qty').value)||0;
-    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
-    document.getElementById('from-val').textContent = nmFormatInt(qty)+' NCT';
-    document.getElementById('to-val').textContent   = converted+' '+currentCrypto;
-  }
-
-  function setSaqueQty(n) { document.getElementById('saque-qty').value=n; calcSaque(); }
-
-  async function sacar() {
-    const qty = parseInt(document.getElementById('saque-qty').value)||0;
-    const addr = document.getElementById('wallet-addr').value.trim();
-    if (!addr) { NM_SWAL.error('Endereço inválido','Informe o endereço da sua carteira.'); return; }
-    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
-    const {isConfirmed} = await NM_SWAL.withAd(
-      '💸 Confirmar Saque',
-      `Sacar <strong>${nmFormatInt(qty)} NCT</strong> → <strong>${converted} ${currentCrypto}</strong><br/>Para: <code style="font-size:11px;color:var(--texto2);">${addr.substring(0,20)}...</code>`,
-      'Confirmar Saque', 'ad-saque-modal'
-    );
-    if (isConfirmed) NM_SWAL.success('Saque solicitado!', `Seu saque de <strong>${converted} ${currentCrypto}</strong> foi registrado e será processado em até 24h.`);
-  }
-</script>
-</body>
-</html>
+    document.getElemen

@@ -55,6 +55,24 @@
   </style>
 </head>
 <body>
+
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
 <!-- AD TOPO -->
@@ -176,16 +194,3 @@
     }
   }
 
-  function switchR(tipo, btn) {
-    document.querySelectorAll('.rtab').forEach(b=>b.classList.remove('active'));
-    btn.classList.add('active');
-    loadRanking(tipo);
-  }
-
-  document.addEventListener('DOMContentLoaded', () => loadRanking('diario'));
-  let t=23*3600+12*60+44;
-  function updateTimer(){const h=Math.floor(t/3600),m=Math.floor((t%3600)/60),s=t%60;document.getElementById('reset').textContent=`${String(h).padStart(2,'0')}:${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}`;if(t>0)t--;}
-  setInterval(updateTimer,1000);
-</script>
-</body>
-</html>

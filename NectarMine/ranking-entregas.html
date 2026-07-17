@@ -38,6 +38,24 @@
   </style>
 </head>
 <body>
+
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
 <!-- AD TOPO -->
@@ -126,17 +144,4 @@
   function updateCountdown() {
     const now = new Date();
     const diff = Math.max(0, target - now);
-    const d = Math.floor(diff / 86400000);
-    const h = Math.floor((diff % 86400000) / 3600000);
-    const m = Math.floor((diff % 3600000) / 60000);
-    const s = Math.floor((diff % 60000) / 1000);
-    document.getElementById('cd-d').textContent = String(d).padStart(2,'0');
-    document.getElementById('cd-h').textContent = String(h).padStart(2,'0');
-    document.getElementById('cd-m').textContent = String(m).padStart(2,'0');
-    document.getElementById('cd-s').textContent = String(s).padStart(2,'0');
-  }
-  setInterval(updateCountdown, 1000);
-  updateCountdown();
-</script>
-</body>
-</html>
+    const d = Math.floor(di

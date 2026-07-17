@@ -24,12 +24,37 @@
 </head>
 <body>
 
-  <!-- AD TOPO (Adcash 728x90) -->
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
+
+  <!-- AD TOPO (Adsterra 728x90) -->
   <div class="transicao-ad-fixed ad-top" id="ad-transicao-top">
     <div>
-      <script type="text/javascript">
-        if (window.aclib) { aclib.runBanner({ zoneId: '11566174' }); }
+      <script>
+        atOptions = {
+          'key' : '529a0e98573c5a850fbefaa6bae8f225',
+          'format' : 'iframe',
+          'height' : 90,
+          'width' : 728,
+          'params' : {}
+        };
       </script>
+      <script src="https://www.highperformanceformat.com/529a0e98573c5a850fbefaa6bae8f225/invoke.js"></script>
     </div>
   </div>
 
@@ -50,25 +75,4 @@
 
   <!-- AD RODAPÉ (zerads 728x90) -->
   <div class="transicao-ad-fixed ad-bottom" id="ad-transicao-bottom">
-    <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></iframe>
-  </div>
-
-  <script src="js/global.js"></script>
-  <script>
-    const params = new URLSearchParams(location.search);
-    const destino = params.get('to') || 'dashboard.html';
-
-    let idx = 0;
-    const loaderText = document.getElementById('loader-text');
-    const textInterval = setInterval(() => {
-      idx = (idx + 1) % NM_LOADER_TEXTS.length;
-      if (loaderText) loaderText.textContent = NM_LOADER_TEXTS[idx];
-    }, 900);
-
-    setTimeout(() => {
-      clearInterval(textInterval);
-      location.href = destino;
-    }, 12000);
-  </script>
-</body>
-</html>
+    <iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" frameborder="0" style="border:0;"></ifr

@@ -134,6 +134,24 @@
   </style>
 </head>
 <body>
+
+<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
+<style>
+  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
+  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
+</style>
+<div class="nm-ad-sky-left">
+  <script>
+    atOptions = {
+      'key' : 'ca08d750749145cc2b964ef3aff564e5',
+      'format' : 'iframe',
+      'height' : 600,
+      'width' : 160,
+      'params' : {}
+    };
+  </script>
+  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
+</div>
 <a href="transicao.html?to=dashboard.html" class="btn-voltar-dashboard"><i class="fa-solid fa-arrow-left"></i> Voltar ao Dashboard</a>
 
 <!-- AD TOPO -->
@@ -176,7 +194,18 @@
               <div class="ms-label">Potes negociados (recente)</div>
             </div>
           </div>
-          <div class="anuncio anuncio-160"><!-- AD 160×300 -->Publicidade 160×300</div>
+          <div class="anuncio anuncio-160">
+            <script>
+              atOptions = {
+                'key' : 'be6d0af57083038c7a60a6080419ba5b',
+                'format' : 'iframe',
+                'height' : 300,
+                'width' : 160,
+                'params' : {}
+              };
+            </script>
+            <script src="https://www.highperformanceformat.com/be6d0af57083038c7a60a6080419ba5b/invoke.js"></script>
+          </div>
         </div>
 
         <!-- Gráfico -->
@@ -244,7 +273,18 @@
       </div>
 
       <!-- AD mid -->
-      <div class="anuncio anuncio-728"><!-- AD 728×90 -->Publicidade 728×90</div>
+      <div class="anuncio anuncio-728">
+        <script>
+          atOptions = {
+            'key' : '529a0e98573c5a850fbefaa6bae8f225',
+            'format' : 'iframe',
+            'height' : 90,
+            'width' : 728,
+            'params' : {}
+          };
+        </script>
+        <script src="https://www.highperformanceformat.com/529a0e98573c5a850fbefaa6bae8f225/invoke.js"></script>
+      </div>
 
       <!-- Histórico -->
       <div>
@@ -255,7 +295,7 @@
       </div>
 
       <!-- AD final -->
-      <div class="anuncio anuncio-300" style="margin:0 auto;"><!-- AD 300×250 -->Publicidade 300×250</div>
+      <div class="anuncio anuncio-300" style="margin:0 auto;"><iframe src="https://zerads.com/ad/ad.php?width=300&ref=11517" marginwidth="0" marginheight="0" width="300" height="250" scrolling="no" border="0" frameborder="0"></iframe></div>
 
       <div class="info-box info-box-yellow" style="font-size:12px;">
         <strong>💡 Dica de mercado</strong>
@@ -416,22 +456,4 @@
     const total = qtd * PRECO_ATUAL;
     const { isConfirmed } = await NM_SWAL.withAd(
       '🍯 Confirmar Compra',
-      `Comprar <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmFormat(PRECO_ATUAL)} NCT/pote</strong><br/>Custo: <strong>${nmFormat(total,0)} NCT</strong>`,
-      'Comprar agora', 'ad-compra-modal'
-    );
-    if (!isConfirmed) return;
-    try {
-      const r = await NM_API.comprarMercado(qtd);
-      await carregarMercado();
-      NM_SWAL.success('Compra concluída!', `Você adquiriu <strong>${nmFormatInt(r.quantidade)} potes</strong> por ${nmFormat(r.total_pago,0)} NCT.`);
-    } catch (e) {
-      NM_SWAL.error('Ops!', e.message);
-    }
-  }
-
-  initChart(genCandles(60));
-  calcVenda();
-  calcCompra();
-</script>
-</body>
-</html>
+      `Comprar <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmF

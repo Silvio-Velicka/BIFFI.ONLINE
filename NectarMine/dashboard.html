@@ -259,7 +259,7 @@
   <nav class="sidebar-nav">
     <a href="dashboard.html"                          class="nav-link active"><i class="fa-solid fa-gauge-high"></i> Dashboard</a>
     <a href="transicao.html?to=mercado.html"           class="nav-link"><i class="fa-solid fa-chart-candlestick"></i> Negociações</a>
-    <a href="transicao.html?to=meus-apiarios.html"     class="nav-link"><i class="fa-solid fa-industry"></i> Expansão</a>
+    <a href="transicao.html?to=expansao.html"          class="nav-link"><i class="fa-solid fa-industry"></i> Expansão</a>
     <a href="transicao.html?to=desafios.html"          class="nav-link"><i class="fa-solid fa-trophy"></i> Metas</a>
     <a href="transicao.html?to=transferencias.html"    class="nav-link"><i class="fa-solid fa-money-bill-transfer"></i> Transferências</a>
     <a href="transicao.html?to=amigos.html"            class="nav-link"><i class="fa-solid fa-user-group"></i> Amigos</a>
@@ -324,7 +324,7 @@
 
       <!-- AD lateral (728×90) -->
       <div class="col-full">
-        <div class="anuncio anuncio-728" id="ad-mid-1"><!-- AD 728×90 -->Publicidade 728×90</div>
+        <div class="anuncio anuncio-728" id="ad-mid-1"><iframe src="https://zerads.com/ad/ad.php?width=728&ref=11517" marginwidth="0" marginheight="0" width="728" height="90" scrolling="no" border="0" frameborder="0"></iframe></div>
       </div>
 
       <!-- ── COL ESQUERDA: PRODUÇÃO + COLMEIA ── -->
@@ -384,7 +384,7 @@
         <div class="dash-card">
           <div class="dash-card-header">
             <h3><i class="fa-solid fa-industry" style="color:var(--amarelo)"></i> Minha Colmeia</h3>
-            <a href="meus-apiarios.html" class="btn btn-sm btn-ghost">Ver tudo</a>
+            <a href="expansao.html" class="btn btn-sm btn-ghost">Ver tudo</a>
           </div>
           <div class="dash-card-body">
             <div class="colmeia-ad-wrap anuncio-desktop">
@@ -394,7 +394,7 @@
               <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
             </div>
             <div style="margin-top:12px;">
-              <a href="meus-apiarios.html" class="btn btn-block btn-roxo btn-sm">
+              <a href="expansao.html" class="btn btn-block btn-roxo btn-sm">
                 <i class="fa-solid fa-arrow-trend-up"></i> Comprar / Expandir
               </a>
             </div>
@@ -425,7 +425,18 @@
         </div>
 
         <!-- AD 300×250 -->
-        <div class="anuncio anuncio-300" id="ad-dash-1"><!-- AD 300×250 -->Publicidade 300×250</div>
+        <div class="anuncio anuncio-300" id="ad-dash-1">
+          <script>
+            atOptions = {
+              'key' : '52eb13a8f3b629e8982096e4430f5c40',
+              'format' : 'iframe',
+              'height' : 250,
+              'width' : 300,
+              'params' : {}
+            };
+          </script>
+          <script src="https://www.highperformanceformat.com/52eb13a8f3b629e8982096e4430f5c40/invoke.js"></script>
+        </div>
 
         <!-- Ranking diário -->
         <div class="dash-card">
@@ -470,13 +481,24 @@
             </div>
           </div>
           <!-- AD 300×250 -->
-          <div class="anuncio anuncio-300" id="ad-dash-2"><!-- AD 300×250 -->Publicidade 300×250</div>
+          <div class="anuncio anuncio-300" id="ad-dash-2"><iframe src="https://zerads.com/ad/ad.php?width=300&ref=11517" marginwidth="0" marginheight="0" width="300" height="250" scrolling="no" border="0" frameborder="0"></iframe></div>
         </div>
       </div>
 
       <!-- AD footer -->
       <div class="col-full">
-        <div class="anuncio anuncio-728" id="ad-footer"><!-- AD 728×90 -->Publicidade 728×90</div>
+        <div class="anuncio anuncio-728" id="ad-footer">
+          <script>
+            atOptions = {
+              'key' : '529a0e98573c5a850fbefaa6bae8f225',
+              'format' : 'iframe',
+              'height' : 90,
+              'width' : 728,
+              'params' : {}
+            };
+          </script>
+          <script src="https://www.highperformanceformat.com/529a0e98573c5a850fbefaa6bae8f225/invoke.js"></script>
+        </div>
       </div>
 
     </div><!-- /dashboard-grid -->
@@ -568,7 +590,7 @@
     for (const a of STATUS.apiarios) contagem[a.tipo] = (contagem[a.tipo] || 0) + 1;
     const tipos = Object.keys(contagem);
     if (tipos.length === 0) {
-      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Você ainda não tem apiários. <a href="meus-apiarios.html" style="color:var(--amarelo)">Comprar o primeiro →</a></div>`;
+      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Você ainda não tem apiários. <a href="expansao.html" style="color:var(--amarelo)">Comprar o primeiro →</a></div>`;
       return;
     }
     el.innerHTML = tipos.map(tipo => {
@@ -660,3 +682,4 @@
 </script>
 </body>
 </html>
+               
