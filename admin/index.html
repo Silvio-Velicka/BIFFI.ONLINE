@@ -241,8 +241,48 @@
       background: rgba(255,255,255,0.7); font-size: 12px; font-weight: bold; color: var(--roxo-esc);
     }
 
-    .filtro-status { display: flex; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 12.5px; }
+    .filtro-status { display: flex; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 12.5px; flex-wrap: wrap; }
     .filtro-status select { padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(122,74,45,0.18); background: rgba(255,255,255,0.65); }
+
+    /* ── BOTÕES DE IMPRIMIR ── */
+    .btn-imprimir {
+      margin-left: auto;
+      padding: 8px 14px; border-radius: 8px; border: 2px solid var(--roxo);
+      background: var(--roxo); color: #fff; font-size: 12.5px; font-weight: bold;
+      cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+    }
+    .btn-imprimir:hover { background: var(--roxo-esc); border-color: var(--roxo-esc); }
+    .pedido-acoes { display: flex; align-items: center; gap: 10px; }
+    .btn-imprimir-pedido {
+      width: 32px; height: 32px; border-radius: 8px; border: 1.5px solid rgba(122,74,45,0.25);
+      background: rgba(255,255,255,0.7); cursor: pointer; font-size: 14px; flex-shrink: 0;
+    }
+    .btn-imprimir-pedido:hover { background: rgba(255,255,255,0.95); }
+
+    /* ── FOLHA DE IMPRESSÃO (histórico / comprovante de pedido em A4) ──
+       Fica escondida na tela; só aparece quando mandamos imprimir (window.print()).
+       O truque do @media print abaixo esconde tudo, exceto esta folha. */
+    #folha-impressao { display: none; }
+    #folha-impressao .folha-cabecalho { text-align: center; border-bottom: 2px solid #7A4A2D; padding-bottom: 10px; margin-bottom: 18px; }
+    #folha-impressao .folha-cabecalho h1 { font-size: 20px; color: #7A4A2D; font-family: Georgia, serif; }
+    #folha-impressao .folha-cabecalho p { font-size: 11px; color: #555; margin-top: 4px; }
+    #folha-impressao .folha-secao { margin-bottom: 16px; font-size: 12.5px; color: #222; }
+    #folha-impressao .folha-secao h2 { font-size: 12.5px; color: #7A4A2D; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 0.5px; }
+    #folha-impressao .folha-secao p { margin: 2px 0; }
+    #folha-impressao table.tabela-impressao { width: 100%; border-collapse: collapse; font-size: 12.5px; margin-top: 6px; }
+    #folha-impressao table.tabela-impressao th, #folha-impressao table.tabela-impressao td {
+      border: 1px solid #999; padding: 6px 8px; text-align: left;
+    }
+    #folha-impressao table.tabela-impressao th { background: #f0e6d3; }
+    #folha-impressao table.tabela-impressao td.num, #folha-impressao table.tabela-impressao th.num { text-align: right; }
+    #folha-impressao table.tabela-impressao tfoot td { font-weight: bold; }
+
+    @media print {
+      body * { visibility: hidden; }
+      #folha-impressao, #folha-impressao * { visibility: visible; }
+      #folha-impressao { display: block; position: absolute; top: 0; left: 0; width: 100%; color: #000; }
+      @page { size: A4; margin: 15mm; }
+    }
 
     @media (max-width: 700px) {
       body { flex-direction: column; }
@@ -401,6 +441,7 @@
           <option value="entregue">Entregue</option>
           <option value="cancelado">Cancelado</option>
         </select>
+        <button id="btn-imprimir-historico" class="btn-imprimir" title="Imprimir a lista de pedidos abaixo (folha A4)">🖨️ Imprimir histórico</button>
       </div>
 
       <div class="card">
@@ -409,6 +450,11 @@
     </div>
 
   </div>
+
+  <!-- ═══ FOLHA DE IMPRESSÃO (invisível na tela; usada só na hora de imprimir) ═══
+       Quando o navegador tiver uma impressora A4 configurada, ela vai aparecer
+       como opção normal na janela de impressão do Ctrl+P / botão abaixo. -->
+  <div id="folha-impressao"></div>
 
   <script src="js/admin.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -753,26 +799,39 @@
     });
 
     /* ═══ PEDIDOS ═══ */
+    const STATUS_LABEL_ADMIN = {
+      aguardando_pagamento: 'Aguardando pagamento',
+      pago: 'Pago',
+      enviado: 'Enviado',
+      entregue: 'Entregue',
+      cancelado: 'Cancelado',
+    };
+    let pedidosCache = []; // guarda a última lista carregada, pra imprimir sem refazer a requisição
+
     async function carregarPedidos() {
       const lista = document.getElementById('lista-pedidos');
       const statusFiltro = document.getElementById('filtro-status').value;
       try {
         const { pedidos } = await BiffiAdmin.getPedidos(statusFiltro);
+        pedidosCache = pedidos;
         if (!pedidos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum pedido encontrado.</p>'; return; }
 
         lista.innerHTML = pedidos.map(p => `
           <div class="pedido-row">
             <div class="info">
-              <strong>Pedido #${p.id} — ${p.nome_cliente || 'Cliente'}</strong>
-              <span class="sub">${new Date(p.criado_em).toLocaleDateString('pt-BR')} · R$ ${(p.total_cents / 100).toFixed(2)}</span>
+              <strong>Pedido #${p.id} — ${p.nome_destinatario || p.username || 'Cliente'}</strong>
+              <span class="sub">${new Date(p.created_at).toLocaleDateString('pt-BR')} · R$ ${(p.total_cents / 100).toFixed(2)}</span>
             </div>
-            <select data-id="${p.id}" class="select-status-pedido">
-              <option value="aguardando_pagamento" ${p.status === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
-              <option value="pago" ${p.status === 'pago' ? 'selected' : ''}>Pago</option>
-              <option value="enviado" ${p.status === 'enviado' ? 'selected' : ''}>Enviado</option>
-              <option value="entregue" ${p.status === 'entregue' ? 'selected' : ''}>Entregue</option>
-              <option value="cancelado" ${p.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
-            </select>
+            <div class="pedido-acoes">
+              <button class="btn-imprimir-pedido" data-id="${p.id}" title="Imprimir este pedido">🖨️</button>
+              <select data-id="${p.id}" class="select-status-pedido">
+                <option value="aguardando_pagamento" ${p.status === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
+                <option value="pago" ${p.status === 'pago' ? 'selected' : ''}>Pago</option>
+                <option value="enviado" ${p.status === 'enviado' ? 'selected' : ''}>Enviado</option>
+                <option value="entregue" ${p.status === 'entregue' ? 'selected' : ''}>Entregue</option>
+                <option value="cancelado" ${p.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+              </select>
+            </div>
           </div>
         `).join('');
 
@@ -786,12 +845,96 @@
             }
           });
         });
+        lista.querySelectorAll('.btn-imprimir-pedido').forEach(btn => {
+          btn.addEventListener('click', () => imprimirPedido(Number(btn.dataset.id)));
+        });
       } catch (err) {
         lista.innerHTML = `<p style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</p>`;
       }
     }
 
     document.getElementById('filtro-status').addEventListener('change', carregarPedidos);
+
+    /* ── ENDEREÇO FORMATADO (reaproveitado no comprovante individual) ── */
+    function enderecoFormatado(p) {
+      const linha1 = [p.rua, p.numero].filter(Boolean).join(', ') + (p.complemento ? ` — ${p.complemento}` : '');
+      const linha2 = [p.bairro, p.cidade, p.estado].filter(Boolean).join(', ');
+      return `${linha1 || '—'}<br>${linha2 || '—'}${p.cep ? ' · CEP ' + p.cep : ''}`;
+    }
+
+    /* ── IMPRIME O HISTÓRICO INTEIRO (lista filtrada que está na tela) ── */
+    function imprimirHistorico() {
+      if (!pedidosCache.length) { Swal.fire({ icon: 'info', title: 'Nada para imprimir', text: 'Não há pedidos na lista atual.' }); return; }
+      const agora = new Date().toLocaleString('pt-BR');
+      const linhas = pedidosCache.map(p => {
+        const itensTexto = (p.itens || []).map(i => `${i.quantidade}x ${i.nome_snapshot}`).join('; ') || '—';
+        return `
+          <tr>
+            <td>#${p.id}</td>
+            <td>${p.nome_destinatario || p.username || 'Cliente'}</td>
+            <td>${new Date(p.created_at).toLocaleDateString('pt-BR')}</td>
+            <td>${itensTexto}</td>
+            <td class="num">R$ ${(p.total_cents / 100).toFixed(2)}</td>
+            <td>${STATUS_LABEL_ADMIN[p.status] || p.status}</td>
+          </tr>`;
+      }).join('');
+
+      document.getElementById('folha-impressao').innerHTML = `
+        <div class="folha-cabecalho">
+          <h1>🐝 BIFFI.ONLINE</h1>
+          <p>Histórico de Pedidos — impresso em ${agora}</p>
+        </div>
+        <table class="tabela-impressao">
+          <thead><tr><th>Pedido</th><th>Cliente</th><th>Data</th><th>Itens</th><th class="num">Total</th><th>Status</th></tr></thead>
+          <tbody>${linhas}</tbody>
+        </table>
+      `;
+      window.print();
+    }
+    document.getElementById('btn-imprimir-historico').addEventListener('click', imprimirHistorico);
+
+    /* ── IMPRIME UM ÚNICO PEDIDO (comprovante/etiqueta, bom pra separar o envio) ── */
+    function imprimirPedido(id) {
+      const p = pedidosCache.find(x => x.id === id);
+      if (!p) return;
+      const agora = new Date().toLocaleString('pt-BR');
+      const itensLinhas = (p.itens || []).map(i => `
+        <tr>
+          <td>${i.nome_snapshot}</td>
+          <td class="num">${i.quantidade}</td>
+          <td class="num">R$ ${(i.preco_cents_snapshot / 100).toFixed(2)}</td>
+          <td class="num">R$ ${((i.preco_cents_snapshot * i.quantidade) / 100).toFixed(2)}</td>
+        </tr>`).join('');
+
+      document.getElementById('folha-impressao').innerHTML = `
+        <div class="folha-cabecalho">
+          <h1>🐝 BIFFI.ONLINE</h1>
+          <p>Comprovante do Pedido #${p.id} — impresso em ${agora}</p>
+        </div>
+        <div class="folha-secao">
+          <h2>Dados do pedido</h2>
+          <p>Data: ${new Date(p.created_at).toLocaleString('pt-BR')}</p>
+          <p>Status: ${STATUS_LABEL_ADMIN[p.status] || p.status}</p>
+          <p>Forma de pagamento: ${p.metodo_pagamento || '—'}</p>
+        </div>
+        <div class="folha-secao">
+          <h2>Endereço de entrega</h2>
+          <p><strong>${p.nome_destinatario || p.username || 'Cliente'}</strong></p>
+          <p>${p.cpf ? 'CPF ' + p.cpf : ''} ${p.telefone ? '· Tel ' + p.telefone : ''}</p>
+          <p>${enderecoFormatado(p)}</p>
+        </div>
+        <table class="tabela-impressao">
+          <thead><tr><th>Item</th><th class="num">Qtd</th><th class="num">Preço unit.</th><th class="num">Subtotal</th></tr></thead>
+          <tbody>${itensLinhas}</tbody>
+          <tfoot>
+            <tr><td colspan="3">Subtotal</td><td class="num">R$ ${(p.subtotal_cents / 100).toFixed(2)}</td></tr>
+            <tr><td colspan="3">Frete</td><td class="num">R$ ${(p.frete_cents / 100).toFixed(2)}</td></tr>
+            <tr><td colspan="3">Total</td><td class="num">R$ ${(p.total_cents / 100).toFixed(2)}</td></tr>
+          </tfoot>
+        </table>
+      `;
+      window.print();
+    }
   </script>
 </body>
 </html>

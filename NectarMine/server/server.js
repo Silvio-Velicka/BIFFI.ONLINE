@@ -1273,11 +1273,13 @@ const routes = {
     json(res, 200, { livros: rows });
   },
 
-  // Histórico de pedidos do usuário logado
+  // Histórico de pedidos do usuário logado (com itens, pra listar produtos no cartão)
   'GET /api/shop/pedidos': async (req, res) => {
     const user = getUserByToken(req);
     if (!user) return json(res, 401, { error: 'Não autenticado.' });
-    const pedidos = db.prepare('SELECT * FROM pedidos WHERE user_id = ? ORDER BY id DESC').all(user.id);
+    const rows = db.prepare('SELECT * FROM pedidos WHERE user_id = ? ORDER BY id DESC').all(user.id);
+    const getItens = db.prepare('SELECT nome_snapshot, preco_cents_snapshot, quantidade FROM pedido_itens WHERE pedido_id = ?');
+    const pedidos = rows.map(p => ({ ...p, itens: getItens.all(p.id) }));
     json(res, 200, { pedidos });
   },
 
@@ -1431,14 +1433,18 @@ const routes = {
     json(res, 200, { ok: true, slug, total_paginas: totalPaginas });
   },
 
-  // Lista/atualiza status dos pedidos
+  // Lista/atualiza status dos pedidos — inclui os itens de cada pedido (nome,
+  // quantidade, preço) para permitir imprimir o comprovante/etiqueta completo
+  // sem precisar de uma requisição extra por pedido.
   'GET /api/admin/pedidos': async (req, res, url) => {
     if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
     const status = url.searchParams.get('status');
     const rows = status
       ? db.prepare('SELECT p.*, u.username FROM pedidos p JOIN users u ON u.id = p.user_id WHERE p.status = ? ORDER BY p.id DESC').all(status)
       : db.prepare('SELECT p.*, u.username FROM pedidos p JOIN users u ON u.id = p.user_id ORDER BY p.id DESC').all();
-    json(res, 200, { pedidos: rows });
+    const getItens = db.prepare('SELECT nome_snapshot, preco_cents_snapshot, quantidade FROM pedido_itens WHERE pedido_id = ?');
+    const pedidos = rows.map(p => ({ ...p, itens: getItens.all(p.id) }));
+    json(res, 200, { pedidos });
   },
 
   /* ═══ WEBHOOKS DE PAGAMENTO ═══

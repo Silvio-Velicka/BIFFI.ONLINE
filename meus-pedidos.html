@@ -143,7 +143,7 @@
 
         container.innerHTML = pedidos.map(p => {
           const status = STATUS_LABEL[p.status] || { texto: p.status, cor: '#7A4A2D' };
-          const data = new Date(p.criado_em).toLocaleDateString('pt-BR');
+          const data = new Date(p.created_at).toLocaleDateString('pt-BR');
           return `
             <div class="pedido-card">
               <div class="pedido-topo">
@@ -152,7 +152,7 @@
               </div>
               <div class="pedido-data">${data}</div>
               ${(p.itens || []).map(i => `
-                <div class="pedido-linha"><span>${i.quantidade}x ${i.nome}</span><span>${formatarReais(i.preco_cents * i.quantidade)}</span></div>
+                <div class="pedido-linha"><span>${i.quantidade}x ${i.nome_snapshot}</span><span>${formatarReais(i.preco_cents_snapshot * i.quantidade)}</span></div>
               `).join('')}
               <div class="pedido-linha total"><span>Total</span><span>${formatarReais(p.total_cents)}</span></div>
             </div>
