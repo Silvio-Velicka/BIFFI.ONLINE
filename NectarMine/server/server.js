@@ -228,6 +228,17 @@ db.exec(`
   addCol('indicado_por', 'INTEGER'); // id de quem indicou este usuário (referral)
 }
 
+/* ── MIGRAÇÃO LEVE: colunas de contato (redes sociais + e-mail) em site_config ──
+   Preenchidas pelo painel admin (aba "Contatos") e exibidas no rodapé do site. */
+{
+  const cols = db.prepare(`PRAGMA table_info(site_config)`).all().map(c => c.name);
+  const addCol = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE site_config ADD COLUMN ${name} ${def}`); };
+  addCol('contato_instagram', `TEXT NOT NULL DEFAULT ''`);
+  addCol('contato_facebook', `TEXT NOT NULL DEFAULT ''`);
+  addCol('contato_telegram', `TEXT NOT NULL DEFAULT ''`);
+  addCol('contato_email', `TEXT NOT NULL DEFAULT ''`);
+}
+
 /* ── MIGRAÇÃO LEVE: novas colunas em game_state para a economia real ── */
 {
   const cols = db.prepare(`PRAGMA table_info(game_state)`).all().map(c => c.name);
@@ -1110,6 +1121,39 @@ const routes = {
       subtitulo: row ? row.anuncio_subtitulo : '',
       texto2: row ? row.anuncio_texto2 : '',
     });
+  },
+
+  // Contatos do rodapé (Instagram, Facebook, Telegram, e-mail) — público, sem
+  // autenticação, para o site poder montar o rodapé em qualquer página.
+  'GET /api/site-contatos': async (req, res) => {
+    const row = db.prepare(`
+      SELECT contato_instagram, contato_facebook, contato_telegram, contato_email
+      FROM site_config WHERE id = 1
+    `).get();
+    json(res, 200, {
+      instagram: row ? row.contato_instagram : '',
+      facebook: row ? row.contato_facebook : '',
+      telegram: row ? row.contato_telegram : '',
+      email: row ? row.contato_email : '',
+    });
+  },
+
+  // Atualiza os contatos do rodapé — reservado para o painel admin.
+  'PUT /api/site-contatos': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    const b = await readBody(req);
+    db.prepare(`
+      UPDATE site_config SET
+        contato_instagram = ?, contato_facebook = ?, contato_telegram = ?, contato_email = ?,
+        updated_at = datetime('now')
+      WHERE id = 1
+    `).run(
+      String(b.instagram ?? ''),
+      String(b.facebook ?? ''),
+      String(b.telegram ?? ''),
+      String(b.email ?? '')
+    );
+    json(res, 200, { ok: true });
   },
 
   // Login do painel admin (senha única, comparada com a variável de ambiente ADMIN_KEY)

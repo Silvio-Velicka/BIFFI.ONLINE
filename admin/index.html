@@ -308,6 +308,9 @@
     <div class="nav-item" data-view="pedidos">
       <span class="icon">📦</span> Pedidos
     </div>
+    <div class="nav-item" data-view="contatos">
+      <span class="icon">📱</span> Contatos
+    </div>
 
     <div class="sidebar-footer">
       <button class="btn-sair" id="btn-sair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
@@ -449,6 +452,43 @@
       </div>
     </div>
 
+    <!-- ═══ VIEW: CONTATOS ═══ -->
+    <div class="view" id="view-contatos">
+      <h1>📱 Contatos</h1>
+      <p class="subtitle">Links exibidos no rodapé de todas as páginas do site (Instagram, Facebook, Telegram e e-mail).</p>
+
+      <div class="card">
+        <form id="form-contatos">
+          <div class="field">
+            <label><i class="fab fa-instagram"></i> Instagram (link do perfil)</label>
+            <input type="url" id="c-instagram" placeholder="https://instagram.com/seu_perfil">
+          </div>
+
+          <div class="field">
+            <label><i class="fab fa-facebook"></i> Facebook (link da página)</label>
+            <input type="url" id="c-facebook" placeholder="https://facebook.com/sua_pagina">
+          </div>
+
+          <div class="field">
+            <label><i class="fab fa-telegram"></i> Telegram (link do canal/perfil)</label>
+            <input type="url" id="c-telegram" placeholder="https://t.me/seu_canal">
+          </div>
+
+          <div class="field">
+            <label><i class="fa-solid fa-envelope"></i> E-mail de contato</label>
+            <input type="email" id="c-email" placeholder="contato@biffi.online">
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-salvar" id="btn-salvar-contatos">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar
+            </button>
+          </div>
+          <div class="save-msg" id="save-msg-contatos" style="display:none;"></div>
+        </form>
+      </div>
+    </div>
+
   </div>
 
   <!-- ═══ FOLHA DE IMPRESSÃO (invisível na tela; usada só na hora de imprimir) ═══
@@ -470,6 +510,7 @@
         document.getElementById('view-' + item.dataset.view).classList.add('active');
         if (item.dataset.view === 'produtos') carregarProdutos();
         if (item.dataset.view === 'pedidos') carregarPedidos();
+        if (item.dataset.view === 'contatos') carregarContatos();
       });
     });
 
@@ -935,6 +976,51 @@
       `;
       window.print();
     }
+
+    /* ═══ CONTATOS DO RODAPÉ ═══ */
+    const formContatos = document.getElementById('form-contatos');
+    const msgContatos = document.getElementById('save-msg-contatos');
+    let contatosCarregados = false;
+
+    async function carregarContatos() {
+      if (contatosCarregados) return;
+      try {
+        const c = await BiffiAdmin.getContatos();
+        document.getElementById('c-instagram').value = c.instagram || '';
+        document.getElementById('c-facebook').value = c.facebook || '';
+        document.getElementById('c-telegram').value = c.telegram || '';
+        document.getElementById('c-email').value = c.email || '';
+        contatosCarregados = true;
+      } catch (err) {
+        msgContatos.className = 'save-msg err';
+        msgContatos.style.display = 'block';
+        msgContatos.textContent = 'Não foi possível carregar os contatos atuais: ' + err.message;
+      }
+    }
+
+    formContatos.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-salvar-contatos');
+      btn.disabled = true;
+      msgContatos.style.display = 'none';
+      try {
+        await BiffiAdmin.saveContatos({
+          instagram: document.getElementById('c-instagram').value.trim(),
+          facebook: document.getElementById('c-facebook').value.trim(),
+          telegram: document.getElementById('c-telegram').value.trim(),
+          email: document.getElementById('c-email').value.trim(),
+        });
+        msgContatos.className = 'save-msg ok';
+        msgContatos.style.display = 'block';
+        msgContatos.textContent = '✔ Salvo! Os links já valem para o rodapé do site.';
+      } catch (err) {
+        msgContatos.className = 'save-msg err';
+        msgContatos.style.display = 'block';
+        msgContatos.textContent = 'Erro ao salvar: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
   </script>
 </body>
 </html>
