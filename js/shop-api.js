@@ -52,7 +52,7 @@ const CART = {
     const itens = CART.itens();
     const existente = itens.find(i => i.produto_id === produto.id);
     if (existente) existente.quantidade += quantidade;
-    else itens.push({ produto_id: produto.id, nome: produto.nome, preco_cents: produto.preco_cents, imagem: produto.imagem, quantidade });
+    else itens.push({ produto_id: produto.id, nome: produto.nome, preco_cents: produto.preco_cents, imagem: produto.imagem, ebook: !!produto.ebook, quantidade });
     CART.salvar(itens);
   },
 

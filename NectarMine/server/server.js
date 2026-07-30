@@ -327,6 +327,12 @@ function calcularFrete(subtotalCents) {
   return subtotalCents >= 15000 ? 0 : 1500;
 }
 
+// Um produto é e-book (100% digital, entregue por leitura protegida) quando
+// está vinculado na tabela livros_digitais — nesse caso não faz sentido cobrar frete.
+function produtoEhEbook(produtoId) {
+  return !!db.prepare('SELECT 1 FROM livros_digitais WHERE produto_id = ?').get(produtoId);
+}
+
 // Verifica se o usuário comprou (com pagamento confirmado) um determinado produto —
 // usado para liberar acesso à leitura do e-book.
 function usuarioComprouProduto(userId, produtoId) {
@@ -1209,7 +1215,11 @@ const routes = {
       subtotalCents += prod.preco_cents * qtd;
       itensValidados.push({ produto: prod, quantidade: qtd });
     }
-    const freteCents = calcularFrete(subtotalCents);
+    // Frete só se aplica a itens físicos — pedidos só com e-books (ou a parte
+    // digital de um pedido misto) não pagam envio.
+    const itensFisicos = itensValidados.filter(({ produto }) => !produtoEhEbook(produto.id));
+    const subtotalFisicoCents = itensFisicos.reduce((s, { produto, quantidade }) => s + produto.preco_cents * quantidade, 0);
+    const freteCents = itensFisicos.length > 0 ? calcularFrete(subtotalFisicoCents) : 0;
     const totalCents = subtotalCents + freteCents;
 
     const infoPedido = db.prepare(`

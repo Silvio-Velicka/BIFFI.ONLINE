@@ -219,7 +219,11 @@
 
       const enderecoPadrao = (perfil.enderecos || [])[0] || {};
       const subtotal = CART.totalCents();
-      const frete = subtotal >= 15000 ? 0 : 1500;
+      // E-books não pagam frete (entrega é leitura protegida, sem envio físico).
+      // Só entram na conta do frete os itens físicos do carrinho.
+      const itensFisicos = itens.filter(i => !i.ebook);
+      const subtotalFisico = itensFisicos.reduce((s, i) => s + i.preco_cents * i.quantidade, 0);
+      const frete = itensFisicos.length === 0 ? 0 : (subtotalFisico >= 15000 ? 0 : 1500);
       const total = subtotal + frete;
 
       conteudo.innerHTML = `
