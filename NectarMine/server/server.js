@@ -1441,15 +1441,41 @@ const routes = {
     json(res, 200, { pedidos: rows });
   },
 
-  /* ═══ WEBHOOKS DE PAGAMENTO (stub) ═══
-     TODO: quando as chaves reais forem configuradas, validar a assinatura/
-     notificação do provedor antes de marcar o pedido como pago. Por ora,
-     estas rotas existem para já ter a URL pronta a cadastrar no painel do
-     Mercado Pago / PayPal quando chegar a hora. */
-  'POST /api/payments/mercadopago/webhook': async (req, res) => {
-    await readBody(req).catch(() => ({}));
-    // TODO: consultar a API do Mercado Pago com o id recebido e, se aprovado,
-    // rodar: UPDATE pedidos SET status='pago' WHERE pagamento_ref = ?
+  /* ═══ WEBHOOKS DE PAGAMENTO ═══
+     Em vez de confiar no conteúdo da notificação (que qualquer um poderia
+     forjar), sempre consultamos a API do Mercado Pago com nosso próprio
+     Access Token para confirmar o status real do pagamento antes de marcar
+     o pedido como pago. Isso dispensa validação de assinatura separada,
+     já que os dados vêm direto da fonte (Mercado Pago), não do request. */
+  'POST /api/payments/mercadopago/webhook': async (req, res, url) => {
+    const body = await readBody(req).catch(() => ({}));
+    try {
+      // O Mercado Pago manda o tipo/id tanto via query string quanto no
+      // corpo JSON, dependendo da versão da notificação — aceitamos ambos.
+      const tipo = url.searchParams.get('type') || url.searchParams.get('topic') || body.type || body.topic;
+      const paymentId = url.searchParams.get('data.id') || url.searchParams.get('id') ||
+        (body.data && body.data.id) || body.id;
+
+      if (tipo === 'payment' && paymentId && process.env.MP_ACCESS_TOKEN) {
+        const resp = await fetch(`https://api.mercadopago.com/v1/payments/${paymentId}`, {
+          headers: { 'Authorization': `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+        });
+        const pagamento = await resp.json();
+        if (resp.ok && pagamento.external_reference) {
+          const pedidoId = Number(pagamento.external_reference);
+          if (pagamento.status === 'approved') {
+            db.prepare("UPDATE pedidos SET status='pago', pagamento_ref=? WHERE id=? AND status='aguardando_pagamento'")
+              .run(String(paymentId), pedidoId);
+          } else if (pagamento.status === 'rejected' || pagamento.status === 'cancelled') {
+            db.prepare("UPDATE pedidos SET status='cancelado' WHERE id=? AND status='aguardando_pagamento'")
+              .run(pedidoId);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Erro ao processar webhook do Mercado Pago:', e);
+    }
+    // Sempre responde 200 — senão o Mercado Pago fica reenviando a notificação.
     json(res, 200, { ok: true });
   },
 
