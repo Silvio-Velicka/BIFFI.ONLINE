@@ -3,198 +3,24 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>NectarMine — Entrar</title>
-  <link rel="stylesheet" href="css/global.css"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
-  <style>
-    .login-wrap {
-      min-height: 100vh; display: flex; align-items: center; justify-content: center;
-      padding: 20px;
-    }
-    .login-card {
-      width: 100%; max-width: 400px; background: var(--card, rgba(10,18,32,.85));
-      backdrop-filter: blur(12px); border: 1px solid var(--borda2, rgba(255,255,255,.08));
-      border-radius: var(--radius, 12px); padding: 32px 28px;
-    }
-    .login-logo { text-align: center; font-size: 26px; font-weight: bold; color: var(--branco, #fff); margin-bottom: 4px; }
-    .login-sub { text-align: center; font-size: 13px; color: var(--texto3, #6B5F8A); margin-bottom: 24px; }
-    .login-tabs { display: flex; gap: 8px; margin-bottom: 22px; }
-    .ltab {
-      flex: 1; padding: 9px; border-radius: 8px; border: 1px solid var(--borda2, rgba(255,255,255,.08));
-      background: transparent; color: var(--texto2, #9E8FC0); font-size: 13px; font-weight: bold;
-      cursor: pointer; transition: all .2s;
-    }
-    .ltab.active { background: var(--amarelo, #FFD700); color: #000; border-color: var(--amarelo, #FFD700); }
-    .login-field { margin-bottom: 14px; }
-    .login-field label { display: block; font-size: 11px; color: var(--texto3, #6B5F8A); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 5px; }
-    .login-field input {
-      width: 100%; padding: 11px 12px; border-radius: 8px;
-      border: 1px solid var(--borda2, rgba(255,255,255,.1));
-      background: rgba(255,255,255,.04); color: var(--branco, #fff); font-size: 14px; outline: none;
-    }
-    .login-field input:focus { border-color: var(--amarelo, #FFD700); }
-    .btn-login {
-      width: 100%; padding: 12px; border: none; border-radius: 8px; margin-top: 6px;
-      background: var(--amarelo, #FFD700); color: #000; font-size: 14px; font-weight: bold; cursor: pointer;
-    }
-    .btn-login:disabled { opacity: .5; cursor: wait; }
-    .login-back { text-align: center; margin-top: 16px; font-size: 12px; }
-    .login-back a { color: var(--texto3, #6B5F8A); text-decoration: none; }
-    .login-back a:hover { color: var(--amarelo, #FFD700); }
-  </style>
+  <title>Redirecionando… — BIFFI.ONLINE</title>
+  <!--
+    O cadastro/login deixou de ser uma tela própria do jogo — agora existe
+    uma única tela (raiz do site: /login.html), usada tanto pelo site
+    principal e pela loja quanto pelo jogo. Esta página só existe para não
+    quebrar links antigos (favoritos, o link de convite gerado pelo
+    servidor, redirecionamentos internos do jogo via nmAuthGuard) —
+    ela repassa os parâmetros (redirect/ref) e manda direto para lá.
+  -->
+  <script>
+    const params = new URLSearchParams(location.search);
+    const redirectParam = params.get('redirect') || 'dashboard.html';
+    const ref = params.get('ref');
+    let destino = '../login.html?redirect=' + encodeURIComponent('NectarMine/' + redirectParam);
+    if (ref) destino += '&ref=' + encodeURIComponent(ref);
+    location.replace(destino);
+  </script>
 </head>
 <body>
-
-<!-- AD LATERAL ESQUERDA (160x600 Adsterra) -->
-<style>
-  .nm-ad-sky-left { position:fixed; left:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
-  @media (max-width:1200px){ .nm-ad-sky-left{ display:none; } }
-</style>
-<div class="nm-ad-sky-left">
-  <script>
-    atOptions = {
-      'key' : 'ca08d750749145cc2b964ef3aff564e5',
-      'format' : 'iframe',
-      'height' : 600,
-      'width' : 160,
-      'params' : {}
-    };
-  </script>
-  <script src="https://www.highperformanceformat.com/ca08d750749145cc2b964ef3aff564e5/invoke.js"></script>
-</div>
-
-<!-- AD LATERAL DIREITA (HighPay 160x600) -->
-<style>
-  .nm-ad-highpay-right { position:fixed; right:0; top:50%; transform:translateY(-50%); z-index:15; width:160px; }
-  @media (max-width:1200px){ .nm-ad-highpay-right{ display:none; } }
-</style>
-<div class="nm-ad-highpay-right">
-  <!-- Place where the ad should appear -->
-  <div id="highpay-ad-BIFFI-ONLINE_BIFFIONLINE_160X600"></div>
-  <script>
-  window.hpa=window.hpa||{q:[]};
-  window.hpa.q.push({zone:'BIFFI-ONLINE_BIFFIONLINE_160X600',serve:'https://highpay-ads.com'});
-  </script>
-  <script async src="https://cdn.highpay-ads.com/cdn/js/loader.v1.js"></script>
-</div>
-
-<div class="login-wrap">
-  <div class="login-card">
-    <div class="login-logo">🍯 NectarMine</div>
-    <div class="login-sub">Entre na sua conta ou crie uma nova</div>
-
-    <div class="login-tabs">
-      <button class="ltab active" id="tab-entrar" onclick="switchTab('entrar')">Entrar</button>
-      <button class="ltab" id="tab-criar" onclick="switchTab('criar')">Criar conta</button>
-    </div>
-
-    <!-- ENTRAR -->
-    <form id="form-entrar" onsubmit="doLogin(event)">
-      <div class="login-field">
-        <label>Usuário ou e-mail</label>
-        <input type="text" id="li-login" required autocomplete="username"/>
-      </div>
-      <div class="login-field">
-        <label>Senha</label>
-        <input type="password" id="li-senha" required autocomplete="current-password"/>
-      </div>
-      <button type="submit" class="btn-login" id="btn-entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
-    </form>
-
-    <!-- CRIAR CONTA -->
-    <form id="form-criar" style="display:none;" onsubmit="doRegister(event)">
-      <div class="login-field">
-        <label>Nome de usuário</label>
-        <input type="text" id="rg-user" required minlength="3" autocomplete="username"/>
-      </div>
-      <div class="login-field">
-        <label>E-mail</label>
-        <input type="email" id="rg-email" required autocomplete="email"/>
-      </div>
-      <div class="login-field">
-        <label>Senha (mín. 6 caracteres)</label>
-        <input type="password" id="rg-senha" required minlength="6" autocomplete="new-password"/>
-      </div>
-      <button type="submit" class="btn-login" id="btn-criar"><i class="fa-solid fa-user-plus"></i> Criar conta</button>
-    </form>
-
-    <div class="login-back"><a href="index.html"><i class="fa-solid fa-arrow-left"></i> Voltar ao site</a></div>
-  </div>
-</div>
-
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script src="js/global.js"></script>
-<script src="js/api.js"></script>
-<script>
-  // Suporta voltar para onde o usuário estava (ex: checkout da loja) após o login.
-  // Uso: login.html?redirect=../checkout.html
-  function destinoAposLogin() {
-    const r = new URLSearchParams(location.search).get('redirect');
-    return r || 'dashboard.html';
-  }
-
-  // Link de convite (referral): login.html?ref=NOMEDOINDICADOR — se presente,
-  // abre direto na aba de cadastro com o código já pronto pra ser aplicado.
-  const REF_CODE = new URLSearchParams(location.search).get('ref');
-  if (REF_CODE) document.addEventListener('DOMContentLoaded', () => switchTab('criar'));
-
-  // Se já está logado, vai direto ao destino (dashboard por padrão)
-  if (localStorage.getItem('nm_token')) {
-    NM_API.me().then(() => location.href = destinoAposLogin()).catch(() => localStorage.removeItem('nm_token'));
-  }
-
-  // Modal comunicativo (Título / texto / Subtítulo / texto) — conteúdo vem do backend
-  NM_API.announcement().then(a => {
-    if (a && a.ativo) NM_SWAL.anuncio(a.titulo, a.texto, a.subtitulo, a.texto2);
-  }).catch(() => {});
-
-  function switchTab(tab) {
-    document.getElementById('tab-entrar').classList.toggle('active', tab === 'entrar');
-    document.getElementById('tab-criar').classList.toggle('active', tab === 'criar');
-    document.getElementById('form-entrar').style.display = tab === 'entrar' ? '' : 'none';
-    document.getElementById('form-criar').style.display = tab === 'criar' ? '' : 'none';
-  }
-
-  async function doLogin(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-entrar');
-    btn.disabled = true;
-    try {
-      await NM_API.login(document.getElementById('li-login').value, document.getElementById('li-senha').value);
-      location.href = destinoAposLogin();
-    } catch (err) {
-      NM_SWAL.error('Ops!', err.message);
-      btn.disabled = false;
-    }
-  }
-
-  async function doRegister(e) {
-    e.preventDefault();
-    const btn = document.getElementById('btn-criar');
-    btn.disabled = true;
-    try {
-      await NM_API.register(
-        document.getElementById('rg-user').value,
-        document.getElementById('rg-email').value,
-        document.getElementById('rg-senha').value,
-        REF_CODE
-      );
-      await NM_SWAL.success('Bem-vindo! 🐝', 'Conta criada com sucesso. Você ganhou <strong>1.000 NCT</strong> e <strong>100 flores</strong> para começar!');
-      location.href = destinoAposLogin();
-    } catch (err) {
-      NM_SWAL.error('Ops!', err.message);
-      btn.disabled = false;
-    }
-  }
-</script>
-
-<!-- AD RODAPÉ (HighPay 728x90) -->
-<!-- Place where the ad should appear -->
-<div id="highpay-ad-BIFFI-ONLINE_BIFFIONLINE_728X90"></div>
-<script>
-window.hpa=window.hpa||{q:[]};
-window.hpa.q.push({zone:'BIFFI-ONLINE_BIFFIONLINE_728X90',serve:'https://highpay-ads.com'});
-</script>
-<script async src="https://cdn.highpay-ads.com/cdn/js/loader.v1.js"></script>
 </body>
 </html>

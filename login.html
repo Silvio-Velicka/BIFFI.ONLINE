@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Entrar ou Criar Conta — BIFFI.ONLINE</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --rosa: #F2E6D3; --rosa-med: #D9BC8E; --roxo: #7A4A2D;
+      --roxo-esc: #3D2817; --dourado: #C9A227; --branco: #fff;
+    }
+
+    body {
+      font-family: 'Georgia', serif;
+      background: linear-gradient(160deg, #F2E6D3 0%, #EAD7B8 50%, #E3CC9E 100%);
+      min-height: 100vh;
+      color: var(--roxo-esc);
+    }
+
+    header {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 14px 40px;
+      background: rgba(255,255,255,0.35);
+      backdrop-filter: blur(10px);
+      border-bottom: 1px solid rgba(122,74,45,0.15);
+    }
+    .logo {
+      font-size: 22px; font-weight: 900; letter-spacing: 3px; color: var(--roxo);
+      text-decoration: none; text-shadow: 1px 1px 0 var(--dourado);
+    }
+    .voltar-site {
+      font-family: Arial, sans-serif; font-size: 13px; font-weight: 700;
+      color: var(--roxo); text-decoration: none;
+    }
+    .voltar-site:hover { text-decoration: underline; }
+
+    .wrap {
+      min-height: 100vh; display: flex; align-items: center; justify-content: center;
+      padding: 110px 20px 60px;
+    }
+
+    .card {
+      width: 100%; max-width: 420px;
+      background: rgba(255,255,255,0.55);
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(122,74,45,0.2);
+      border-radius: 20px;
+      padding: 34px 30px;
+      font-family: Arial, sans-serif;
+    }
+
+    .card .titulo-emoji { font-size: 38px; display: block; text-align: center; margin-bottom: 6px; }
+    .card h1 {
+      font-family: Georgia, serif; text-align: center; font-size: 24px;
+      color: var(--roxo); text-shadow: 1px 1px 0 var(--dourado); margin-bottom: 4px;
+    }
+    .card .sub { text-align: center; font-size: 13px; opacity: 0.75; margin-bottom: 22px; }
+
+    .tabs { display: flex; gap: 8px; margin-bottom: 22px; }
+    .tab {
+      flex: 1; padding: 10px; border-radius: 10px; border: 2px solid rgba(122,74,45,0.2);
+      background: transparent; color: var(--roxo-esc); font-size: 13px; font-weight: 700;
+      cursor: pointer; transition: all .2s; font-family: Arial, sans-serif;
+    }
+    .tab.active { background: var(--roxo); color: #fff; border-color: var(--roxo); }
+
+    .field { margin-bottom: 14px; }
+    .field label {
+      display: block; font-size: 11px; font-weight: 700; color: var(--roxo);
+      text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 6px;
+    }
+    .field input {
+      width: 100%; padding: 11px 13px; border-radius: 10px;
+      border: 2px solid rgba(122,74,45,0.18);
+      background: rgba(255,255,255,0.7);
+      color: var(--roxo-esc); font-size: 14px; font-family: Arial, sans-serif;
+      outline: none; transition: border-color 0.2s;
+    }
+    .field input:focus { border-color: var(--roxo); }
+
+    .btn-entrar {
+      width: 100%; padding: 13px; margin-top: 6px;
+      background: var(--roxo); color: #fff; border: none; border-radius: 50px;
+      font-weight: 700; letter-spacing: 1px; font-size: 14px; cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .btn-entrar:hover { background: var(--roxo-esc); transform: translateY(-1px); }
+    .btn-entrar:disabled { opacity: 0.6; cursor: wait; }
+
+    .aviso {
+      margin-top: 14px; padding: 12px 14px; border-radius: 10px; font-size: 12.5px;
+      display: none; line-height: 1.5;
+    }
+    .aviso.erro { background: rgba(220,50,50,0.12); color: #8a1f1f; display: block; }
+    .aviso.ok { background: rgba(80,180,120,0.15); color: #2e7d4f; display: block; }
+
+    .nota-conta {
+      margin-top: 18px; padding-top: 16px; border-top: 1px solid rgba(122,74,45,0.15);
+      font-size: 11.5px; text-align: center; opacity: 0.75; line-height: 1.6;
+    }
+
+    @media (max-width: 500px) {
+      header { padding: 12px 16px; }
+      .card { padding: 28px 22px; }
+    }
+  </style>
+</head>
+<body>
+
+  <header>
+    <a class="logo" href="index.html">BIFFI.ONLINE</a>
+    <a class="voltar-site" href="index.html"><i class="fa-solid fa-arrow-left"></i> Voltar ao site</a>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <span class="titulo-emoji">🐝</span>
+      <h1>Minha Conta</h1>
+      <p class="sub">Entre ou crie sua conta BIFFI.ONLINE</p>
+
+      <div class="tabs">
+        <button class="tab active" id="tab-entrar" type="button">Entrar</button>
+        <button class="tab" id="tab-criar" type="button">Criar conta</button>
+      </div>
+
+      <form id="form-entrar">
+        <div class="field">
+          <label>Usuário ou e-mail</label>
+          <input type="text" id="li-login" required autocomplete="username">
+        </div>
+        <div class="field">
+          <label>Senha</label>
+          <input type="password" id="li-senha" required autocomplete="current-password">
+        </div>
+        <button type="submit" class="btn-entrar" id="btn-entrar"><i class="fa-solid fa-right-to-bracket"></i> Entrar</button>
+      </form>
+
+      <form id="form-criar" style="display:none;">
+        <div class="field">
+          <label>Nome de usuário</label>
+          <input type="text" id="rg-user" required minlength="3" autocomplete="username">
+        </div>
+        <div class="field">
+          <label>E-mail</label>
+          <input type="email" id="rg-email" required autocomplete="email">
+        </div>
+        <div class="field">
+          <label>Senha (mín. 6 caracteres)</label>
+          <input type="password" id="rg-senha" required minlength="6" autocomplete="new-password">
+        </div>
+        <button type="submit" class="btn-entrar" id="btn-criar"><i class="fa-solid fa-user-plus"></i> Criar conta</button>
+      </form>
+
+      <div class="aviso" id="login-aviso"></div>
+
+      <p class="nota-conta">Essa é a mesma conta usada na Lojinha e no Game Relax — cadastre-se uma vez e use em todo o site.</p>
+    </div>
+  </div>
+
+  <script>
+    // Mesma lógica de detecção de domínio usada em js/site-auth.js, js/shop-api.js e NectarMine/js/api.js
+    const AUTH_BASE = (location.hostname === 'biffionline-production.up.railway.app' || location.hostname === 'localhost')
+      ? '' : 'https://biffionline-production.up.railway.app';
+
+    const params = new URLSearchParams(location.search);
+    const REDIRECT = params.get('redirect') || 'index.html';
+    const REF_CODE = params.get('ref');
+
+    const tabEntrar = document.getElementById('tab-entrar');
+    const tabCriar = document.getElementById('tab-criar');
+    const formEntrar = document.getElementById('form-entrar');
+    const formCriar = document.getElementById('form-criar');
+    const aviso = document.getElementById('login-aviso');
+
+    function switchTab(tab) {
+      tabEntrar.classList.toggle('active', tab === 'entrar');
+      tabCriar.classList.toggle('active', tab === 'criar');
+      formEntrar.style.display = tab === 'entrar' ? '' : 'none';
+      formCriar.style.display = tab === 'criar' ? '' : 'none';
+      aviso.style.display = 'none';
+    }
+    tabEntrar.addEventListener('click', () => switchTab('entrar'));
+    tabCriar.addEventListener('click', () => switchTab('criar'));
+
+    // Se veio de um link de convite (?ref=usuario), já abre na aba de cadastro
+    if (REF_CODE) switchTab('criar');
+
+    function mostrarErro(msg) {
+      aviso.textContent = msg;
+      aviso.className = 'aviso erro';
+    }
+
+    async function chamarApi(path, body) {
+      const res = await fetch(AUTH_BASE + path, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+      const data = await res.json().catch(() => ({}));
+      if (!res.ok) throw new Error(data.error || 'Erro na comunicação com o servidor.');
+      return data;
+    }
+
+    // Se já está logado com um token válido, pula direto para o destino
+    (async () => {
+      const t = localStorage.getItem('nm_token');
+      if (!t) return;
+      try {
+        const res = await fetch(AUTH_BASE + '/api/me', { headers: { Authorization: 'Bearer ' + t } });
+        if (res.ok) { location.href = REDIRECT; return; }
+        throw new Error();
+      } catch { localStorage.removeItem('nm_token'); }
+    })();
+
+    formEntrar.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-entrar');
+      btn.disabled = true;
+      aviso.style.display = 'none';
+      try {
+        const d = await chamarApi('/api/login', {
+          login: document.getElementById('li-login').value,
+          password: document.getElementById('li-senha').value,
+        });
+        localStorage.setItem('nm_token', d.token);
+        location.href = REDIRECT;
+      } catch (err) {
+        mostrarErro(err.message);
+        btn.disabled = false;
+      }
+    });
+
+    formCriar.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btn-criar');
+      btn.disabled = true;
+      aviso.style.display = 'none';
+      try {
+        const d = await chamarApi('/api/register', {
+          username: document.getElementById('rg-user').value,
+          email: document.getElementById('rg-email').value,
+          password: document.getElementById('rg-senha').value,
+          ref: REF_CODE,
+        });
+        localStorage.setItem('nm_token', d.token);
+        aviso.textContent = 'Conta criada com sucesso! Redirecionando...';
+        aviso.className = 'aviso ok';
+        setTimeout(() => { location.href = REDIRECT; }, 700);
+      } catch (err) {
+        mostrarErro(err.message);
+        btn.disabled = false;
+      }
+    });
+  </script>
+
+</body>
+</html>

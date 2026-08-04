@@ -132,8 +132,8 @@
     if (!produtoId) {
       mostrarEstado('🐝', 'Nenhum livro selecionado.', '<a href="loja.html">Ir para a loja</a>');
     } else if (!SHOP_API.token()) {
-      const destino = encodeURIComponent(`../leitor.html?produto=${produtoId}`);
-      mostrarEstado('🔒', 'Você precisa entrar na sua conta para ler este e-book.', `<a href="NectarMine/login.html?redirect=${destino}">Entrar / Criar conta</a>`);
+      const destino = encodeURIComponent(`leitor.html?produto=${produtoId}`);
+      mostrarEstado('🔒', 'Você precisa entrar na sua conta para ler este e-book.', `<a href="login.html?redirect=${destino}">Entrar / Criar conta</a>`);
     } else {
       iniciarLeitor();
     }

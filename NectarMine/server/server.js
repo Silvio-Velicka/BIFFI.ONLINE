@@ -1002,7 +1002,7 @@ const routes = {
     `).all(user.id);
     json(res, 200, {
       codigo: user.username,
-      link: `https://biffi.online/NectarMine/login.html?ref=${encodeURIComponent(user.username)}`,
+      link: `https://biffi.online/login.html?ref=${encodeURIComponent(user.username)}&redirect=${encodeURIComponent('NectarMine/dashboard.html')}`,
       total_indicados: indicados.length,
       validados: indicados.filter(i => i.validado).length,
       bonus_pendente: state.bonus_potes_pendente || 0,

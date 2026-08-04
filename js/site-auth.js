@@ -68,8 +68,8 @@ async function montarWidgetAuth() {
   const header = document.querySelector('header');
   if (!header) return;
   const user = await SITE_AUTH.verificar();
-  const redirect = encodeURIComponent('../' + SITE_AUTH.paginaAtual());
-  const hrefLogin = `NectarMine/login.html?redirect=${redirect}`;
+  const redirect = encodeURIComponent(SITE_AUTH.paginaAtual());
+  const hrefLogin = `login.html?redirect=${redirect}`;
   const hrefConta = 'NectarMine/dashboard.html';
 
   const nav = header.querySelector('nav');
