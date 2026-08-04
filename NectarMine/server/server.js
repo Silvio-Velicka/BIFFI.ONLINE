@@ -1574,7 +1574,14 @@ const routes = {
         (SELECT MAX(p.created_at) FROM pedidos p WHERE p.user_id = u.id) AS ultimo_pedido_em,
         (SELECT COUNT(*) FROM enderecos e WHERE e.user_id = u.id) AS enderecos_count,
         (SELECT e.rua || ', ' || e.numero || ' — ' || e.bairro || ', ' || e.cidade || '/' || e.estado
-           FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_principal
+           FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_principal,
+        (SELECT e.cep FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_cep,
+        (SELECT e.rua FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_rua,
+        (SELECT e.numero FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_numero,
+        (SELECT e.complemento FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_complemento,
+        (SELECT e.bairro FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_bairro,
+        (SELECT e.cidade FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_cidade,
+        (SELECT e.estado FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_estado
       FROM users u
       LEFT JOIN game_state gs ON gs.user_id = u.id
       LEFT JOIN users ref ON ref.id = u.indicado_por
@@ -2065,6 +2072,103 @@ const paramRoutes = [
       if (!statusValidos.includes(b.status)) return json(res, 400, { error: 'Status inválido.' });
       const info = db.prepare(`UPDATE pedidos SET status=?, updated_at=datetime('now') WHERE id=?`).run(b.status, id);
       if (info.changes === 0) return json(res, 404, { error: 'Pedido não encontrado.' });
+      json(res, 200, { ok: true });
+    },
+  },
+  // Exclui um pedido definitivamente (ex.: pedido de teste, duplicado, criado
+  // por engano). Remove os itens antes (sem FK automática no SQLite).
+  {
+    method: 'DELETE', re: /^\/api\/admin\/pedidos\/(\d+)$/,
+    handler: async (req, res, url, m) => {
+      if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      const id = Number(m[1]);
+      const pedido = db.prepare('SELECT id FROM pedidos WHERE id = ?').get(id);
+      if (!pedido) return json(res, 404, { error: 'Pedido não encontrado.' });
+      db.prepare('DELETE FROM pedido_itens WHERE pedido_id = ?').run(id);
+      db.prepare('DELETE FROM pedidos WHERE id = ?').run(id);
+      json(res, 200, { ok: true });
+    },
+  },
+  // Edita os dados cadastrais de um cliente (nome, CPF, telefone, e-mail,
+  // usuário) + o endereço principal (cria um endereço padrão se o cliente
+  // ainda não tinha nenhum).
+  {
+    method: 'PUT', re: /^\/api\/admin\/clientes\/(\d+)$/,
+    handler: async (req, res, url, m) => {
+      if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      const id = Number(m[1]);
+      const b = await readBody(req);
+      const user = db.prepare('SELECT id FROM users WHERE id = ?').get(id);
+      if (!user) return json(res, 404, { error: 'Cliente não encontrado.' });
+
+      const username = String(b.username ?? '').trim();
+      const email = String(b.email ?? '').trim();
+      if (!username || !email) return json(res, 400, { error: 'Usuário e e-mail são obrigatórios.' });
+
+      const usernameEmUso = db.prepare('SELECT id FROM users WHERE username = ? COLLATE NOCASE AND id != ?').get(username, id);
+      if (usernameEmUso) return json(res, 409, { error: 'Já existe outro cliente com esse nome de usuário.' });
+      const emailEmUso = db.prepare('SELECT id FROM users WHERE email = ? COLLATE NOCASE AND id != ?').get(email, id);
+      if (emailEmUso) return json(res, 409, { error: 'Já existe outro cliente com esse e-mail.' });
+
+      db.prepare('UPDATE users SET username=?, email=?, nome_completo=?, cpf=?, telefone=? WHERE id=?')
+        .run(username, email, String(b.nome_completo ?? ''), String(b.cpf ?? ''), String(b.telefone ?? ''), id);
+
+      // Endereço principal: atualiza o padrão existente, ou cria um novo se
+      // algum campo de endereço foi preenchido e o cliente ainda não tinha nenhum.
+      const camposEndereco = ['cep', 'rua', 'numero', 'complemento', 'bairro', 'cidade', 'estado'];
+      const temAlgumCampo = camposEndereco.some(c => String(b[c] ?? '').trim());
+      if (temAlgumCampo) {
+        const enderecoPadrao = db.prepare('SELECT id FROM enderecos WHERE user_id = ? ORDER BY padrao DESC, id DESC LIMIT 1').get(id);
+        if (enderecoPadrao) {
+          db.prepare(`
+            UPDATE enderecos SET nome_destinatario=?, cep=?, rua=?, numero=?, complemento=?, bairro=?, cidade=?, estado=?
+            WHERE id=?
+          `).run(
+            String(b.nome_completo ?? '').trim() || username, String(b.cep ?? '').trim(), String(b.rua ?? '').trim(),
+            String(b.numero ?? '').trim(), String(b.complemento ?? '').trim(), String(b.bairro ?? '').trim(),
+            String(b.cidade ?? '').trim(), String(b.estado ?? '').trim(), enderecoPadrao.id
+          );
+        } else {
+          db.prepare(`
+            INSERT INTO enderecos (user_id, nome_destinatario, cep, rua, numero, complemento, bairro, cidade, estado, padrao)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+          `).run(
+            id, String(b.nome_completo ?? '').trim() || username, String(b.cep ?? '').trim(), String(b.rua ?? '').trim(),
+            String(b.numero ?? '').trim(), String(b.complemento ?? '').trim(), String(b.bairro ?? '').trim(),
+            String(b.cidade ?? '').trim(), String(b.estado ?? '').trim()
+          );
+        }
+      }
+
+      json(res, 200, { ok: true });
+    },
+  },
+  // Exclui definitivamente um cliente e tudo que está vinculado a ele (conta
+  // do jogo, endereços, pedidos, indicações...). SQLite aqui não tem FK com
+  // cascade automático, então cada tabela relacionada é limpa manualmente.
+  {
+    method: 'DELETE', re: /^\/api\/admin\/clientes\/(\d+)$/,
+    handler: async (req, res, url, m) => {
+      if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      const id = Number(m[1]);
+      const user = db.prepare('SELECT id FROM users WHERE id = ?').get(id);
+      if (!user) return json(res, 404, { error: 'Cliente não encontrado.' });
+
+      const pedidoIds = db.prepare('SELECT id FROM pedidos WHERE user_id = ?').all(id).map(p => p.id);
+      const delItens = db.prepare('DELETE FROM pedido_itens WHERE pedido_id = ?');
+      for (const pid of pedidoIds) delItens.run(pid);
+      db.prepare('DELETE FROM pedidos WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM enderecos WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM sessions WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM event_log WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM apiarios WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM metas_diarias WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM mercado_transacoes WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM indicacoes WHERE indicador_id = ? OR indicado_id = ?').run(id, id);
+      db.prepare('UPDATE users SET indicado_por = NULL WHERE indicado_por = ?').run(id);
+      db.prepare('DELETE FROM game_state WHERE user_id = ?').run(id);
+      db.prepare('DELETE FROM users WHERE id = ?').run(id);
+
       json(res, 200, { ok: true });
     },
   },

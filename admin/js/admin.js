@@ -134,9 +134,12 @@ const BiffiAdmin = {
   /* ── LOJINHA: PEDIDOS ── */
   getPedidos(status) { return this._fetch('/api/admin/pedidos' + (status ? `?status=${status}` : '')); },
   atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },
+  excluirPedido(id) { return this._fetch(`/api/admin/pedidos/${id}`, 'DELETE'); },
 
   /* ── CLIENTES CADASTRADOS (jogo + loja, mesma conta) ── */
   getClientes() { return this._fetch('/api/admin/clientes'); },
+  atualizarCliente(id, payload) { return this._fetch(`/api/admin/clientes/${id}`, 'PUT', payload); },
+  excluirCliente(id) { return this._fetch(`/api/admin/clientes/${id}`, 'DELETE'); },
 
   /* ── DOAR E-BOOK (libera um e-book pra um cliente sem cobrar) ── */
   doarEbook(userId, produtoId) {

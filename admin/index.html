@@ -532,10 +532,11 @@
                 <th>Potes (jogo)</th>
                 <th>Indicado por</th>
                 <th>Cadastrado em</th>
+                <th>Ações</th>
               </tr>
             </thead>
             <tbody id="lista-clientes">
-              <tr><td colspan="15" style="font-size:12.5px;">Carregando...</td></tr>
+              <tr><td colspan="16" style="font-size:12.5px;">Carregando...</td></tr>
             </tbody>
           </table>
         </div>
@@ -1024,6 +1025,7 @@
                 <option value="entregue" ${p.status === 'entregue' ? 'selected' : ''}>Entregue</option>
                 <option value="cancelado" ${p.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
               </select>
+              <button class="btn-excluir-pedido" data-id="${p.id}" title="Excluir este pedido" style="background:none;border:none;cursor:pointer;font-size:16px;color:#a02020;">🗑️</button>
             </div>
           </div>
         `).join('');
@@ -1040,6 +1042,23 @@
         });
         lista.querySelectorAll('.btn-imprimir-pedido').forEach(btn => {
           btn.addEventListener('click', () => imprimirPedido(Number(btn.dataset.id)));
+        });
+        lista.querySelectorAll('.btn-excluir-pedido').forEach(btn => {
+          btn.addEventListener('click', async () => {
+            const id = Number(btn.dataset.id);
+            const result = await Swal.fire({
+              icon: 'warning', title: `Excluir pedido #${id}?`,
+              text: 'Essa ação não pode ser desfeita.',
+              showCancelButton: true, confirmButtonText: 'Excluir', confirmButtonColor: '#a02020', cancelButtonText: 'Cancelar',
+            });
+            if (!result.isConfirmed) return;
+            try {
+              await BiffiAdmin.excluirPedido(id);
+              carregarPedidos();
+            } catch (err) {
+              Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+            }
+          });
         });
       } catch (err) {
         lista.innerHTML = `<p style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</p>`;
@@ -1143,7 +1162,7 @@
 
     function renderizarClientes(lista) {
       const tbody = document.getElementById('lista-clientes');
-      if (!lista.length) { tbody.innerHTML = '<tr><td colspan="15" style="font-size:12.5px;">Nenhum cliente encontrado.</td></tr>'; return; }
+      if (!lista.length) { tbody.innerHTML = '<tr><td colspan="16" style="font-size:12.5px;">Nenhum cliente encontrado.</td></tr>'; return; }
 
       tbody.innerHTML = lista.map(c => `
         <tr>
@@ -1162,8 +1181,149 @@
           <td>${c.jogo_potes ?? 0}</td>
           <td>${celula(c.indicado_por_username)}</td>
           <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+          <td style="white-space:nowrap;">
+            <button class="btn-editar-cliente" data-id="${c.id}" title="Editar cliente" style="background:none;border:none;cursor:pointer;font-size:15px;">✏️</button>
+            <button class="btn-excluir-cliente" data-id="${c.id}" title="Excluir cliente" style="background:none;border:none;cursor:pointer;font-size:15px;color:#a02020;">🗑️</button>
+          </td>
         </tr>
       `).join('');
+
+      tbody.querySelectorAll('.btn-editar-cliente').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const cliente = clientesCache.find(c => c.id === Number(btn.dataset.id));
+          if (cliente) abrirEditarCliente(cliente);
+        });
+      });
+      tbody.querySelectorAll('.btn-excluir-cliente').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const id = Number(btn.dataset.id);
+          const cliente = clientesCache.find(c => c.id === id);
+          const result = await Swal.fire({
+            icon: 'warning',
+            title: `Excluir cliente "${cliente ? cliente.username : id}"?`,
+            html: 'Isso apaga a conta, o progresso no jogo, endereços e o histórico de pedidos dele. <strong>Essa ação não pode ser desfeita.</strong>',
+            showCancelButton: true, confirmButtonText: 'Excluir', confirmButtonColor: '#a02020', cancelButtonText: 'Cancelar',
+          });
+          if (!result.isConfirmed) return;
+          try {
+            await BiffiAdmin.excluirCliente(id);
+            carregarClientes();
+          } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+          }
+        });
+      });
+    }
+
+    async function abrirEditarCliente(c) {
+      const esc = (s) => String(s ?? '').replace(/"/g, '&quot;');
+
+      const html = `
+        <div style="text-align:left;font-size:13px;max-height:60vh;overflow-y:auto;padding-right:4px;">
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Usuário</label>
+              <input id="edit-cli-username" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.username)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">E-mail</label>
+              <input id="edit-cli-email" type="email" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.email)}">
+            </div>
+          </div>
+
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Nome completo</label>
+          <input id="edit-cli-nome" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.nome_completo)}">
+
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">CPF</label>
+              <input id="edit-cli-cpf" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.cpf)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Telefone</label>
+              <input id="edit-cli-telefone" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.telefone)}">
+            </div>
+          </div>
+
+          <label style="display:block;font-weight:bold;margin:14px 0 4px;">Endereço principal</label>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">CEP</label>
+              <input id="edit-cli-cep" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_cep)}">
+            </div>
+            <div style="flex:2;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Rua</label>
+              <input id="edit-cli-rua" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_rua)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Número</label>
+              <input id="edit-cli-numero" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_numero)}">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Complemento</label>
+              <input id="edit-cli-complemento" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_complemento)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Bairro</label>
+              <input id="edit-cli-bairro" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_bairro)}">
+            </div>
+          </div>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:2;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Cidade</label>
+              <input id="edit-cli-cidade" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_cidade)}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Estado (UF)</label>
+              <input id="edit-cli-estado" maxlength="2" class="swal2-input" style="margin:0;width:100%;" value="${esc(c.endereco_estado)}">
+            </div>
+          </div>
+        </div>
+      `;
+
+      const result = await Swal.fire({
+        title: 'Editar cliente',
+        html,
+        width: 560,
+        showCancelButton: true,
+        confirmButtonText: 'Salvar',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#7A4A2D',
+        focusConfirm: false,
+        preConfirm: () => {
+          const username = document.getElementById('edit-cli-username').value.trim();
+          const email = document.getElementById('edit-cli-email').value.trim();
+          if (!username || !email) {
+            Swal.showValidationMessage('Usuário e e-mail são obrigatórios.');
+            return false;
+          }
+          return {
+            username, email,
+            nome_completo: document.getElementById('edit-cli-nome').value.trim(),
+            cpf: document.getElementById('edit-cli-cpf').value.trim(),
+            telefone: document.getElementById('edit-cli-telefone').value.trim(),
+            cep: document.getElementById('edit-cli-cep').value.trim(),
+            rua: document.getElementById('edit-cli-rua').value.trim(),
+            numero: document.getElementById('edit-cli-numero').value.trim(),
+            complemento: document.getElementById('edit-cli-complemento').value.trim(),
+            bairro: document.getElementById('edit-cli-bairro').value.trim(),
+            cidade: document.getElementById('edit-cli-cidade').value.trim(),
+            estado: document.getElementById('edit-cli-estado').value.trim(),
+          };
+        },
+      });
+
+      if (!result.isConfirmed) return;
+
+      try {
+        await BiffiAdmin.atualizarCliente(c.id, result.value);
+        Swal.fire({ icon: 'success', title: 'Cliente atualizado!', timer: 1600, showConfirmButton: false });
+        carregarClientes();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Erro ao salvar', text: err.message });
+      }
     }
 
     function atualizarResumoClientes(lista) {
@@ -1185,7 +1345,7 @@
         atualizarResumoClientes(clientes);
         renderizarClientes(clientes);
       } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="15" style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="16" style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</td></tr>`;
       }
     }
 
