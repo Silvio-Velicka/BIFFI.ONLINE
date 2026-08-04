@@ -204,76 +204,92 @@
         img.src = primeiraUrl;
       });
 
-      // Monta a área do leitor
-      estadoEl.style.display = 'none';
-      const bookEl = document.createElement('div');
-      bookEl.id = 'livro';
-      palco.innerHTML = '';
-      palco.appendChild(bookEl);
-      controles.style.display = 'flex';
-
-      const maxW = Math.min(window.innerWidth * 0.92, 1000);
-      const maxH = window.innerHeight - 140;
-      let pageW = dimensoes.w, pageH = dimensoes.h;
-      const escala = Math.min(maxW / (pageW * 2), maxH / pageH, 1);
-      pageW = Math.round(pageW * escala);
-      pageH = Math.round(pageH * escala);
-
-      const pageFlip = new St.PageFlip(bookEl, {
-        width: pageW,
-        height: pageH,
-        size: 'fixed',
-        minWidth: 200,
-        maxWidth: 1200,
-        minHeight: 300,
-        maxHeight: 1600,
-        maxShadowOpacity: 0.4,
-        showCover: false,
-        mobileScrollSupport: false,
-        usePortrait: true,
-      });
-
-      const hrefs = new Array(totalPaginas).fill(PLACEHOLDER);
-      hrefs[0] = primeiraUrl;
-      pageFlip.loadFromImages(hrefs);
-      cache.set(1, primeiraUrl);
-
-      function atualizarIndicador() {
-        const atual = pageFlip.getCurrentPageIndex() + 1;
-        document.getElementById('pagina-indicador').textContent = `Página ${atual} de ${totalPaginas}`;
-        document.getElementById('btn-prev').disabled = atual <= 1;
-        document.getElementById('btn-next').disabled = atual >= totalPaginas;
+      // A biblioteca de leitura (page-flip) vem de um CDN externo — se ela não
+      // carregar por qualquer motivo (CDN fora do ar, bloqueio de rede, etc.),
+      // ou se qualquer coisa der errado ao montá-la, mostramos um erro claro
+      // em vez de deixar a página com os botões/link travados sem explicação.
+      if (typeof St === 'undefined' || !St.PageFlip) {
+        mostrarEstado('😕', 'Não foi possível carregar o leitor agora (falha ao baixar um recurso do site). Recarregue a página ou tente novamente em instantes.', '<a href="biblioteca.html">Voltar para a Biblioteca</a>');
+        console.error('[leitor] biblioteca page-flip (St.PageFlip) não carregou do CDN.');
+        return;
       }
-      atualizarIndicador();
 
-      async function carregarJanelaAoRedor(pagina1based) {
-        const alvo = [];
-        for (let d = -JANELA; d <= JANELA; d++) {
-          const n = pagina1based + d;
-          if (n >= 1 && n <= totalPaginas) alvo.push(n);
+      try {
+        // Monta a área do leitor
+        estadoEl.style.display = 'none';
+        const bookEl = document.createElement('div');
+        bookEl.id = 'livro';
+        palco.innerHTML = '';
+        palco.appendChild(bookEl);
+        controles.style.display = 'flex';
+
+        const maxW = Math.min(window.innerWidth * 0.92, 1000);
+        const maxH = Math.max(window.innerHeight - 140, 300); // nunca deixa ficar negativo/zero em telas muito baixas
+        let pageW = dimensoes.w, pageH = dimensoes.h;
+        const escala = Math.min(maxW / (pageW * 2), maxH / pageH, 1);
+        pageW = Math.max(200, Math.round(pageW * escala));
+        pageH = Math.max(300, Math.round(pageH * escala));
+
+        const pageFlip = new St.PageFlip(bookEl, {
+          width: pageW,
+          height: pageH,
+          size: 'fixed',
+          minWidth: 200,
+          maxWidth: 1200,
+          minHeight: 300,
+          maxHeight: 1600,
+          maxShadowOpacity: 0.4,
+          showCover: false,
+          mobileScrollSupport: false,
+          usePortrait: true,
+          autoSize: false, // já calculamos o tamanho exato em pixels acima — sem isso a lib estica o livro pra 100% da largura da tela
+        });
+
+        const hrefs = new Array(totalPaginas).fill(PLACEHOLDER);
+        hrefs[0] = primeiraUrl;
+        pageFlip.loadFromImages(hrefs);
+        cache.set(1, primeiraUrl);
+
+        function atualizarIndicador() {
+          const atual = pageFlip.getCurrentPageIndex() + 1;
+          document.getElementById('pagina-indicador').textContent = `Página ${atual} de ${totalPaginas}`;
+          document.getElementById('btn-prev').disabled = atual <= 1;
+          document.getElementById('btn-next').disabled = atual >= totalPaginas;
         }
-        await Promise.all(alvo.map(n => buscarPagina(n).catch(() => null)));
-
-        const novosHrefs = new Array(totalPaginas).fill(PLACEHOLDER);
-        for (const [n, url] of cache) novosHrefs[n - 1] = url;
-        pageFlip.updateFromImages(novosHrefs);
-        liberarForaDaJanela(pagina1based);
-      }
-
-      carregarJanelaAoRedor(1);
-
-      pageFlip.on('flip', (e) => {
-        const atual = e.data + 1; // biblioteca usa índice 0-based
         atualizarIndicador();
-        carregarJanelaAoRedor(atual);
-      });
 
-      document.getElementById('btn-prev').addEventListener('click', () => pageFlip.flipPrev());
-      document.getElementById('btn-next').addEventListener('click', () => pageFlip.flipNext());
-      document.addEventListener('keydown', (e) => {
-        if (e.key === 'ArrowLeft') pageFlip.flipPrev();
-        if (e.key === 'ArrowRight') pageFlip.flipNext();
-      });
+        async function carregarJanelaAoRedor(pagina1based) {
+          const alvo = [];
+          for (let d = -JANELA; d <= JANELA; d++) {
+            const n = pagina1based + d;
+            if (n >= 1 && n <= totalPaginas) alvo.push(n);
+          }
+          await Promise.all(alvo.map(n => buscarPagina(n).catch(() => null)));
+
+          const novosHrefs = new Array(totalPaginas).fill(PLACEHOLDER);
+          for (const [n, url] of cache) novosHrefs[n - 1] = url;
+          pageFlip.updateFromImages(novosHrefs);
+          liberarForaDaJanela(pagina1based);
+        }
+
+        carregarJanelaAoRedor(1);
+
+        pageFlip.on('flip', (e) => {
+          const atual = e.data + 1; // biblioteca usa índice 0-based
+          atualizarIndicador();
+          carregarJanelaAoRedor(atual);
+        });
+
+        document.getElementById('btn-prev').addEventListener('click', () => pageFlip.flipPrev());
+        document.getElementById('btn-next').addEventListener('click', () => pageFlip.flipNext());
+        document.addEventListener('keydown', (e) => {
+          if (e.key === 'ArrowLeft') pageFlip.flipPrev();
+          if (e.key === 'ArrowRight') pageFlip.flipNext();
+        });
+      } catch (err) {
+        console.error('[leitor] erro ao montar o leitor:', err);
+        mostrarEstado('😕', 'Algo deu errado ao montar o leitor. Recarregue a página — se o problema continuar, avise a gente.', '<a href="biblioteca.html">Voltar para a Biblioteca</a>');
+      }
     }
 
     /* ── Deterrentes contra cópia fácil (não impedem print de tela) ── */
