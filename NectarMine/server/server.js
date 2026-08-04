@@ -371,12 +371,11 @@ function produtoPublico(p) {
   };
 }
 
-// Frete simples: grátis acima de R$150, senão R$15 fixo. Usado como fallback
-// automático caso o Melhor Envio ainda não esteja configurado/autorizado, ou
-// se a API dele estiver fora do ar no momento — o cliente nunca vê o checkout
-// travado por causa disso.
+// Frete fixo de R$15. Usado como fallback automático caso o Melhor Envio
+// ainda não esteja configurado/autorizado, ou se a API dele estiver fora do
+// ar no momento — o cliente nunca vê o checkout travado por causa disso.
 function calcularFrete(subtotalCents) {
-  return subtotalCents >= 15000 ? 0 : 1500;
+  return 1500;
 }
 
 /* ── FRETE REAL — Melhor Envio (Correios PAC/SEDEX/Mini Envios, Jadlog etc.) ──
@@ -1334,12 +1333,6 @@ const routes = {
       return json(res, 200, { opcoes: [{ id: null, nome: 'Sem frete (somente e-books)', empresa: '', preco_cents: 0, prazo_dias: null }] });
     }
 
-    // Promoção existente: frete grátis acima de R$150 em itens físicos —
-    // mantida independente da transportadora escolhida.
-    if (subtotalFisicoCents >= 15000) {
-      return json(res, 200, { opcoes: [{ id: null, nome: 'Frete grátis (compra acima de R$150)', empresa: '', preco_cents: 0, prazo_dias: null }] });
-    }
-
     try {
       const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
       if (opcoes.length === 0) {
@@ -1470,23 +1463,19 @@ const routes = {
     let fretePrazoDias = null;
 
     if (itensFisicos.length > 0) {
-      if (subtotalFisicoCents >= 15000) {
-        freteServico = 'Frete grátis (compra acima de R$150)';
-      } else {
-        const cepDestino = String(end.cep).replace(/\D/g, '');
-        try {
-          const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
-          const escolhida = (opcoes.find(o => o.id === Number(b.frete_servico_id)) || opcoes[0]);
-          if (!escolhida) throw new Error('Nenhuma opção de frete disponível.');
-          freteCents = escolhida.preco_cents;
-          freteServico = `${escolhida.empresa} ${escolhida.nome}`.trim();
-          freteServicoId = escolhida.id;
-          fretePrazoDias = escolhida.prazo_dias;
-        } catch (err) {
-          console.error('[checkout] fallback pro frete fixo:', err.message);
-          freteCents = calcularFrete(subtotalFisicoCents);
-          freteServico = 'Frete padrão';
-        }
+      const cepDestino = String(end.cep).replace(/\D/g, '');
+      try {
+        const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
+        const escolhida = (opcoes.find(o => o.id === Number(b.frete_servico_id)) || opcoes[0]);
+        if (!escolhida) throw new Error('Nenhuma opção de frete disponível.');
+        freteCents = escolhida.preco_cents;
+        freteServico = `${escolhida.empresa} ${escolhida.nome}`.trim();
+        freteServicoId = escolhida.id;
+        fretePrazoDias = escolhida.prazo_dias;
+      } catch (err) {
+        console.error('[checkout] fallback pro frete fixo:', err.message);
+        freteCents = calcularFrete(subtotalFisicoCents);
+        freteServico = 'Frete padrão';
       }
     }
     const totalCents = subtotalCents + freteCents;
