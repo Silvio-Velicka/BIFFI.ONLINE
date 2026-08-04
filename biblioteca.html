@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Biblioteca — BIFFI.ONLINE</title>
+  <title>Biblioteca de Oração — BIFFI.ONLINE</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -125,7 +125,7 @@
 
     .page-title {
       text-align: center;
-      margin-bottom: 56px;
+      margin-bottom: 48px;
     }
 
     .page-title .emoji { font-size: 48px; display: block; margin-bottom: 12px; }
@@ -143,24 +143,47 @@
       color: var(--roxo-esc);
       font-family: Arial, sans-serif;
       line-height: 1.6;
+      max-width: 560px;
+      margin: 0 auto;
     }
 
-    .section-title {
-      font-size: 22px;
-      color: var(--roxo);
-      margin-bottom: 24px;
-      letter-spacing: 2px;
-      text-shadow: 2px 2px 0 var(--dourado);
+    /* ── ESTADOS (carregando / vazio / bloqueado) ── */
+    .biblio-estado {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(8px);
+      border: 2px solid rgba(122,74,45,0.2);
+      border-radius: 20px;
+      padding: 50px 30px;
     }
+    .biblio-estado .emoji { font-size: 40px; display: block; margin-bottom: 14px; }
+    .biblio-estado p { font-size: 14px; line-height: 1.7; color: var(--roxo-esc); margin-bottom: 6px; }
+    .biblio-estado .sub { font-size: 12.5px; opacity: 0.75; }
+    .biblio-btn {
+      display: inline-block;
+      margin-top: 18px;
+      padding: 12px 28px;
+      background: var(--roxo);
+      color: #fff;
+      border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 13px;
+      transition: background 0.2s;
+    }
+    .biblio-btn:hover { background: var(--roxo-esc); }
 
-    .tracks {
+    /* ── GRADE DE E-BOOKS ── */
+    .ebook-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
       gap: 24px;
-      margin-bottom: 60px;
     }
 
-    .track-card {
+    .ebook-card {
+      display: flex;
+      flex-direction: column;
       background: rgba(255,255,255,0.5);
       backdrop-filter: blur(8px);
       border: 2px solid rgba(122,74,45,0.2);
@@ -169,106 +192,46 @@
       transition: transform 0.25s, box-shadow 0.25s;
     }
 
-    .track-card:hover {
+    .ebook-card:hover {
       transform: translateY(-4px);
       box-shadow: 0 14px 35px rgba(122,74,45,0.15);
     }
 
-    .track-icon { font-size: 40px; margin-bottom: 14px; display: block; }
+    .ebook-card .icon { font-size: 40px; margin-bottom: 14px; display: block; }
 
-    .track-card h3 {
-      font-size: 18px;
+    .ebook-card h3 {
+      font-size: 17px;
       color: var(--roxo);
       margin-bottom: 8px;
-      font-family: Arial, sans-serif;
-      font-weight: 700;
+      font-family: Georgia, serif;
+      line-height: 1.35;
     }
 
-    .track-card p {
-      font-size: 13px;
+    .ebook-card .paginas {
+      font-size: 12.5px;
       color: var(--roxo-esc);
-      line-height: 1.7;
       font-family: Arial, sans-serif;
-      margin-bottom: 18px;
+      opacity: 0.8;
+      margin-bottom: 20px;
     }
 
-    .lessons { display: flex; flex-direction: column; gap: 8px; }
-
-    .lesson {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-      font-family: Arial, sans-serif;
-      color: var(--roxo-esc);
-    }
-
-    .lesson .check {
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: rgba(122,74,45,0.15);
-      display: flex;
+    .ebook-card .btn-ler {
+      margin-top: auto;
+      display: inline-flex;
       align-items: center;
       justify-content: center;
-      font-size: 11px;
-      flex-shrink: 0;
-      color: var(--roxo);
-      font-weight: 700;
-    }
-
-    .material-list { display: flex; flex-direction: column; gap: 16px; }
-
-    .material-item {
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      background: rgba(255,255,255,0.45);
-      backdrop-filter: blur(8px);
-      border: 2px solid rgba(122,74,45,0.15);
-      border-radius: 16px;
-      padding: 18px 24px;
-      text-decoration: none;
-      color: inherit;
-      transition: transform 0.2s, box-shadow 0.2s;
-    }
-
-    .material-item:hover {
-      transform: translateX(4px);
-      box-shadow: 0 8px 24px rgba(122,74,45,0.14);
-    }
-
-    .material-icon { font-size: 34px; flex-shrink: 0; }
-
-    .material-info h4 {
-      font-size: 15px;
-      color: var(--roxo);
-      font-family: Arial, sans-serif;
-      font-weight: 700;
-      margin-bottom: 4px;
-    }
-
-    .material-info p {
-      font-size: 12px;
-      color: var(--roxo-esc);
-      font-family: Arial, sans-serif;
-      line-height: 1.5;
-    }
-
-    .material-tag {
-      margin-left: auto;
-      font-size: 11px;
-      font-weight: 700;
-      letter-spacing: 1px;
-      padding: 4px 12px;
+      gap: 8px;
+      padding: 11px 20px;
+      background: var(--roxo);
+      color: #fff;
       border-radius: 50px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 12.5px;
       font-family: Arial, sans-serif;
-      flex-shrink: 0;
+      transition: background 0.2s;
     }
-
-    .tag-free  { background: #d1fae5; color: #065f46; }
-    .tag-pdf   { background: #ede9fe; color: #5b21b6; }
-    .tag-video { background: #F0DCC0; color: #7A4A2D; }
+    .ebook-card .btn-ler:hover { background: var(--roxo-esc); }
 
     footer {
       position: fixed;
@@ -397,90 +360,15 @@
   <div class="page">
     <div class="page-title">
       <span class="emoji">📚</span>
-      <h1>Biblioteca</h1>
-      <p>Trilhas de conhecimento e materiais para aprofundar sua jornada.</p>
+      <h1>Biblioteca de Oração</h1>
+      <p>Todo e-book que você comprar ou receber de presente aparece aqui. É o único lugar que você precisa lembrar — sempre que quiser ler, é só voltar pra cá.</p>
     </div>
 
-    <h2 class="section-title">🗺️ Trilhas de Aprendizado</h2>
-    <div class="tracks">
-
-      <div class="track-card">
-        <span class="track-icon">🌱</span>
-        <h3>Autoconhecimento</h3>
-        <p>Uma trilha para descobrir quem você é de verdade — seus valores, limites e forças.</p>
-        <div class="lessons">
-          <div class="lesson"><span class="check">1</span> O que é autoconhecimento?</div>
-          <div class="lesson"><span class="check">2</span> Mapa das emoções</div>
-          <div class="lesson"><span class="check">3</span> Seus valores centrais</div>
-          <div class="lesson"><span class="check">4</span> Limites saudáveis</div>
-        </div>
+    <div id="biblioteca-conteudo">
+      <div class="biblio-estado">
+        <span class="emoji">🐝</span>
+        <p>Carregando sua biblioteca...</p>
       </div>
-
-      <div class="track-card">
-        <span class="track-icon">🧘</span>
-        <h3>Mindfulness</h3>
-        <p>Práticas de atenção plena para trazer mais presença e paz para o dia a dia.</p>
-        <div class="lessons">
-          <div class="lesson"><span class="check">1</span> O que é mindfulness?</div>
-          <div class="lesson"><span class="check">2</span> Respiração consciente</div>
-          <div class="lesson"><span class="check">3</span> Meditação guiada (10 min)</div>
-          <div class="lesson"><span class="check">4</span> Rotina de atenção plena</div>
-        </div>
-      </div>
-
-      <div class="track-card">
-        <span class="track-icon">✍️</span>
-        <h3>Escrita Terapêutica</h3>
-        <p>Use o poder das palavras para processar emoções, curar e se reinventar.</p>
-        <div class="lessons">
-          <div class="lesson"><span class="check">1</span> Diário livre vs. dirigido</div>
-          <div class="lesson"><span class="check">2</span> Cartas para si mesma</div>
-          <div class="lesson"><span class="check">3</span> Reescrevendo narrativas</div>
-          <div class="lesson"><span class="check">4</span> Gratidão em palavras</div>
-        </div>
-      </div>
-
-    </div>
-
-    <h2 class="section-title">📥 Materiais Gratuitos</h2>
-    <div class="material-list">
-
-      <a class="material-item" href="#">
-        <span class="material-icon">📄</span>
-        <div class="material-info">
-          <h4>Guia de Autoconhecimento — Iniciante</h4>
-          <p>Um passo a passo prático para quem está começando a se descobrir.</p>
-        </div>
-        <span class="material-tag tag-pdf">PDF</span>
-      </a>
-
-      <a class="material-item" href="#">
-        <span class="material-icon">🎧</span>
-        <div class="material-info">
-          <h4>Meditação Guiada: Conectando com o Presente</h4>
-          <p>Áudio de 15 minutos para acalmar a mente e se ancorar no agora.</p>
-        </div>
-        <span class="material-tag tag-free">Grátis</span>
-      </a>
-
-      <a class="material-item" href="#">
-        <span class="material-icon">📋</span>
-        <div class="material-info">
-          <h4>Planilha de Metas com Intenção</h4>
-          <p>Modelo para definir objetivos alinhados aos seus valores mais profundos.</p>
-        </div>
-        <span class="material-tag tag-pdf">PDF</span>
-      </a>
-
-      <a class="material-item" href="#">
-        <span class="material-icon">🎬</span>
-        <div class="material-info">
-          <h4>Aula: Introdução à Escrita Terapêutica</h4>
-          <p>Uma aula introdutória em vídeo sobre o poder transformador de escrever.</p>
-        </div>
-        <span class="material-tag tag-video">Vídeo</span>
-      </a>
-
     </div>
   </div>
 
@@ -500,6 +388,63 @@
   </footer>
 
   <script src="js/site-auth.js"></script>
+  <script src="js/shop-api.js"></script>
   <script src="js/contatos-footer.js"></script>
+  <script>
+    async function carregarBiblioteca() {
+      const container = document.getElementById('biblioteca-conteudo');
+      const usuario = await SITE_AUTH.verificar();
+
+      if (!usuario) {
+        container.innerHTML = `
+          <div class="biblio-estado">
+            <span class="emoji">🔒</span>
+            <p>Você precisa entrar na sua conta para ver sua biblioteca.</p>
+            <p class="sub">É a mesma conta usada na lojinha e no Game Relax.</p>
+            <a class="biblio-btn" href="login.html?redirect=${encodeURIComponent('biblioteca.html')}">Entrar / Criar conta</a>
+          </div>
+        `;
+        return;
+      }
+
+      try {
+        const { livros } = await SHOP_API.meusLivros();
+        if (!livros || livros.length === 0) {
+          container.innerHTML = `
+            <div class="biblio-estado">
+              <span class="emoji">📖</span>
+              <p>Sua biblioteca ainda está vazia.</p>
+              <p class="sub">Assim que você comprar ou ganhar um e-book, ele aparece aqui automaticamente.</p>
+              <a class="biblio-btn" href="loja.html">Ir para a lojinha</a>
+            </div>
+          `;
+          return;
+        }
+
+        container.innerHTML = `
+          <div class="ebook-grid">
+            ${livros.map(l => `
+              <div class="ebook-card">
+                <span class="icon">📖</span>
+                <h3>${l.nome}</h3>
+                <span class="paginas">${l.total_paginas} páginas · leitura protegida, direto no navegador</span>
+                <a class="btn-ler" href="leitor.html?produto=${l.produto_id}"><i class="fa-solid fa-book-open"></i> Ler agora</a>
+              </div>
+            `).join('')}
+          </div>
+        `;
+      } catch (err) {
+        container.innerHTML = `
+          <div class="biblio-estado">
+            <span class="emoji">🐝</span>
+            <p>Não foi possível carregar sua biblioteca agora.</p>
+            <p class="sub">Tente novamente em instantes.</p>
+          </div>
+        `;
+      }
+    }
+
+    carregarBiblioteca();
+  </script>
 </body>
 </html>
