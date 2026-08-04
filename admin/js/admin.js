@@ -135,6 +135,9 @@ const BiffiAdmin = {
   getPedidos(status) { return this._fetch('/api/admin/pedidos' + (status ? `?status=${status}` : '')); },
   atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },
 
+  /* ── CLIENTES CADASTRADOS (jogo + loja, mesma conta) ── */
+  getClientes() { return this._fetch('/api/admin/clientes'); },
+
   /* ── CONTATOS DO RODAPÉ (Instagram, Facebook, Telegram, e-mail) ── */
   getContatos() { return this._fetch('/api/site-contatos'); },
   saveContatos(payload) { return this._fetch('/api/site-contatos', 'PUT', payload); },

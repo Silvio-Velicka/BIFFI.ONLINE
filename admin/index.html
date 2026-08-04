@@ -244,6 +244,32 @@
     .filtro-status { display: flex; gap: 8px; align-items: center; margin-bottom: 18px; font-size: 12.5px; flex-wrap: wrap; }
     .filtro-status select { padding: 8px 12px; border-radius: 8px; border: 2px solid rgba(122,74,45,0.18); background: rgba(255,255,255,0.65); }
 
+    /* ── LISTA DE CLIENTES ── */
+    .clientes-resumo { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 18px; }
+    .resumo-pill {
+      padding: 10px 16px; border-radius: 12px; background: rgba(255,255,255,0.5);
+      border: 2px solid rgba(122,74,45,0.15); font-size: 12px;
+    }
+    .resumo-pill strong { display: block; font-size: 18px; color: var(--roxo); font-family: Georgia, serif; }
+    .clientes-busca {
+      width: 100%; padding: 11px 14px; margin-bottom: 16px; border-radius: 10px;
+      border: 2px solid rgba(122,74,45,0.18); background: rgba(255,255,255,0.65);
+      font-size: 13px; font-family: Arial, sans-serif; outline: none;
+    }
+    .clientes-busca:focus { border-color: var(--roxo); }
+    .tabela-scroll { overflow-x: auto; }
+    table.tabela-clientes { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
+    table.tabela-clientes th, table.tabela-clientes td { padding: 9px 12px; border-bottom: 1px solid rgba(122,74,45,0.1); text-align: left; }
+    table.tabela-clientes th {
+      color: var(--roxo); text-transform: uppercase; font-size: 10px; letter-spacing: 0.5px;
+      position: sticky; top: 0; background: rgba(242,230,211,0.95);
+    }
+    table.tabela-clientes tr:hover td { background: rgba(255,255,255,0.4); }
+    .badge-origem { padding: 4px 10px; border-radius: 20px; font-weight: bold; font-size: 10.5px; letter-spacing: 0.3px; white-space: nowrap; }
+    .badge-origem.loja { background: rgba(80,180,120,0.18); color: #2e7d4f; }
+    .badge-origem.jogo { background: rgba(122,74,45,0.14); color: var(--roxo-esc); }
+    .celula-vazia { opacity: 0.4; }
+
     /* ── BOTÕES DE IMPRIMIR ── */
     .btn-imprimir {
       margin-left: auto;
@@ -307,6 +333,9 @@
     </div>
     <div class="nav-item" data-view="pedidos">
       <span class="icon">📦</span> Pedidos
+    </div>
+    <div class="nav-item" data-view="clientes">
+      <span class="icon">👥</span> Clientes
     </div>
     <div class="nav-item" data-view="contatos">
       <span class="icon">📱</span> Contatos
@@ -452,6 +481,45 @@
       </div>
     </div>
 
+    <!-- ═══ VIEW: CLIENTES ═══ -->
+    <div class="view" id="view-clientes">
+      <h1>👥 Clientes Cadastrados</h1>
+      <p class="subtitle">Todas as contas criadas (jogo + loja — é o mesmo login). Quem tem nome/CPF/telefone/endereço preenchido ou já fez pedido é marcado como "Loja"; quem só criou conta pra jogar aparece como "Jogo".</p>
+
+      <div class="clientes-resumo" id="clientes-resumo"></div>
+
+      <input type="text" class="clientes-busca" id="clientes-busca" placeholder="🔎 Buscar por usuário, e-mail, nome, CPF ou telefone...">
+
+      <div class="card">
+        <div class="tabela-scroll">
+          <table class="tabela-clientes">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Origem</th>
+                <th>Usuário</th>
+                <th>E-mail</th>
+                <th>Nome completo</th>
+                <th>CPF</th>
+                <th>Telefone</th>
+                <th>Endereço principal</th>
+                <th>Pedidos</th>
+                <th>Total gasto</th>
+                <th>Último pedido</th>
+                <th>Nível jogo</th>
+                <th>Potes (jogo)</th>
+                <th>Indicado por</th>
+                <th>Cadastrado em</th>
+              </tr>
+            </thead>
+            <tbody id="lista-clientes">
+              <tr><td colspan="15" style="font-size:12.5px;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ VIEW: CONTATOS ═══ -->
     <div class="view" id="view-contatos">
       <h1>📱 Contatos</h1>
@@ -510,6 +578,7 @@
         document.getElementById('view-' + item.dataset.view).classList.add('active');
         if (item.dataset.view === 'produtos') carregarProdutos();
         if (item.dataset.view === 'pedidos') carregarPedidos();
+        if (item.dataset.view === 'clientes') carregarClientes();
         if (item.dataset.view === 'contatos') carregarContatos();
       });
     });
@@ -976,6 +1045,75 @@
       `;
       window.print();
     }
+
+    /* ═══ CLIENTES CADASTRADOS ═══ */
+    let clientesCache = [];
+
+    function formatarReaisAdmin(cents) {
+      return 'R$ ' + (Number(cents || 0) / 100).toFixed(2).replace('.', ',');
+    }
+
+    function celula(valor, vazio = '—') {
+      const v = (valor === null || valor === undefined || valor === '') ? null : valor;
+      return v === null ? `<span class="celula-vazia">${vazio}</span>` : String(v);
+    }
+
+    function renderizarClientes(lista) {
+      const tbody = document.getElementById('lista-clientes');
+      if (!lista.length) { tbody.innerHTML = '<tr><td colspan="15" style="font-size:12.5px;">Nenhum cliente encontrado.</td></tr>'; return; }
+
+      tbody.innerHTML = lista.map(c => `
+        <tr>
+          <td>#${c.id}</td>
+          <td><span class="badge-origem ${c.origem}">${c.origem === 'loja' ? '🛍️ Loja' : '🎮 Jogo'}</span></td>
+          <td><strong>${c.username}</strong></td>
+          <td>${c.email}</td>
+          <td>${celula(c.nome_completo)}</td>
+          <td>${celula(c.cpf)}</td>
+          <td>${celula(c.telefone)}</td>
+          <td>${celula(c.endereco_principal)}</td>
+          <td>${c.pedidos_count || 0}</td>
+          <td>${c.pedidos_count ? formatarReaisAdmin(c.total_gasto_cents) : celula(null)}</td>
+          <td>${c.ultimo_pedido_em ? new Date(c.ultimo_pedido_em).toLocaleDateString('pt-BR') : celula(null)}</td>
+          <td>Nv. ${c.jogo_nivel || 1}</td>
+          <td>${c.jogo_potes ?? 0}</td>
+          <td>${celula(c.indicado_por_username)}</td>
+          <td>${new Date(c.created_at).toLocaleDateString('pt-BR')}</td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarResumoClientes(lista) {
+      const total = lista.length;
+      const daLoja = lista.filter(c => c.origem === 'loja').length;
+      const doJogo = total - daLoja;
+      document.getElementById('clientes-resumo').innerHTML = `
+        <div class="resumo-pill"><strong>${total}</strong>Cadastrados no total</div>
+        <div class="resumo-pill"><strong>${daLoja}</strong>🛍️ Já são clientes (dados de compra)</div>
+        <div class="resumo-pill"><strong>${doJogo}</strong>🎮 Só cadastro do jogo</div>
+      `;
+    }
+
+    async function carregarClientes() {
+      const tbody = document.getElementById('lista-clientes');
+      try {
+        const { clientes } = await BiffiAdmin.getClientes();
+        clientesCache = clientes;
+        atualizarResumoClientes(clientes);
+        renderizarClientes(clientes);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="15" style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</td></tr>`;
+      }
+    }
+
+    document.getElementById('clientes-busca').addEventListener('input', (e) => {
+      const termo = e.target.value.trim().toLowerCase();
+      if (!termo) { renderizarClientes(clientesCache); return; }
+      const filtrados = clientesCache.filter(c => [
+        c.username, c.email, c.nome_completo, c.cpf, c.telefone,
+      ].some(campo => (campo || '').toLowerCase().includes(termo)));
+      renderizarClientes(filtrados);
+    });
 
     /* ═══ CONTATOS DO RODAPÉ ═══ */
     const formContatos = document.getElementById('form-contatos');

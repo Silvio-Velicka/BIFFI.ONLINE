@@ -1339,6 +1339,46 @@ const routes = {
 
   /* ═══ LOJINHA — PAINEL ADMIN (protegido por x-admin-key) ═══ */
 
+  // Lista todos os usuários cadastrados (jogo + loja, é a mesma conta) com o
+  // máximo de informação possível, pra dar pra diferenciar de cara quem só
+  // criou conta pra jogar (nome/CPF/telefone em branco, nunca comprou) de
+  // quem já é cliente de verdade (dados de compra preenchidos e/ou já tem
+  // pedido). Nunca devolve senha/hash — só dados de identificação e uso.
+  'GET /api/admin/clientes': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    const rows = db.prepare(`
+      SELECT
+        u.id, u.username, u.email, u.nome_completo, u.cpf, u.telefone,
+        u.level AS jogo_nivel, u.avatar AS jogo_avatar, u.created_at,
+        ref.username AS indicado_por_username,
+        gs.nct AS jogo_nct, gs.potes AS jogo_potes, gs.total_potes AS jogo_total_potes,
+        gs.total_entregas AS jogo_total_entregas,
+        (SELECT COUNT(*) FROM pedidos p WHERE p.user_id = u.id) AS pedidos_count,
+        (SELECT COALESCE(SUM(p.total_cents), 0) FROM pedidos p WHERE p.user_id = u.id AND p.status != 'cancelado') AS total_gasto_cents,
+        (SELECT MAX(p.created_at) FROM pedidos p WHERE p.user_id = u.id) AS ultimo_pedido_em,
+        (SELECT COUNT(*) FROM enderecos e WHERE e.user_id = u.id) AS enderecos_count,
+        (SELECT e.rua || ', ' || e.numero || ' — ' || e.bairro || ', ' || e.cidade || '/' || e.estado
+           FROM enderecos e WHERE e.user_id = u.id ORDER BY e.padrao DESC, e.id DESC LIMIT 1) AS endereco_principal
+      FROM users u
+      LEFT JOIN game_state gs ON gs.user_id = u.id
+      LEFT JOIN users ref ON ref.id = u.indicado_por
+      ORDER BY u.id DESC
+    `).all();
+
+    const clientes = rows.map(u => {
+      const dadosDeCompraPreenchidos = !!(u.nome_completo || u.cpf || u.telefone || u.enderecos_count > 0);
+      return {
+        ...u,
+        // Heurística simples pedida no painel: quem tem dados de compra
+        // preenchidos (nome/CPF/telefone/endereço) ou já fez pedido veio
+        // pela loja; quem só tem usuário/e-mail do jogo, veio pelo jogo.
+        origem: (dadosDeCompraPreenchidos || u.pedidos_count > 0) ? 'loja' : 'jogo',
+      };
+    });
+
+    json(res, 200, { clientes });
+  },
+
   // Lista todos os produtos (inclusive inativos) para gerenciar no admin
   'GET /api/admin/products': async (req, res) => {
     if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
