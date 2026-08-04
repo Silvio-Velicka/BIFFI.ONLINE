@@ -102,6 +102,13 @@
     .pagamento-opt.selected { border-color: var(--roxo); background: rgba(255,255,255,0.75); }
     .pagamento-opt span.titulo { font-weight: 700; font-size: 13.5px; color: var(--roxo-esc); }
     .pagamento-opt span.desc { display: block; font-size: 11.5px; color: var(--roxo-esc); opacity: 0.75; }
+    .pagamento-opt.bloqueado { opacity: 0.55; cursor: not-allowed; background: rgba(255,255,255,0.2); }
+    .pagamento-opt.bloqueado input { cursor: not-allowed; }
+    .tag-em-breve {
+      display: inline-block; margin-left: 6px; padding: 1px 8px; border-radius: 20px;
+      background: rgba(122,74,45,0.18); color: var(--roxo-esc); font-size: 9.5px;
+      font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; vertical-align: middle;
+    }
 
     .resumo-itens { margin-bottom: 16px; }
     .resumo-item {
@@ -291,21 +298,14 @@
                   <input type="radio" name="pagamento" value="mercadopago" checked>
                   <span>
                     <span class="titulo">Mercado Pago</span>
-                    <span class="desc">PIX, cartão ou boleto. (Integração em configuração — pode cair no modo combinar depois.)</span>
+                    <span class="desc">PIX, cartão ou boleto.</span>
                   </span>
                 </label>
-                <label class="pagamento-opt">
-                  <input type="radio" name="pagamento" value="paypal">
+                <label class="pagamento-opt bloqueado">
+                  <input type="radio" name="pagamento" value="paypal" disabled>
                   <span>
-                    <span class="titulo">PayPal</span>
-                    <span class="desc">Cartão internacional via PayPal. (Integração em configuração.)</span>
-                  </span>
-                </label>
-                <label class="pagamento-opt">
-                  <input type="radio" name="pagamento" value="manual">
-                  <span>
-                    <span class="titulo">Combinar depois (PIX/transferência manual)</span>
-                    <span class="desc">Registramos seu pedido e entramos em contato pelo WhatsApp para combinar o pagamento.</span>
+                    <span class="titulo">PayPal <span class="tag-em-breve">Em breve</span></span>
+                    <span class="desc">Cartão internacional via PayPal. (Ainda não disponível.)</span>
                   </span>
                 </label>
               </div>
