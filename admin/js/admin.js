@@ -138,6 +138,11 @@ const BiffiAdmin = {
   /* ── CLIENTES CADASTRADOS (jogo + loja, mesma conta) ── */
   getClientes() { return this._fetch('/api/admin/clientes'); },
 
+  /* ── DOAR E-BOOK (libera um e-book pra um cliente sem cobrar) ── */
+  doarEbook(userId, produtoId) {
+    return this._fetch('/api/admin/doar-ebook', 'POST', { user_id: userId, produto_id: produtoId });
+  },
+
   /* ── CONTATOS DO RODAPÉ (Instagram, Facebook, Telegram, e-mail) ── */
   getContatos() { return this._fetch('/api/site-contatos'); },
   saveContatos(payload) { return this._fetch('/api/site-contatos', 'PUT', payload); },

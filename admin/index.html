@@ -337,6 +337,9 @@
     <div class="nav-item" data-view="clientes">
       <span class="icon">👥</span> Clientes
     </div>
+    <div class="nav-item" data-view="doar-ebook">
+      <span class="icon">🎁</span> Doar E-book
+    </div>
     <div class="nav-item" data-view="contatos">
       <span class="icon">📱</span> Contatos
     </div>
@@ -539,6 +542,38 @@
       </div>
     </div>
 
+    <!-- ═══ VIEW: DOAR E-BOOK ═══ -->
+    <div class="view" id="view-doar-ebook">
+      <h1>🎁 Doar E-book</h1>
+      <p class="subtitle">Libera um e-book gratuitamente para um cliente já cadastrado — fica exatamente como se ele tivesse comprado (aparece em "Meus Livros" e libera a leitura).</p>
+
+      <div class="card" style="max-width:520px;">
+        <form id="form-doar-ebook">
+          <div class="field">
+            <label>Cliente</label>
+            <select id="doar-cliente" required>
+              <option value="">Carregando clientes...</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label>E-book</label>
+            <select id="doar-produto" required>
+              <option value="">Carregando e-books...</option>
+            </select>
+          </div>
+
+          <div class="actions">
+            <button type="submit" class="btn-salvar" id="btn-doar-ebook">
+              <i class="fa-solid fa-gift"></i> Doar e-book
+            </button>
+          </div>
+
+          <div class="save-msg" id="doar-ebook-msg"></div>
+        </form>
+      </div>
+    </div>
+
     <!-- ═══ VIEW: CONTATOS ═══ -->
     <div class="view" id="view-contatos">
       <h1>📱 Contatos</h1>
@@ -598,6 +633,7 @@
         if (item.dataset.view === 'produtos') carregarProdutos();
         if (item.dataset.view === 'pedidos') carregarPedidos();
         if (item.dataset.view === 'clientes') carregarClientes();
+        if (item.dataset.view === 'doar-ebook') carregarDoarEbook();
         if (item.dataset.view === 'contatos') carregarContatos();
       });
     });
@@ -1160,6 +1196,65 @@
         c.username, c.email, c.nome_completo, c.cpf, c.telefone,
       ].some(campo => (campo || '').toLowerCase().includes(termo)));
       renderizarClientes(filtrados);
+    });
+
+    /* ═══ DOAR E-BOOK ═══ */
+    const formDoarEbook = document.getElementById('form-doar-ebook');
+    const msgDoarEbook = document.getElementById('doar-ebook-msg');
+    let doarEbookCarregado = false;
+
+    async function carregarDoarEbook() {
+      const selCliente = document.getElementById('doar-cliente');
+      const selProduto = document.getElementById('doar-produto');
+      try {
+        const [{ clientes }, { produtos }] = await Promise.all([
+          BiffiAdmin.getClientes(),
+          BiffiAdmin.getProdutos(),
+        ]);
+
+        selCliente.innerHTML = '<option value="">Selecione um cliente...</option>' + clientes.map(c =>
+          `<option value="${c.id}">${c.username} — ${c.email}${c.nome_completo ? ' (' + c.nome_completo + ')' : ''}</option>`
+        ).join('');
+
+        const ebooks = produtos.filter(p => p.ebook_slug);
+        selProduto.innerHTML = ebooks.length
+          ? '<option value="">Selecione um e-book...</option>' + ebooks.map(p => `<option value="${p.id}">${p.nome}</option>`).join('')
+          : '<option value="">Nenhum e-book cadastrado ainda</option>';
+
+        doarEbookCarregado = true;
+      } catch (err) {
+        selCliente.innerHTML = '<option value="">Erro ao carregar</option>';
+        selProduto.innerHTML = '<option value="">Erro ao carregar</option>';
+        msgDoarEbook.className = 'save-msg err';
+        msgDoarEbook.textContent = 'Erro ao carregar clientes/e-books: ' + err.message;
+      }
+    }
+
+    formDoarEbook.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const userId = document.getElementById('doar-cliente').value;
+      const produtoId = document.getElementById('doar-produto').value;
+      msgDoarEbook.className = 'save-msg';
+      if (!userId || !produtoId) {
+        msgDoarEbook.className = 'save-msg err';
+        msgDoarEbook.textContent = 'Escolha o cliente e o e-book.';
+        return;
+      }
+      const btn = document.getElementById('btn-doar-ebook');
+      btn.disabled = true;
+      try {
+        await BiffiAdmin.doarEbook(Number(userId), Number(produtoId));
+        msgDoarEbook.className = 'save-msg ok';
+        const nomeCliente = document.getElementById('doar-cliente').selectedOptions[0].textContent;
+        const nomeEbook = document.getElementById('doar-produto').selectedOptions[0].textContent;
+        msgDoarEbook.textContent = `✅ "${nomeEbook}" doado para ${nomeCliente}!`;
+        formDoarEbook.reset();
+      } catch (err) {
+        msgDoarEbook.className = 'save-msg err';
+        msgDoarEbook.textContent = 'Erro ao doar: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
     });
 
     /* ═══ CONTATOS DO RODAPÉ ═══ */

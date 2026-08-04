@@ -1595,6 +1595,43 @@ const routes = {
     json(res, 200, { clientes });
   },
 
+  // Doa um e-book a um usuário sem cobrar nada — cria um "pedido" já pago
+  // (metodo_pagamento='doacao', total zero), exatamente como uma compra real
+  // deixaria registrado. A posse de e-book é sempre derivada de um pedido
+  // pago com esse produto (ver usuarioComprouProduto/GET /api/me/livros),
+  // então esse é o único jeito de liberar o e-book sem alterar essa lógica.
+  'POST /api/admin/doar-ebook': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    const b = await readBody(req);
+    const userId = Number(b.user_id);
+    const produtoId = Number(b.produto_id);
+    if (!userId || !produtoId) return json(res, 400, { error: 'user_id e produto_id são obrigatórios.' });
+
+    const user = db.prepare('SELECT id, email FROM users WHERE id = ?').get(userId);
+    if (!user) return json(res, 404, { error: 'Usuário não encontrado.' });
+
+    const produto = db.prepare('SELECT * FROM produtos WHERE id = ?').get(produtoId);
+    if (!produto) return json(res, 404, { error: 'Produto não encontrado.' });
+    if (!produtoEhEbook(produto.id)) return json(res, 400, { error: 'Esse produto não é um e-book.' });
+
+    if (usuarioComprouProduto(userId, produtoId)) {
+      return json(res, 409, { error: 'Este usuário já possui este e-book.' });
+    }
+
+    const infoPedido = db.prepare(`
+      INSERT INTO pedidos (user_id, status, metodo_pagamento, pagamento_ref, subtotal_cents, frete_cents, total_cents, email)
+      VALUES (?, 'pago', 'doacao', 'doacao-admin', 0, 0, 0, ?)
+    `).run(userId, user.email || '');
+    const pedidoId = Number(infoPedido.lastInsertRowid);
+
+    db.prepare(`
+      INSERT INTO pedido_itens (pedido_id, produto_id, nome_snapshot, preco_cents_snapshot, quantidade)
+      VALUES (?, ?, ?, 0, 1)
+    `).run(pedidoId, produto.id, produto.nome);
+
+    json(res, 201, { ok: true, pedido_id: pedidoId });
+  },
+
   // Lista todos os produtos (inclusive inativos) para gerenciar no admin
   'GET /api/admin/products': async (req, res) => {
     if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
