@@ -430,6 +430,25 @@
               <input type="number" id="np-estoque" min="0" value="0">
             </div>
           </div>
+          <div class="field-row3">
+            <div class="field">
+              <label>Peso (gramas)</label>
+              <input type="number" id="np-peso" min="1" value="300" placeholder="300">
+            </div>
+            <div class="field">
+              <label>Altura embalagem (cm)</label>
+              <input type="number" id="np-altura" min="0.1" step="0.1" value="3" placeholder="3">
+            </div>
+            <div class="field">
+              <label>Largura embalagem (cm)</label>
+              <input type="number" id="np-largura" min="0.1" step="0.1" value="16" placeholder="16">
+            </div>
+          </div>
+          <div class="field" style="max-width:33%;">
+            <label>Comprimento embalagem (cm)</label>
+            <input type="number" id="np-comprimento" min="0.1" step="0.1" value="23" placeholder="23">
+          </div>
+          <p style="font-size:11px;opacity:0.7;margin:-8px 0 16px;">Usado pra calcular o frete real (Correios/transportadoras) no checkout. Os valores padrão já servem pra um livro comum — ajuste se o produto for maior/mais pesado.</p>
           <div class="field">
             <label>Foto/capa do produto (opcional — JPG, PNG, WEBP ou GIF, até 8MB)</label>
             <input type="file" id="np-foto" accept="image/*">
@@ -769,6 +788,26 @@
             </div>
           </div>
 
+          <label style="display:block;font-weight:bold;margin:10px 0 4px;">Peso e dimensões (usados pra calcular o frete real no checkout)</label>
+          <div style="display:flex;gap:10px;">
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Peso (g)</label>
+              <input id="edit-peso" type="number" min="1" class="swal2-input" style="margin:0;width:100%;" value="${p.peso_gramas || 300}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Altura (cm)</label>
+              <input id="edit-altura" type="number" min="0.1" step="0.1" class="swal2-input" style="margin:0;width:100%;" value="${p.altura_cm || 3}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Largura (cm)</label>
+              <input id="edit-largura" type="number" min="0.1" step="0.1" class="swal2-input" style="margin:0;width:100%;" value="${p.largura_cm || 16}">
+            </div>
+            <div style="flex:1;">
+              <label style="display:block;font-size:11px;margin:4px 0 2px;">Compr. (cm)</label>
+              <input id="edit-comprimento" type="number" min="0.1" step="0.1" class="swal2-input" style="margin:0;width:100%;" value="${p.comprimento_cm || 23}">
+            </div>
+          </div>
+
           <label style="display:block;font-weight:bold;margin:10px 0 4px;">Nova foto/capa (opcional)</label>
           <input id="edit-foto" type="file" accept="image/*" class="swal2-input" style="margin:0;width:100%;">
 
@@ -814,6 +853,10 @@
             categoria: document.getElementById('edit-categoria').value.trim(),
             destaque: document.getElementById('edit-destaque').checked,
             ativo: document.getElementById('edit-ativo').checked,
+            peso_gramas: Number(document.getElementById('edit-peso').value) || 300,
+            altura_cm: Number(document.getElementById('edit-altura').value) || 3,
+            largura_cm: Number(document.getElementById('edit-largura').value) || 16,
+            comprimento_cm: Number(document.getElementById('edit-comprimento').value) || 23,
           };
         },
       });
@@ -882,18 +925,22 @@
           categoria: document.getElementById('np-categoria').value.trim(),
           estoque: Number(document.getElementById('np-estoque').value) || 0,
           destaque: document.getElementById('np-destaque').checked,
+          peso_gramas: Number(document.getElementById('np-peso').value) || 300,
+          altura_cm: Number(document.getElementById('np-altura').value) || 3,
+          largura_cm: Number(document.getElementById('np-largura').value) || 16,
+          comprimento_cm: Number(document.getElementById('np-comprimento').value) || 23,
         };
 
-        const { produto } = await BiffiAdmin.criarProduto(payload);
+        const { id } = await BiffiAdmin.criarProduto(payload);
 
         const fotoInput = document.getElementById('np-foto');
         if (fotoInput.files[0]) {
-          await BiffiAdmin.enviarImagemProduto(produto.id, fotoInput.files[0]);
+          await BiffiAdmin.enviarImagemProduto(id, fotoInput.files[0]);
         }
 
         const pdfInput = document.getElementById('np-pdf');
         if (pdfInput.files[0]) {
-          await BiffiAdmin.enviarPdfEbook(produto.id, pdfInput.files[0]);
+          await BiffiAdmin.enviarPdfEbook(id, pdfInput.files[0]);
         }
 
         msg.className = 'save-msg ok';

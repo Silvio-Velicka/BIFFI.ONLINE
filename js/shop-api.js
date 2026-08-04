@@ -29,6 +29,7 @@ const SHOP_API = {
   perfil: () => SHOP_API.call('/api/me/perfil'),
   salvarPerfil: (dados) => SHOP_API.call('/api/me/perfil', 'PUT', dados),
   salvarEndereco: (endereco) => SHOP_API.call('/api/me/enderecos', 'POST', endereco),
+  calcularFrete: (cepDestino, itens) => SHOP_API.call('/api/shop/frete/calcular', 'POST', { cep_destino: cepDestino, itens }),
   checkout: (payload) => SHOP_API.call('/api/checkout', 'POST', payload),
   meusPedidos: () => SHOP_API.call('/api/shop/pedidos'),
   pedido: (id) => SHOP_API.call(`/api/shop/pedidos/${id}`),

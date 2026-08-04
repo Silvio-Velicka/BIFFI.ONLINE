@@ -228,6 +228,44 @@ db.exec(`
   addCol('indicado_por', 'INTEGER'); // id de quem indicou este usuário (referral)
 }
 
+/* ── MIGRAÇÃO LEVE: peso/dimensões em produtos + frete escolhido em pedidos ──
+   (necessário pro cálculo de frete real via Melhor Envio — antes o frete era
+   um valor fixo, sem levar em conta peso/tamanho nem deixar o cliente escolher
+   a transportadora) */
+{
+  const cols = db.prepare(`PRAGMA table_info(produtos)`).all().map(c => c.name);
+  const addCol = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE produtos ADD COLUMN ${name} ${def}`); };
+  // Padrão razoável pra um livro de capa comum (~300g, embalagem ~3x16x23cm) —
+  // ajustável por produto no admin (🛒 Produtos).
+  addCol('peso_gramas', 'INTEGER NOT NULL DEFAULT 300');
+  addCol('altura_cm', 'REAL NOT NULL DEFAULT 3');
+  addCol('largura_cm', 'REAL NOT NULL DEFAULT 16');
+  addCol('comprimento_cm', 'REAL NOT NULL DEFAULT 23');
+}
+{
+  const cols = db.prepare(`PRAGMA table_info(pedidos)`).all().map(c => c.name);
+  const addCol = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE pedidos ADD COLUMN ${name} ${def}`); };
+  addCol('frete_servico', `TEXT NOT NULL DEFAULT ''`);       // ex: "Correios PAC"
+  addCol('frete_servico_id', 'INTEGER');                     // id do serviço no Melhor Envio (pra gerar etiqueta depois)
+  addCol('frete_prazo_dias', 'INTEGER');
+}
+
+/* ── MIGRAÇÃO LEVE: tabela de tokens OAuth2 do Melhor Envio ──
+   client_id/client_secret ficam fixos nas variáveis de ambiente do Railway
+   (nunca expiram); aqui só ficam access/refresh token, que precisam
+   sobreviver a reinícios do servidor. Ver server/melhorenvio.js. */
+db.exec(`
+  CREATE TABLE IF NOT EXISTS melhorenvio_auth (
+    id            INTEGER PRIMARY KEY CHECK (id = 1),
+    access_token  TEXT,
+    refresh_token TEXT,
+    expires_at    TEXT,
+    atualizado_em TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`);
+db.exec(`INSERT OR IGNORE INTO melhorenvio_auth (id) VALUES (1)`);
+const melhorEnvio = require('./melhorenvio')(db);
+
 /* ── MIGRAÇÃO LEVE: colunas de contato (redes sociais + e-mail) em site_config ──
    Preenchidas pelo painel admin (aba "Contatos") e exibidas no rodapé do site. */
 {
@@ -333,9 +371,83 @@ function produtoPublico(p) {
   };
 }
 
-// Frete simples: grátis acima de R$150, senão R$15 fixo. Ajustável depois (ex: por CEP/transportadora).
+// Frete simples: grátis acima de R$150, senão R$15 fixo. Usado como fallback
+// automático caso o Melhor Envio ainda não esteja configurado/autorizado, ou
+// se a API dele estiver fora do ar no momento — o cliente nunca vê o checkout
+// travado por causa disso.
 function calcularFrete(subtotalCents) {
   return subtotalCents >= 15000 ? 0 : 1500;
+}
+
+/* ── FRETE REAL — Melhor Envio (Correios PAC/SEDEX/Mini Envios, Jadlog etc.) ──
+   O cliente escolhe a transportadora no checkout; o servidor calcula os
+   preços de verdade a partir do CEP de destino e do peso/dimensões dos
+   produtos físicos do carrinho. Ver server/melhorenvio.js (token OAuth). */
+const ME_CEP_ORIGEM = (process.env.ME_CEP_ORIGEM || '').replace(/\D/g, '');
+const ME_USER_AGENT = 'Aplicativo BIFFI.ONLINE silviovelicka@gmail.com';
+// IDs dos serviços consultados no Melhor Envio:
+// 1=Correios PAC, 2=Correios SEDEX, 17=Correios Mini, 3=Jadlog Package, 4=Jadlog .com
+const ME_SERVICOS = '1,2,17,3,4';
+const ME_PESO_MIN_KG = 0.1;
+const ME_ALTURA_MIN = 2;
+const ME_LARGURA_MIN = 11;
+const ME_COMPRIMENTO_MIN = 16;
+
+function meHeaders(token) {
+  return { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json', Accept: 'application/json', 'User-Agent': ME_USER_AGENT };
+}
+
+// Retorna a lista de opções de frete (id, nome, empresa, preco_cents, prazo_dias),
+// já ordenada da mais barata pra mais cara. Lança erro se o Melhor Envio não
+// estiver configurado/autorizado ou se a chamada falhar — quem chama decide
+// se cai no fallback do frete fixo.
+async function calcularFreteReal(cepDestino, itensFisicos) {
+  if (!ME_CEP_ORIGEM) throw new Error('ME_CEP_ORIGEM não configurado nas variáveis do Railway.');
+  if (!melhorEnvio.estaConfigurado()) throw new Error('Melhor Envio ainda não autorizado (ver GET /api/frete/oauth/iniciar).');
+
+  let pesoTotalGramas = 0, alturaMax = 0, larguraMax = 0, comprimentoMax = 0;
+  for (const { produto, quantidade } of itensFisicos) {
+    pesoTotalGramas += (produto.peso_gramas || 300) * quantidade;
+    alturaMax = Math.max(alturaMax, produto.altura_cm || 3);
+    larguraMax = Math.max(larguraMax, produto.largura_cm || 16);
+    comprimentoMax = Math.max(comprimentoMax, produto.comprimento_cm || 23);
+  }
+  const pesoKg = Math.max(pesoTotalGramas / 1000, ME_PESO_MIN_KG);
+  const altura = Math.max(alturaMax, ME_ALTURA_MIN);
+  const largura = Math.max(larguraMax, ME_LARGURA_MIN);
+  const comprimento = Math.max(comprimentoMax, ME_COMPRIMENTO_MIN);
+
+  const payload = JSON.stringify({
+    from: { postal_code: ME_CEP_ORIGEM },
+    to: { postal_code: cepDestino },
+    package: { height: altura, width: largura, length: comprimento, weight: pesoKg },
+    options: { receipt: false, own_hand: false },
+    services: ME_SERVICOS,
+  });
+
+  const url = 'https://melhorenvio.com.br/api/v2/me/shipment/calculate';
+  let token = await melhorEnvio.getAccessToken();
+  let res = await fetch(url, { method: 'POST', headers: meHeaders(token), body: payload });
+  if (res.status === 401) {
+    token = await melhorEnvio.forceRefresh();
+    res = await fetch(url, { method: 'POST', headers: meHeaders(token), body: payload });
+  }
+  if (!res.ok) {
+    const texto = await res.text();
+    throw new Error(`Melhor Envio HTTP ${res.status}: ${texto.slice(0, 200)}`);
+  }
+
+  const data = await res.json();
+  return (Array.isArray(data) ? data : [])
+    .filter(s => !s.error && s.price && parseFloat(s.price) > 0)
+    .map(s => ({
+      id: s.id,
+      nome: s.name,
+      empresa: (s.company && s.company.name) || '',
+      preco_cents: Math.round(parseFloat(s.price) * 100),
+      prazo_dias: s.delivery_time || null,
+    }))
+    .sort((a, b) => a.preco_cents - b.preco_cents);
 }
 
 // Um produto é e-book (100% digital, entregue por leitura protegida) quando
@@ -1196,6 +1308,91 @@ const routes = {
     json(res, 200, { produtos: rows.map(produtoPublico) });
   },
 
+  // Calcula as opções de frete (Correios PAC/SEDEX/Mini Envios, Jadlog etc.)
+  // pra um CEP de destino + os itens do carrinho — público (não exige login,
+  // o checkout chama isso antes mesmo de o cliente logar). Body:
+  // { cep_destino, itens: [{ produto_id, quantidade }] }
+  'POST /api/shop/frete/calcular': async (req, res) => {
+    const b = await readBody(req);
+    const cepDestino = String(b.cep_destino || '').replace(/\D/g, '');
+    const itensCarrinho = Array.isArray(b.itens) ? b.itens : [];
+    if (cepDestino.length !== 8) return json(res, 400, { error: 'CEP inválido.' });
+    if (itensCarrinho.length === 0) return json(res, 400, { error: 'Carrinho vazio.' });
+
+    // Só itens físicos entram na conta — e-books não pagam frete.
+    const itensFisicos = [];
+    let subtotalFisicoCents = 0;
+    for (const item of itensCarrinho) {
+      const prod = db.prepare('SELECT * FROM produtos WHERE id = ? AND ativo = 1').get(Number(item.produto_id));
+      if (!prod || produtoEhEbook(prod.id)) continue;
+      const qtd = Math.max(1, Math.floor(Number(item.quantidade) || 1));
+      itensFisicos.push({ produto: prod, quantidade: qtd });
+      subtotalFisicoCents += prod.preco_cents * qtd;
+    }
+
+    if (itensFisicos.length === 0) {
+      return json(res, 200, { opcoes: [{ id: null, nome: 'Sem frete (somente e-books)', empresa: '', preco_cents: 0, prazo_dias: null }] });
+    }
+
+    // Promoção existente: frete grátis acima de R$150 em itens físicos —
+    // mantida independente da transportadora escolhida.
+    if (subtotalFisicoCents >= 15000) {
+      return json(res, 200, { opcoes: [{ id: null, nome: 'Frete grátis (compra acima de R$150)', empresa: '', preco_cents: 0, prazo_dias: null }] });
+    }
+
+    try {
+      const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
+      if (opcoes.length === 0) {
+        return json(res, 200, {
+          opcoes: [{ id: null, nome: 'Frete padrão', empresa: '', preco_cents: calcularFrete(subtotalFisicoCents), prazo_dias: null }],
+          aviso: 'Nenhuma transportadora disponível para este CEP no momento — aplicado o frete padrão.',
+        });
+      }
+      json(res, 200, { opcoes });
+    } catch (err) {
+      console.error('[frete/calcular] fallback pro frete fixo:', err.message);
+      json(res, 200, {
+        opcoes: [{ id: null, nome: 'Frete padrão', empresa: '', preco_cents: calcularFrete(subtotalFisicoCents), prazo_dias: null }],
+        fallback: true,
+      });
+    }
+  },
+
+  // ── Autorização do Melhor Envio (uso único, feito pelo dono da loja) ──
+  // Acessar esta URL logado na conta do Melhor Envio da loja, no navegador,
+  // e clicar em autorizar. Depois disso o token se renova sozinho pra sempre
+  // (ver server/melhorenvio.js) — não precisa repetir isso a cada deploy.
+  'GET /api/frete/oauth/iniciar': async (req, res) => {
+    try {
+      const redirectUri = `https://${req.headers.host}/api/frete/oauth/callback`;
+      const url = melhorEnvio.buildAuthorizeUrl(redirectUri);
+      res.writeHead(302, { Location: url });
+      res.end();
+    } catch (err) {
+      res.writeHead(500, { 'Content-Type': 'text/plain; charset=utf-8' });
+      res.end('Erro ao montar URL de autorização: ' + err.message);
+    }
+  },
+
+  // Para onde o Melhor Envio redireciona depois que a loja autoriza o app —
+  // troca o "code" pelo primeiro access_token/refresh_token e salva no banco.
+  'GET /api/frete/oauth/callback': async (req, res, url) => {
+    const code = url.searchParams.get('code');
+    const erro = url.searchParams.get('error');
+    const erroDescricao = url.searchParams.get('error_description');
+    res.writeHead(200, { 'Content-Type': 'text/plain; charset=utf-8' });
+    if (erro) return res.end(`Autorização negada pelo Melhor Envio: ${erroDescricao || erro}`);
+    if (!code) return res.end('Parâmetro "code" ausente no callback.');
+    try {
+      const redirectUri = `https://${req.headers.host}/api/frete/oauth/callback`;
+      await melhorEnvio.exchangeCode(code, redirectUri);
+      res.end('✅ Melhor Envio autorizado com sucesso! O token vai se renovar automaticamente a partir de agora. Pode fechar esta aba.');
+    } catch (err) {
+      console.error('Erro no callback OAuth Melhor Envio:', err.message);
+      res.end('Erro ao concluir autorização: ' + err.message);
+    }
+  },
+
   // Perfil do usuário logado (nome/CPF/telefone) + endereços salvos
   'GET /api/me/perfil': async (req, res) => {
     const user = getUserByToken(req);
@@ -1260,19 +1457,49 @@ const routes = {
       itensValidados.push({ produto: prod, quantidade: qtd });
     }
     // Frete só se aplica a itens físicos — pedidos só com e-books (ou a parte
-    // digital de um pedido misto) não pagam envio.
+    // digital de um pedido misto) não pagam envio. O preço nunca é confiado
+    // vindo do cliente — o servidor recalcula (mesma lógica do endpoint de
+    // cotação); só o serviço escolhido (frete_servico_id) é aproveitado, pra
+    // achar a opção certa dentro do resultado recalculado.
     const itensFisicos = itensValidados.filter(({ produto }) => !produtoEhEbook(produto.id));
     const subtotalFisicoCents = itensFisicos.reduce((s, { produto, quantidade }) => s + produto.preco_cents * quantidade, 0);
-    const freteCents = itensFisicos.length > 0 ? calcularFrete(subtotalFisicoCents) : 0;
+
+    let freteCents = 0;
+    let freteServico = '';
+    let freteServicoId = null;
+    let fretePrazoDias = null;
+
+    if (itensFisicos.length > 0) {
+      if (subtotalFisicoCents >= 15000) {
+        freteServico = 'Frete grátis (compra acima de R$150)';
+      } else {
+        const cepDestino = String(end.cep).replace(/\D/g, '');
+        try {
+          const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
+          const escolhida = (opcoes.find(o => o.id === Number(b.frete_servico_id)) || opcoes[0]);
+          if (!escolhida) throw new Error('Nenhuma opção de frete disponível.');
+          freteCents = escolhida.preco_cents;
+          freteServico = `${escolhida.empresa} ${escolhida.nome}`.trim();
+          freteServicoId = escolhida.id;
+          fretePrazoDias = escolhida.prazo_dias;
+        } catch (err) {
+          console.error('[checkout] fallback pro frete fixo:', err.message);
+          freteCents = calcularFrete(subtotalFisicoCents);
+          freteServico = 'Frete padrão';
+        }
+      }
+    }
     const totalCents = subtotalCents + freteCents;
 
     const infoPedido = db.prepare(`
       INSERT INTO pedidos (
         user_id, status, metodo_pagamento, subtotal_cents, frete_cents, total_cents,
+        frete_servico, frete_servico_id, frete_prazo_dias,
         nome_destinatario, cpf, telefone, email, cep, rua, numero, complemento, bairro, cidade, estado
-      ) VALUES (?, 'aguardando_pagamento', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ) VALUES (?, 'aguardando_pagamento', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       user.id, metodo, subtotalCents, freteCents, totalCents,
+      freteServico, freteServicoId, fretePrazoDias,
       String(end.nome_destinatario).trim(), String(end.cpf).trim(), String(end.telefone).trim(), user.email || '',
       String(end.cep).trim(), String(end.rua).trim(), String(end.numero).trim(), String(end.complemento ?? '').trim(),
       String(end.bairro).trim(), String(end.cidade).trim(), String(end.estado).trim()
@@ -1413,12 +1640,14 @@ const routes = {
     const preco = Math.round(Number(b.preco_cents ?? (Number(b.preco) || 0) * 100));
     if (!isFinite(preco) || preco <= 0) return json(res, 400, { error: 'Preço inválido.' });
     const info = db.prepare(`
-      INSERT INTO produtos (nome, descricao, preco_cents, imagem, categoria, estoque, ilimitado, destaque, ativo, ordem)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO produtos (nome, descricao, preco_cents, imagem, categoria, estoque, ilimitado, destaque, ativo, ordem, peso_gramas, altura_cm, largura_cm, comprimento_cm)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       String(b.nome).trim(), String(b.descricao ?? ''), preco, String(b.imagem ?? '🛍️'),
       String(b.categoria ?? ''), Math.floor(Number(b.estoque) || 0), b.ilimitado === false ? 0 : 1,
-      b.destaque ? 1 : 0, b.ativo === false ? 0 : 1, Math.floor(Number(b.ordem) || 0)
+      b.destaque ? 1 : 0, b.ativo === false ? 0 : 1, Math.floor(Number(b.ordem) || 0),
+      Math.max(1, Math.floor(Number(b.peso_gramas) || 300)),
+      Math.max(0.1, Number(b.altura_cm) || 3), Math.max(0.1, Number(b.largura_cm) || 16), Math.max(0.1, Number(b.comprimento_cm) || 23)
     );
     json(res, 201, { id: Number(info.lastInsertRowid) });
   },
@@ -1621,7 +1850,8 @@ const paramRoutes = [
       const preco = b.preco_cents !== undefined ? Math.round(Number(b.preco_cents)) : atual.preco_cents;
       db.prepare(`
         UPDATE produtos SET nome=?, descricao=?, preco_cents=?, imagem=?, categoria=?,
-          estoque=?, ilimitado=?, destaque=?, ativo=?, ordem=?, updated_at=datetime('now')
+          estoque=?, ilimitado=?, destaque=?, ativo=?, ordem=?,
+          peso_gramas=?, altura_cm=?, largura_cm=?, comprimento_cm=?, updated_at=datetime('now')
         WHERE id=?
       `).run(
         String(b.nome ?? atual.nome), String(b.descricao ?? atual.descricao), preco,
@@ -1631,6 +1861,10 @@ const paramRoutes = [
         b.destaque !== undefined ? (b.destaque ? 1 : 0) : atual.destaque,
         b.ativo !== undefined ? (b.ativo ? 1 : 0) : atual.ativo,
         b.ordem !== undefined ? Math.floor(Number(b.ordem)) : atual.ordem,
+        b.peso_gramas !== undefined ? Math.max(1, Math.floor(Number(b.peso_gramas))) : atual.peso_gramas,
+        b.altura_cm !== undefined ? Math.max(0.1, Number(b.altura_cm)) : atual.altura_cm,
+        b.largura_cm !== undefined ? Math.max(0.1, Number(b.largura_cm)) : atual.largura_cm,
+        b.comprimento_cm !== undefined ? Math.max(0.1, Number(b.comprimento_cm)) : atual.comprimento_cm,
         id
       );
       json(res, 200, { ok: true });

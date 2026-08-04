@@ -110,6 +110,11 @@
       font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; vertical-align: middle;
     }
 
+    .frete-aviso { font-size: 12.5px; opacity: 0.75; padding: 4px 0 6px; }
+    .frete-aviso.carregando { opacity: 1; color: var(--roxo); font-weight: 700; }
+    .pagamento-opt span.conteudo { flex: 1; }
+    .pagamento-opt span.preco { font-weight: 700; font-size: 13.5px; color: var(--roxo); white-space: nowrap; }
+
     .resumo-itens { margin-bottom: 16px; }
     .resumo-item {
       display: flex; justify-content: space-between; gap: 10px;
@@ -193,6 +198,16 @@
   <script>
     const conteudo = document.getElementById('checkout-conteudo');
 
+    // Opção de frete escolhida pelo cliente (preenchido depois de calcular pelo
+    // CEP) — servico_id é só um "palpite" pro servidor; o preço final sempre é
+    // recalculado no backend na hora de confirmar o pedido.
+    let freteEscolhido = { cents: 0, servico_id: null, calculado: false };
+
+    function atualizarResumoTotal(subtotalCents) {
+      const totalEl = document.getElementById('resumo-total');
+      if (totalEl) totalEl.textContent = formatarReais(subtotalCents + freteEscolhido.cents);
+    }
+
     async function iniciar() {
       // Exige login de verdade — consulta o servidor (SITE_AUTH.verificar()),
       // não só olha se existe um token guardado no localStorage. Assim, um
@@ -227,11 +242,9 @@
       const enderecoPadrao = (perfil.enderecos || [])[0] || {};
       const subtotal = CART.totalCents();
       // E-books não pagam frete (entrega é leitura protegida, sem envio físico).
-      // Só entram na conta do frete os itens físicos do carrinho.
+      // Só entram na conta do frete os itens físicos do carrinho — o valor real
+      // (Correios PAC/SEDEX/Mini Envios etc.) é calculado depois, pelo CEP.
       const itensFisicos = itens.filter(i => !i.ebook);
-      const subtotalFisico = itensFisicos.reduce((s, i) => s + i.preco_cents * i.quantidade, 0);
-      const frete = itensFisicos.length === 0 ? 0 : (subtotalFisico >= 15000 ? 0 : 1500);
-      const total = subtotal + frete;
 
       conteudo.innerHTML = `
         <form id="form-checkout">
@@ -292,6 +305,12 @@
                 </div>
               </div>
 
+              ${itensFisicos.length > 0 ? `
+              <h2 style="margin-top:8px;">🚚 Frete</h2>
+              <div id="frete-aviso" class="frete-aviso">Preencha o CEP acima para calcular o frete.</div>
+              <div id="frete-opcoes" class="pagamento-opcoes" style="display:none;"></div>
+              ` : ''}
+
               <h2 style="margin-top:8px;">💳 Forma de pagamento</h2>
               <div class="pagamento-opcoes">
                 <label class="pagamento-opt selected">
@@ -322,8 +341,8 @@
                 `).join('')}
               </div>
               <div class="resumo-linha"><span>Subtotal</span><span>${formatarReais(subtotal)}</span></div>
-              <div class="resumo-linha"><span>Frete</span><span>${frete === 0 ? 'Grátis' : formatarReais(frete)}</span></div>
-              <div class="resumo-linha total"><span>Total</span><span>${formatarReais(total)}</span></div>
+              <div class="resumo-linha"><span>Frete</span><span id="resumo-frete">${itensFisicos.length === 0 ? 'Grátis' : 'Informe o CEP'}</span></div>
+              <div class="resumo-linha total"><span>Total</span><span id="resumo-total">${formatarReais(subtotal)}</span></div>
 
               <button type="submit" class="btn-finalizar-pedido" id="btn-finalizar-pedido">Confirmar pedido</button>
               <div class="aviso" id="checkout-aviso"></div>
@@ -354,9 +373,78 @@
             document.getElementById('f-estado').value = data.uf || document.getElementById('f-estado').value;
           }
         } catch (e) { /* silencioso — usuário preenche manualmente */ }
+        if (itensFisicos.length > 0) calcularFreteUI(cep, itensFisicos, subtotal);
       });
 
+      // Se já tem CEP salvo do perfil, calcula o frete assim que a tela abre
+      if (itensFisicos.length > 0 && enderecoPadrao.cep) {
+        calcularFreteUI(enderecoPadrao.cep.replace(/\D/g, ''), itensFisicos, subtotal);
+      }
+
       document.getElementById('form-checkout').addEventListener('submit', finalizarPedido);
+    }
+
+    // Calcula as opções de frete reais (Correios PAC/SEDEX/Mini Envios etc.) pra
+    // um CEP e mostra como cards selecionáveis, igual à forma de pagamento.
+    async function calcularFreteUI(cep, itensFisicos, subtotalCents) {
+      const avisoEl = document.getElementById('frete-aviso');
+      const opcoesEl = document.getElementById('frete-opcoes');
+      if (!avisoEl || !opcoesEl) return;
+      if (cep.length !== 8) return;
+
+      avisoEl.textContent = '⏳ Calculando frete...';
+      avisoEl.classList.add('carregando');
+      avisoEl.style.display = 'block';
+      opcoesEl.style.display = 'none';
+      opcoesEl.innerHTML = '';
+      freteEscolhido = { cents: 0, servico_id: null, calculado: false };
+      atualizarResumoTotal(subtotalCents);
+
+      try {
+        const itensPayload = itensFisicos.map(i => ({ produto_id: i.produto_id, quantidade: i.quantidade }));
+        const resultado = await SHOP_API.calcularFrete(cep, itensPayload);
+        const opcoes = resultado.opcoes || [];
+        if (opcoes.length === 0) throw new Error('Nenhuma opção de frete disponível.');
+
+        avisoEl.style.display = 'none';
+        avisoEl.classList.remove('carregando');
+        opcoesEl.style.display = 'flex';
+        opcoesEl.innerHTML = opcoes.map((op, i) => {
+          const titulo = op.empresa ? `${op.empresa} — ${op.nome}` : op.nome;
+          const prazo = op.prazo_dias ? `${op.prazo_dias} ${op.prazo_dias === 1 ? 'dia útil' : 'dias úteis'}` : '';
+          return `
+            <label class="pagamento-opt ${i === 0 ? 'selected' : ''}">
+              <input type="radio" name="frete_opcao" value="${op.id ?? ''}" data-cents="${op.preco_cents}" ${i === 0 ? 'checked' : ''}>
+              <span class="conteudo">
+                <span class="titulo">${titulo}</span>
+                ${prazo ? `<span class="desc">${prazo}</span>` : ''}
+              </span>
+              <span class="preco">${op.preco_cents === 0 ? 'Grátis' : formatarReais(op.preco_cents)}</span>
+            </label>
+          `;
+        }).join('');
+
+        document.querySelectorAll('#frete-opcoes input[name="frete_opcao"]').forEach(r => {
+          r.addEventListener('change', () => {
+            document.querySelectorAll('#frete-opcoes .pagamento-opt').forEach(o => o.classList.remove('selected'));
+            r.closest('.pagamento-opt').classList.add('selected');
+            freteEscolhido = { cents: Number(r.dataset.cents) || 0, servico_id: r.value ? Number(r.value) : null, calculado: true };
+            atualizarResumoTotal(subtotalCents);
+          });
+        });
+
+        const primeiro = opcoes[0];
+        freteEscolhido = { cents: primeiro.preco_cents, servico_id: primeiro.id ?? null, calculado: true };
+        atualizarResumoTotal(subtotalCents);
+
+        const freteResumoEl = document.getElementById('resumo-frete');
+        if (freteResumoEl) freteResumoEl.textContent = 'Ver opções acima';
+        if (resultado.aviso) { avisoEl.textContent = resultado.aviso; avisoEl.style.display = 'block'; }
+      } catch (err) {
+        avisoEl.classList.remove('carregando');
+        avisoEl.style.display = 'block';
+        avisoEl.textContent = 'Não foi possível calcular o frete agora. Tente novamente ou prossiga — vamos confirmar o valor por e-mail/WhatsApp.';
+      }
     }
 
     async function finalizarPedido(e) {
@@ -383,6 +471,7 @@
           estado: document.getElementById('f-estado').value.trim().toUpperCase(),
         },
         metodo_pagamento: document.querySelector('input[name="pagamento"]:checked').value,
+        frete_servico_id: freteEscolhido.servico_id,
       };
 
       try {
