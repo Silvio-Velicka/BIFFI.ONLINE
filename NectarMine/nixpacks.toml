@@ -1,5 +1,8 @@
-# Pacote de sistema necessário para converter PDFs em páginas-imagem
-# (usado pelo upload de e-book no painel admin — server/server.js chama
-# o binário `pdftoppm`, que vem do poppler-utils).
+# ⚠️ ESTE ARQUIVO NÃO ESTÁ MAIS SENDO USADO (mantido só de referência histórica).
+# O Railway migrou o builder padrão de Nixpacks pra Railpack, que ignora
+# nixpacks.toml e lê railpack.json em vez disso — foi por causa disso que o
+# poppler-utils parou de ser instalado silenciosamente e o upload de e-book
+# começou a falhar com "spawn pdftoppm ENOENT" (descoberto em 2026-08-04).
+# A configuração de verdade agora está em NectarMine/railpack.json.
 [phases.setup]
 aptPkgs = ["poppler-utils"]
