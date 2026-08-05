@@ -1533,7 +1533,7 @@ const routes = {
     const user = getUserByToken(req);
     if (!user) return json(res, 401, { error: 'Não autenticado.' });
     const rows = db.prepare(`
-      SELECT DISTINCT p.id AS produto_id, p.nome, l.total_paginas
+      SELECT DISTINCT p.id AS produto_id, p.nome, p.imagem, l.total_paginas
       FROM produtos p
       JOIN livros_digitais l ON l.produto_id = p.id
       JOIN pedido_itens i ON i.produto_id = p.id

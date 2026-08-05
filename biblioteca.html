@@ -199,6 +199,20 @@
 
     .ebook-card .icon { font-size: 40px; margin-bottom: 14px; display: block; }
 
+    .ebook-card .capa {
+      width: 100%;
+      height: 190px;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-bottom: 14px;
+      background: rgba(122,74,45,0.08);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 40px;
+      box-shadow: 0 6px 16px rgba(122,74,45,0.15);
+    }
+
     .ebook-card h3 {
       font-size: 17px;
       color: var(--roxo);
@@ -380,7 +394,7 @@
       <a id="contato-telegram" href="#" target="_blank" rel="noopener" title="Telegram" style="display:none;"><i class="fab fa-telegram"></i></a>
       <a id="contato-email" data-tipo="email" href="#" title="E-mail" style="display:none;"><i class="fa-solid fa-envelope"></i></a>
     </div>
-    <p>🐝 &copy; 2025 BIFFI.ONLINE — feito com amor</p>
+    <p>🐝 &copy; 2026 BIFFI.ONLINE — feito com amor</p>
     <a class="dev-link" href="https://wa.me/5511947377498" target="_blank" rel="noopener">
       Dev
       <span class="dev-tooltip">Desenvolvedor de sites Silvio Velicka<br>para orçamentos clique aqui 💬</span>
@@ -425,7 +439,7 @@
           <div class="ebook-grid">
             ${livros.map(l => `
               <div class="ebook-card">
-                <span class="icon">📖</span>
+                <div class="capa">${imagemProdutoHTML(l.imagem)}</div>
                 <h3>${l.nome}</h3>
                 <span class="paginas">${l.total_paginas} páginas · leitura protegida, direto no navegador</span>
                 <a class="btn-ler" href="leitor.html?produto=${l.produto_id}"><i class="fa-solid fa-book-open"></i> Ler agora</a>
