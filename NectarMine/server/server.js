@@ -1688,10 +1688,16 @@ const routes = {
     try {
       dfInfo = require('child_process').execSync(`df -h "${DATA_DIR}"`, { encoding: 'utf8' });
     } catch (e) { dfInfo = 'erro ao rodar df: ' + e.message; }
+    let pdftoppmInfo = null;
+    try {
+      pdftoppmInfo = require('child_process').execSync('which pdftoppm && pdftoppm -v', { encoding: 'utf8', stdio: ['pipe', 'pipe', 'pipe'] });
+    } catch (e) { pdftoppmInfo = 'pdftoppm indisponível: ' + (e.stderr ? e.stderr.toString() : e.message); }
     json(res, 200, {
       DATA_DIR,
       cwd: process.cwd(),
       dirname: __dirname,
+      PATH: process.env.PATH,
+      pdftoppm: pdftoppmInfo,
       livraria_bytes: tamanhoPasta(LIVRARIA_DIR),
       imagens_bytes: tamanhoPasta(IMAGENS_DIR),
       tmp_bytes: tamanhoPasta(os.tmpdir()),
