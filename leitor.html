@@ -258,6 +258,14 @@
         }
         atualizarIndicador();
 
+        // IMPORTANTE: pageFlip.updateFromImages() chama internamente pages.show(),
+        // que por sua vez dispara o evento 'flip' (mesmo evento usado abaixo pra
+        // detectar quando o LEITOR vira a página). Sem essa trava, cada chamada
+        // de updateFromImages() reacionava o handler 'flip', que chamava
+        // carregarJanelaAoRedor() de novo, que chamava updateFromImages() de novo
+        // — um loop infinito que travava a aba (era a causa do "trava tudo").
+        let atualizandoImagens = false;
+
         async function carregarJanelaAoRedor(pagina1based) {
           const alvo = [];
           for (let d = -JANELA; d <= JANELA; d++) {
@@ -268,13 +276,16 @@
 
           const novosHrefs = new Array(totalPaginas).fill(PLACEHOLDER);
           for (const [n, url] of cache) novosHrefs[n - 1] = url;
+          atualizandoImagens = true;
           pageFlip.updateFromImages(novosHrefs);
+          atualizandoImagens = false;
           liberarForaDaJanela(pagina1based);
         }
 
         carregarJanelaAoRedor(1);
 
         pageFlip.on('flip', (e) => {
+          if (atualizandoImagens) return; // disparado pelo updateFromImages acima, não por um flip real do usuário
           const atual = e.data + 1; // biblioteca usa índice 0-based
           atualizarIndicador();
           carregarJanelaAoRedor(atual);
