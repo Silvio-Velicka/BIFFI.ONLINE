@@ -881,6 +881,15 @@
         confirmButtonColor: '#7A4A2D',
         focusConfirm: false,
         preConfirm: () => {
+          // IMPORTANTE: capturamos os arquivos (foto/pdf) aqui dentro, enquanto
+          // o modal ainda está no DOM. Se a gente tentar ler esses <input type="file">
+          // depois do await Swal.fire(...) resolver, o SweetAlert2 já destruiu o
+          // modal e document.getElementById volta null — o arquivo selecionado
+          // era perdido silenciosamente (sem nenhum erro), mesmo com "Produto
+          // atualizado!" aparecendo. Isso explicava re-uploads de foto/PDF que
+          // pareciam funcionar mas nunca persistiam.
+          const fotoInput = document.getElementById('edit-foto');
+          const pdfInput = document.getElementById('edit-pdf');
           return {
             nome: document.getElementById('edit-nome').value.trim(),
             descricao: document.getElementById('edit-descricao').value.trim(),
@@ -894,6 +903,9 @@
             altura_cm: Number(document.getElementById('edit-altura').value) || 3,
             largura_cm: Number(document.getElementById('edit-largura').value) || 16,
             comprimento_cm: Number(document.getElementById('edit-comprimento').value) || 23,
+            _fotoFile: fotoInput && fotoInput.files[0] ? fotoInput.files[0] : null,
+            _pdfFile: pdfInput && pdfInput.files[0] ? pdfInput.files[0] : null,
+            _pastaEbook: document.getElementById('edit-ebook-pasta').value,
           };
         },
       });
@@ -916,24 +928,24 @@
 
       if (!result.isConfirmed) return;
 
-      try {
-        await BiffiAdmin.atualizarProduto(p.id, result.value);
+      // Tira os campos internos (_fotoFile, _pdfFile, _pastaEbook) do payload
+      // antes de mandar pro backend — eles só existem pra carregar os arquivos
+      // capturados no preConfirm até aqui.
+      const { _fotoFile, _pdfFile, _pastaEbook, ...payload } = result.value;
 
-        const fotoInput = document.getElementById('edit-foto');
-        if (fotoInput && fotoInput.files[0]) {
-          await BiffiAdmin.enviarImagemProduto(p.id, fotoInput.files[0]);
+      try {
+        await BiffiAdmin.atualizarProduto(p.id, payload);
+
+        if (_fotoFile) {
+          await BiffiAdmin.enviarImagemProduto(p.id, _fotoFile);
         }
 
-        const pdfInput = document.getElementById('edit-pdf');
-        if (pdfInput && pdfInput.files[0]) {
-          await BiffiAdmin.enviarPdfEbook(p.id, pdfInput.files[0]);
-        } else {
-          const pastaSelect = document.getElementById('edit-ebook-pasta');
-          if (pastaSelect && pastaSelect.value) {
-            const pastaEscolhida = pastas.find(x => x.slug === pastaSelect.value);
-            if (pastaEscolhida) {
-              await BiffiAdmin.vincularLivroDigital(p.id, pastaEscolhida.slug, pastaEscolhida.total_paginas);
-            }
+        if (_pdfFile) {
+          await BiffiAdmin.enviarPdfEbook(p.id, _pdfFile);
+        } else if (_pastaEbook) {
+          const pastaEscolhida = pastas.find(x => x.slug === _pastaEbook);
+          if (pastaEscolhida) {
+            await BiffiAdmin.vincularLivroDigital(p.id, pastaEscolhida.slug, pastaEscolhida.total_paginas);
           }
         }
 
