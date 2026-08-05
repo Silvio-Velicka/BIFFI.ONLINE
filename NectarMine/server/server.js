@@ -1666,6 +1666,40 @@ const routes = {
     json(res, 200, { pastas });
   },
 
+  // Diagnóstico rápido de disco/DATA_DIR — só pra investigar falhas de upload
+  // de PDF/imagem (ex: disco cheio no volume do Railway). Não expõe nada
+  // sensível, só tamanhos e caminhos, e é restrito a admin.
+  'GET /api/admin/diag': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    const tamanhoPasta = (p) => {
+      if (!fs.existsSync(p)) return null;
+      let total = 0;
+      const andar = (dir) => {
+        for (const item of fs.readdirSync(dir, { withFileTypes: true })) {
+          const full = path.join(dir, item.name);
+          if (item.isDirectory()) andar(full);
+          else total += fs.statSync(full).size;
+        }
+      };
+      andar(p);
+      return total;
+    };
+    let dfInfo = null;
+    try {
+      dfInfo = require('child_process').execSync(`df -h "${DATA_DIR}"`, { encoding: 'utf8' });
+    } catch (e) { dfInfo = 'erro ao rodar df: ' + e.message; }
+    json(res, 200, {
+      DATA_DIR,
+      cwd: process.cwd(),
+      dirname: __dirname,
+      livraria_bytes: tamanhoPasta(LIVRARIA_DIR),
+      imagens_bytes: tamanhoPasta(IMAGENS_DIR),
+      tmp_bytes: tamanhoPasta(os.tmpdir()),
+      df: dfInfo,
+      memoria: process.memoryUsage(),
+    });
+  },
+
   'POST /api/admin/products': async (req, res) => {
     if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
     const b = await readBody(req);
@@ -1774,7 +1808,14 @@ const routes = {
     } catch (e) {
       console.error('Erro ao converter PDF:', e);
       fs.unlink(tmpPath, () => {});
-      return json(res, 500, { error: 'Não foi possível converter o PDF. Verifique se o arquivo não está corrompido.' });
+      // Detalhe técnico incluído na resposta (rota é 100% restrita a admin,
+      // então é seguro expor) — ajuda a diagnosticar sem depender dos logs
+      // do Railway, que nem sempre estão à mão na hora do problema.
+      return json(res, 500, {
+        error: 'Não foi possível converter o PDF. Verifique se o arquivo não está corrompido.',
+        detalhe: e && (e.message || String(e)),
+        codigo: e && e.code,
+      });
     }
     fs.unlink(tmpPath, () => {}); // o PDF original nunca fica salvo
 
