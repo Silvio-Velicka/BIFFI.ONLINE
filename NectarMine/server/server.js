@@ -481,6 +481,34 @@ function ehEnderecoNoBrasil(pais) {
   return p === '' || p === 'brasil' || p === 'brazil' || p === 'br';
 }
 
+// Remove acentos e baixa a caixa, pra comparar nome de país sem depender de
+// como a pessoa digitou ("Estados Unidos", "estados unidos", "EUA"...).
+function normalizarPais(pais) {
+  return String(pais ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ');
+}
+
+// Frete fixo pra alguns países, decidido manualmente (sem cotação automática
+// via Melhor Envio, que não cobre fora do Brasil — ver ehEnderecoNoBrasil).
+// Cobre um frete único por pedido, independente da quantidade de itens —
+// pensado pra um envio simples, levado ao Correio na mão (Exporta Fácil).
+// Pra adicionar outro país fixo no futuro, é só acrescentar uma linha aqui.
+const FRETE_FIXO_INTERNACIONAL = {
+  'estados unidos': 26200,        // R$ 262,00
+  'eua': 26200,
+  'usa': 26200,
+  'united states': 26200,
+  'united states of america': 26200,
+  'estados unidos da america': 26200,
+};
+
+// Devolve o valor fixo (em centavos) pro país, ou null se não tiver um
+// preço fixo cadastrado (nesse caso, o frete internacional cai no fluxo
+// manual — frete_pendente=1, o admin cota depois nos Correios).
+function freteFixoInternacional(pais) {
+  const chave = normalizarPais(pais);
+  return Object.prototype.hasOwnProperty.call(FRETE_FIXO_INTERNACIONAL, chave) ? FRETE_FIXO_INTERNACIONAL[chave] : null;
+}
+
 /* ── FRETE REAL — Melhor Envio (Correios PAC/SEDEX/Mini Envios, Jadlog etc.) ──
    O cliente escolhe a transportadora no checkout; o servidor calcula os
    preços de verdade a partir do CEP de destino e do peso/dimensões dos
@@ -1594,12 +1622,20 @@ const routes = {
 
     if (itensFisicos.length > 0) {
       if (entregaInternacional) {
-        // Sem cotação automática pra fora do Brasil (Melhor Envio não cobre) —
-        // fica marcado como pendente pro admin cotar manualmente nos Correios
-        // (Exporta Fácil) e preencher o valor depois (PUT /api/admin/pedidos/:id).
-        freteCents = 0;
-        freteServico = 'Frete internacional — cotação manual (entraremos em contato)';
-        fretePendente = 1;
+        // Alguns países têm frete fixo já decidido (ver FRETE_FIXO_INTERNACIONAL)
+        // — aplica na hora, sem precisar de cotação nem intervenção do admin.
+        // Os demais caem no fluxo manual: frete_pendente=1, o admin cota
+        // depois nos Correios (Exporta Fácil) e preenche o valor no painel.
+        const freteFixo = freteFixoInternacional(paisDestino);
+        if (freteFixo != null) {
+          freteCents = freteFixo;
+          freteServico = `Frete fixo internacional — ${paisDestino} (Correios)`;
+          fretePendente = 0;
+        } else {
+          freteCents = 0;
+          freteServico = 'Frete internacional — cotação manual (entraremos em contato)';
+          fretePendente = 1;
+        }
       } else {
         const cepDestino = String(end.cep).replace(/\D/g, '');
         try {
@@ -1659,7 +1695,12 @@ const routes = {
     }
 
     const avisoPagamento = pagamento ? null : 'Pedido registrado! O pagamento por gateway ainda não foi configurado — entraremos em contato para combinar o pagamento (PIX/transferência).';
-    const avisoFrete = fretePendente ? 'Como a entrega é internacional, o frete não entrou no total ainda — vamos cotar nos Correios e entrar em contato com o valor exato e a forma de pagamento dele antes de enviar.' : null;
+    let avisoFrete = null;
+    if (fretePendente) {
+      avisoFrete = 'Como a entrega é internacional, o frete não entrou no total ainda — vamos cotar nos Correios e entrar em contato com o valor exato e a forma de pagamento dele antes de enviar.';
+    } else if (entregaInternacional && freteCents > 0) {
+      avisoFrete = `Entrega internacional: já incluímos o frete fixo de ${(freteCents / 100).toFixed(2).replace('.', ',')} (Correios) no total — vamos postar e te avisamos assim que sair.`;
+    }
     const aviso = [avisoPagamento, avisoFrete].filter(Boolean).join(' ') || null;
 
     json(res, 201, {

@@ -181,6 +181,15 @@ Cliente pediu suporte a vendas com entrega fora do Brasil (ex.: brasileiro moran
 
 **Pendência real:** isso resolve o cadastro/registro do pedido, mas a etiqueta de postagem internacional ainda precisa ser gerada manualmente (Correios Exporta Fácil, no site/app dos Correios ou no balcão) — não existe automação de etiqueta internacional configurada. Se no futuro quiser automatizar de verdade (cotação + etiqueta), é preciso contratar acesso à API de exportação dos Correios (ou outro serviço equivalente) e integrar separadamente.
 
+#### Frete fixo automático para os EUA — R$262,00 (mesma sessão, atualização)
+Pra evitar que todo pedido internacional precise de intervenção manual do admin, foi adicionada uma tabela de **frete fixo por país** — hoje só com **Estados Unidos = R$ 262,00**, aplicado automaticamente no checkout, sem cotação nem clique nenhum:
+
+- `server.js` → `FRETE_FIXO_INTERNACIONAL` (objeto `{ 'estados unidos': 26200, 'eua': 26200, 'usa': 26200, ... }`, comparado via `normalizarPais()` — ignora acento/maiúscula, então "Estados Unidos", "estados unidos" ou "EUA" batem igual). Se o país do pedido tiver frete fixo cadastrado, `frete_cents` já vem preenchido e `frete_pendente = 0` (não aparece mais como pendente no admin); só os países **sem** entrada nessa tabela caem no fluxo manual descrito acima.
+- `checkout.html` espelha a mesma tabela no navegador, só pra já mostrar "Frete fixo internacional (Correios): R$ 262,00 — já incluído no total" na tela, sem precisar ir ao servidor — o valor que realmente vale é sempre recalculado no backend na hora de finalizar (o cliente nunca controla o preço final).
+- **Fluxo pensado pela dona do site:** o pedido chega pronto (endereço + R$262 de frete já cobrados/registrados); ela imprime o pedido no admin (botão 🖨️, já mostra o endereço internacional completo) e vai ao Correio postar manualmente (Exporta Fácil ou serviço equivalente no balcão).
+- **Para adicionar frete fixo de outro país no futuro:** basta acrescentar uma linha em `FRETE_FIXO_INTERNACIONAL` no `server.js` (e o mesmo objeto em `checkout.html`, só pra manter a tela consistente) — não precisa mexer em mais nada.
+- **Testado localmente:** checkout com `pais: "Estados Unidos"` e com `pais: "eua"` (minúsculo) → ambos aplicam R$262,00 automaticamente (`frete_pendente: false`); checkout com `pais: "Portugal"` (sem entrada na tabela) → continua caindo no fluxo manual/pendente, como esperado.
+
 ### Painel admin — módulos novos
 - **🛒 Produtos**: cadastrar produto novo (nome, preço, descrição, imagem, categoria, estoque, destaque) e editar/excluir os existentes direto na lista.
 - **📦 Pedidos**: lista todos os pedidos com dados do cliente/endereço/total, com um seletor pra mudar o status (aguardando pagamento → pago → enviado → entregue, ou cancelado).

@@ -217,6 +217,21 @@
       return p === '' || p === 'brasil' || p === 'brazil' || p === 'br';
     }
 
+    // Mesma tabela do backend (server.js → FRETE_FIXO_INTERNACIONAL) — só pra
+    // já mostrar o valor certo na tela sem precisar ir ao servidor. O valor
+    // que realmente vale é sempre recalculado no backend na hora de finalizar.
+    const FRETE_FIXO_INTERNACIONAL = {
+      'estados unidos': 26200, 'eua': 26200, 'usa': 26200,
+      'united states': 26200, 'united states of america': 26200, 'estados unidos da america': 26200,
+    };
+    function normalizarPais(pais) {
+      return String(pais ?? '').trim().toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/\s+/g, ' ');
+    }
+    function freteFixoInternacional(pais) {
+      const chave = normalizarPais(pais);
+      return Object.prototype.hasOwnProperty.call(FRETE_FIXO_INTERNACIONAL, chave) ? FRETE_FIXO_INTERNACIONAL[chave] : null;
+    }
+
     async function iniciar() {
       // Exige login de verdade — consulta o servidor (SITE_AUTH.verificar()),
       // não só olha se existe um token guardado no localStorage. Assim, um
@@ -435,14 +450,24 @@
               atualizarResumoTotal(subtotal);
             }
           } else {
-            // Frete internacional: não calcula — fica "a combinar", sem entrar no total agora.
-            freteEscolhido = { cents: 0, servico_id: null, calculado: true, internacional: true };
             const avisoEl = document.getElementById('frete-aviso');
             const opcoesEl = document.getElementById('frete-opcoes');
-            if (avisoEl) { avisoEl.textContent = '✈️ Frete internacional a combinar — não entra no total agora.'; avisoEl.style.display = 'block'; avisoEl.classList.remove('carregando'); }
-            if (opcoesEl) { opcoesEl.style.display = 'none'; opcoesEl.innerHTML = ''; }
             const freteResumoEl = document.getElementById('resumo-frete');
-            if (freteResumoEl) freteResumoEl.textContent = 'A combinar';
+            const freteFixo = freteFixoInternacional(pais);
+
+            if (freteFixo != null) {
+              // País com frete fixo já definido (ex.: Estados Unidos) — soma direto no total.
+              freteEscolhido = { cents: freteFixo, servico_id: null, calculado: true, internacional: true };
+              if (avisoEl) { avisoEl.textContent = `📦 Frete fixo internacional (Correios): ${formatarReais(freteFixo)} — já incluído no total.`; avisoEl.style.display = 'block'; avisoEl.classList.remove('carregando'); }
+              if (opcoesEl) { opcoesEl.style.display = 'none'; opcoesEl.innerHTML = ''; }
+              if (freteResumoEl) freteResumoEl.textContent = formatarReais(freteFixo);
+            } else {
+              // Sem frete fixo cadastrado pra esse país: fica "a combinar", sem entrar no total agora.
+              freteEscolhido = { cents: 0, servico_id: null, calculado: true, internacional: true };
+              if (avisoEl) { avisoEl.textContent = '✈️ Frete internacional a combinar — não entra no total agora.'; avisoEl.style.display = 'block'; avisoEl.classList.remove('carregando'); }
+              if (opcoesEl) { opcoesEl.style.display = 'none'; opcoesEl.innerHTML = ''; }
+              if (freteResumoEl) freteResumoEl.textContent = 'A combinar';
+            }
             atualizarResumoTotal(subtotal);
           }
         }
