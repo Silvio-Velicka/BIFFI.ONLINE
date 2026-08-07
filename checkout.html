@@ -231,6 +231,26 @@
       const chave = normalizarPais(pais);
       return Object.prototype.hasOwnProperty.call(FRETE_FIXO_INTERNACIONAL, chave) ? FRETE_FIXO_INTERNACIONAL[chave] : null;
     }
+    function paisEhEUA(pais) {
+      return Object.prototype.hasOwnProperty.call(FRETE_FIXO_INTERNACIONAL, normalizarPais(pais));
+    }
+
+    // Busca cidade/estado automaticamente pelo ZIP code (Zippopotam.us — API
+    // pública, sem chave, mesmo espírito do ViaCEP). ZIP americano só cobre
+    // cidade/região (não tem endereço/rua como o CEP brasileiro), então rua e
+    // número continuam sendo preenchidos manualmente.
+    async function buscarEnderecoPorZip(zip) {
+      try {
+        const resp = await fetch(`https://api.zippopotam.us/us/${zip}`);
+        if (!resp.ok) return;
+        const data = await resp.json();
+        const local = (data.places || [])[0];
+        if (local) {
+          document.getElementById('f-cidade').value = local['place name'] || document.getElementById('f-cidade').value;
+          document.getElementById('f-estado').value = local['state abbreviation'] || local['state'] || document.getElementById('f-estado').value;
+        }
+      } catch (e) { /* silencioso — usuário preenche manualmente */ }
+    }
 
     async function iniciar() {
       // Exige login de verdade — consulta o servidor (SITE_AUTH.verificar()),
@@ -309,7 +329,7 @@
                   <option value="Emirados Árabes Unidos">
                   <option value="Nova Zelândia">
                 </datalist>
-                <p id="pais-aviso-internacional" class="frete-aviso" style="display:none;margin-top:8px;">✈️ Entrega internacional: o frete não é calculado automaticamente — vamos cotar nos Correios e falar com você (WhatsApp/e-mail) com o valor exato antes do envio.</p>
+                <p id="pais-aviso-internacional" class="frete-aviso" style="display:none;margin-top:8px;">✈️ Entrega internacional: os campos de CEP e Estado abaixo não têm formato fixo — preencha como for válido no país de destino. Para os Estados Unidos, o ZIP code preenche cidade e estado automaticamente.</p>
               </div>
 
               <div class="field">
@@ -476,23 +496,35 @@
       document.getElementById('f-pais').addEventListener('input', atualizarCamposPorPais);
       document.getElementById('f-pais').addEventListener('change', atualizarCamposPorPais);
 
-      // Busca automática de endereço pelo CEP (ViaCEP — API pública, sem chave;
-      // só faz sentido pra CEP brasileiro, então só tenta se o país for Brasil)
+      // Busca automática de endereço pelo CEP/ZIP ao sair do campo:
+      // Brasil → ViaCEP (rua, bairro, cidade, UF); Estados Unidos → Zippopotam.us
+      // (só cidade/estado — ZIP não desce a nível de rua como o CEP brasileiro).
+      // Outros países: sem serviço de busca automática, preenchimento manual.
       document.getElementById('f-cep').addEventListener('blur', async (e) => {
-        if (!paisEhBrasil(document.getElementById('f-pais').value)) return;
-        const cep = e.target.value.replace(/\D/g, '');
-        if (cep.length !== 8) return;
-        try {
-          const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-          const data = await resp.json();
-          if (!data.erro) {
-            document.getElementById('f-rua').value = data.logradouro || document.getElementById('f-rua').value;
-            document.getElementById('f-bairro').value = data.bairro || document.getElementById('f-bairro').value;
-            document.getElementById('f-cidade').value = data.localidade || document.getElementById('f-cidade').value;
-            document.getElementById('f-estado').value = data.uf || document.getElementById('f-estado').value;
-          }
-        } catch (e) { /* silencioso — usuário preenche manualmente */ }
-        if (itensFisicos.length > 0) calcularFreteUI(cep, itensFisicos, subtotal);
+        const paisAtual = document.getElementById('f-pais').value;
+
+        if (paisEhBrasil(paisAtual)) {
+          const cep = e.target.value.replace(/\D/g, '');
+          if (cep.length !== 8) return;
+          try {
+            const resp = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
+            const data = await resp.json();
+            if (!data.erro) {
+              document.getElementById('f-rua').value = data.logradouro || document.getElementById('f-rua').value;
+              document.getElementById('f-bairro').value = data.bairro || document.getElementById('f-bairro').value;
+              document.getElementById('f-cidade').value = data.localidade || document.getElementById('f-cidade').value;
+              document.getElementById('f-estado').value = data.uf || document.getElementById('f-estado').value;
+            }
+          } catch (e) { /* silencioso — usuário preenche manualmente */ }
+          if (itensFisicos.length > 0) calcularFreteUI(cep, itensFisicos, subtotal);
+          return;
+        }
+
+        if (paisEhEUA(paisAtual)) {
+          const zip = e.target.value.replace(/\D/g, '').slice(0, 5);
+          if (zip.length !== 5) return;
+          await buscarEnderecoPorZip(zip);
+        }
       });
 
       // Estado inicial dos campos (aplica o país já pré-preenchido — Brasil por padrão)

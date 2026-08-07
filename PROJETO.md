@@ -190,6 +190,9 @@ Pra evitar que todo pedido internacional precise de intervenção manual do admi
 - **Para adicionar frete fixo de outro país no futuro:** basta acrescentar uma linha em `FRETE_FIXO_INTERNACIONAL` no `server.js` (e o mesmo objeto em `checkout.html`, só pra manter a tela consistente) — não precisa mexer em mais nada.
 - **Testado localmente:** checkout com `pais: "Estados Unidos"` e com `pais: "eua"` (minúsculo) → ambos aplicam R$262,00 automaticamente (`frete_pendente: false`); checkout com `pais: "Portugal"` (sem entrada na tabela) → continua caindo no fluxo manual/pendente, como esperado.
 
+#### Autopreenchimento de endereço pelo ZIP code (EUA) — mesma sessão
+Igual ao CEP brasileiro já fazia (busca por ViaCEP), agora o **ZIP code americano** também autopreenche parte do endereço: ao sair do campo CEP em `checkout.html`, se o país for Estados Unidos (mesmas variações aceitas: "EUA", "USA" etc.) e o valor tiver 5 dígitos, a cidade e o estado (sigla, ex. "CA") são preenchidos automaticamente via **Zippopotam.us** (`https://api.zippopotam.us/us/<zip>`) — API pública, sem chave, sem custo. Diferente do CEP brasileiro, o ZIP americano não desce a nível de rua (só cidade/região), então rua e número continuam sendo digitados à mão — isso é uma limitação do próprio sistema de ZIP code dos EUA, não do site. Falha da API é sempre silenciosa (usuário só preenche manualmente), igual já era com o ViaCEP.
+
 ### Painel admin — módulos novos
 - **🛒 Produtos**: cadastrar produto novo (nome, preço, descrição, imagem, categoria, estoque, destaque) e editar/excluir os existentes direto na lista.
 - **📦 Pedidos**: lista todos os pedidos com dados do cliente/endereço/total, com um seletor pra mudar o status (aguardando pagamento → pago → enviado → entregue, ou cancelado).
