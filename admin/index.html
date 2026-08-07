@@ -343,6 +343,9 @@
     <div class="nav-item" data-view="contatos">
       <span class="icon">📱</span> Contatos
     </div>
+    <div class="nav-item" data-view="acessos">
+      <span class="icon">📊</span> Acessos
+    </div>
 
     <div class="sidebar-footer">
       <button class="btn-sair" id="btn-sair"><i class="fa-solid fa-right-from-bracket"></i> Sair</button>
@@ -612,6 +615,38 @@
       </div>
     </div>
 
+    <!-- ═══ VIEW: ACESSOS ═══ -->
+    <div class="view" id="view-acessos">
+      <h1>📊 Acessos ao Site</h1>
+      <p class="subtitle">Quantas vezes o site foi acessado (e por quantos visitantes diferentes), com a lista de cada acesso — id, localização aproximada (por IP) e horário.</p>
+
+      <div class="clientes-resumo" id="acessos-resumo"></div>
+
+      <div class="card">
+        <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:12px;">
+          <h2 style="font-family:Georgia,serif;color:var(--roxo);font-size:16px;">📋 Últimos acessos</h2>
+          <button type="button" class="btn-secundario" id="btn-atualizar-acessos" style="padding:8px 14px;font-size:12px;"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+        </div>
+        <input type="text" class="clientes-busca" id="acessos-busca" placeholder="🔎 Buscar por página, cidade, região, país ou IP...">
+        <div class="tabela-scroll">
+          <table class="tabela-clientes">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data/Hora</th>
+                <th>Página</th>
+                <th>Localização</th>
+                <th>IP</th>
+              </tr>
+            </thead>
+            <tbody id="lista-acessos">
+              <tr><td colspan="5" style="font-size:12.5px;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
   </div>
 
   <!-- ═══ FOLHA DE IMPRESSÃO (invisível na tela; usada só na hora de imprimir) ═══
@@ -636,6 +671,7 @@
         if (item.dataset.view === 'clientes') carregarClientes();
         if (item.dataset.view === 'doar-ebook') carregarDoarEbook();
         if (item.dataset.view === 'contatos') carregarContatos();
+        if (item.dataset.view === 'acessos') carregarAcessos();
       });
     });
 
@@ -1472,6 +1508,62 @@
       } finally {
         btn.disabled = false;
       }
+    });
+
+    /* ═══ ACESSOS AO SITE ═══ */
+    let acessosCache = [];
+
+    function localizacaoFormatada(a) {
+      const partes = [a.cidade, a.regiao, a.pais].filter(Boolean);
+      return partes.length ? partes.join(' / ') : celula(null);
+    }
+
+    function renderizarAcessos(lista) {
+      const tbody = document.getElementById('lista-acessos');
+      if (!lista.length) { tbody.innerHTML = '<tr><td colspan="5" style="font-size:12.5px;">Nenhum acesso registrado ainda.</td></tr>'; return; }
+      tbody.innerHTML = lista.map(a => `
+        <tr>
+          <td>#${a.id}</td>
+          <td>${new Date(a.created_at.replace(' ', 'T') + 'Z').toLocaleString('pt-BR')}</td>
+          <td>${celula(a.pagina)}</td>
+          <td>${localizacaoFormatada(a)}</td>
+          <td>${celula(a.ip)}</td>
+        </tr>
+      `).join('');
+    }
+
+    function atualizarResumoAcessos(contadores, visitantesUnicos) {
+      document.getElementById('acessos-resumo').innerHTML = `
+        <div class="resumo-pill"><strong>${contadores.hoje}</strong>Acessos hoje</div>
+        <div class="resumo-pill"><strong>${contadores.semana}</strong>Acessos nos últimos 7 dias</div>
+        <div class="resumo-pill"><strong>${contadores.mes}</strong>Acessos neste mês</div>
+        <div class="resumo-pill"><strong>${visitantesUnicos.hoje}</strong>👤 Visitantes únicos hoje</div>
+        <div class="resumo-pill"><strong>${visitantesUnicos.semana}</strong>👤 Visitantes únicos na semana</div>
+        <div class="resumo-pill"><strong>${visitantesUnicos.mes}</strong>👤 Visitantes únicos no mês</div>
+      `;
+    }
+
+    async function carregarAcessos() {
+      const tbody = document.getElementById('lista-acessos');
+      try {
+        const { contadores, visitantesUnicos, acessos } = await BiffiAdmin.getAcessos(300);
+        acessosCache = acessos;
+        atualizarResumoAcessos(contadores, visitantesUnicos);
+        renderizarAcessos(acessos);
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="5" style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</td></tr>`;
+      }
+    }
+
+    document.getElementById('btn-atualizar-acessos').addEventListener('click', carregarAcessos);
+
+    document.getElementById('acessos-busca').addEventListener('input', (e) => {
+      const termo = e.target.value.trim().toLowerCase();
+      if (!termo) { renderizarAcessos(acessosCache); return; }
+      const filtrados = acessosCache.filter(a => [
+        a.pagina, a.cidade, a.regiao, a.pais, a.ip,
+      ].some(campo => (campo || '').toLowerCase().includes(termo)));
+      renderizarAcessos(filtrados);
     });
   </script>
 </body>

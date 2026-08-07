@@ -277,6 +277,37 @@ const melhorEnvio = require('./melhorenvio')(db);
   addCol('contato_email', `TEXT NOT NULL DEFAULT ''`);
 }
 
+/* ═══ CONTADOR DE ACESSOS AO SITE (biffi.online) ═══
+   Cada página do site principal (js/site-track.js) avisa o servidor a cada
+   carregamento — vira uma linha aqui, com IP (usado só pra descobrir a
+   localização aproximada, via geo_cache) e a página visitada. Serve pro
+   painel admin mostrar quantos acessos aconteceram hoje/na semana/no mês,
+   além da lista com id, localização e horário de cada acesso. */
+db.exec(`
+  CREATE TABLE IF NOT EXISTS site_acessos (
+    id         INTEGER PRIMARY KEY AUTOINCREMENT,
+    visitor_id TEXT    NOT NULL DEFAULT '',
+    ip         TEXT    NOT NULL DEFAULT '',
+    pais       TEXT    NOT NULL DEFAULT '',
+    regiao     TEXT    NOT NULL DEFAULT '',
+    cidade     TEXT    NOT NULL DEFAULT '',
+    pagina     TEXT    NOT NULL DEFAULT '',
+    created_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
+  CREATE INDEX IF NOT EXISTS idx_site_acessos_created ON site_acessos (created_at);
+  CREATE INDEX IF NOT EXISTS idx_site_acessos_visitor ON site_acessos (visitor_id);
+
+  -- Cache de "IP → localização" (evita bater na API externa de geolocalização
+  -- de novo pro mesmo IP visitando várias páginas seguidas).
+  CREATE TABLE IF NOT EXISTS geo_cache (
+    ip         TEXT PRIMARY KEY,
+    pais       TEXT NOT NULL DEFAULT '',
+    regiao     TEXT NOT NULL DEFAULT '',
+    cidade     TEXT NOT NULL DEFAULT '',
+    updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+  );
+`);
+
 /* ── MIGRAÇÃO LEVE: novas colunas em game_state para a economia real ── */
 {
   const cols = db.prepare(`PRAGMA table_info(game_state)`).all().map(c => c.name);
@@ -359,6 +390,49 @@ const PERIODOS = {
 function isAdmin(req) {
   const key = req.headers['x-admin-key'] || '';
   return !!(process.env.ADMIN_KEY && key === process.env.ADMIN_KEY);
+}
+
+/* ── CONTADOR DE ACESSOS: HELPERS ── */
+
+// Descobre o IP "de verdade" do visitante. O Railway (e qualquer proxy na
+// frente do Node) coloca o IP original em x-forwarded-for; sem isso, todo
+// mundo apareceria com o mesmo IP interno do proxy.
+function getClientIp(req) {
+  const fwd = req.headers['x-forwarded-for'];
+  if (fwd) return String(fwd).split(',')[0].trim();
+  return req.socket.remoteAddress || '';
+}
+
+function ipEhLocal(ip) {
+  return !ip || ip === '::1' || ip === '127.0.0.1' || ip.startsWith('192.168.') || ip.startsWith('10.') || ip.startsWith('::ffff:127.');
+}
+
+// Geolocalização aproximada por IP, via ip-api.com (gratuito, sem chave —
+// limite de 45 requisições/minuto no plano grátis). Resultado é cacheado por
+// IP em geo_cache, então cada IP só bate na API externa uma vez. Se a API
+// falhar (fora do ar, limite excedido, IP local em teste), devolve campos
+// vazios em vez de quebrar o registro do acesso.
+async function geolocalizarIp(ip) {
+  if (ipEhLocal(ip)) return { pais: 'Local/Rede interna', regiao: '', cidade: '' };
+
+  const cache = db.prepare('SELECT pais, regiao, cidade FROM geo_cache WHERE ip = ?').get(ip);
+  if (cache) return cache;
+
+  try {
+    const resp = await fetch(`http://ip-api.com/json/${encodeURIComponent(ip)}?fields=status,country,regionName,city`);
+    const data = await resp.json();
+    const geo = data && data.status === 'success'
+      ? { pais: data.country || '', regiao: data.regionName || '', cidade: data.city || '' }
+      : { pais: '', regiao: '', cidade: '' };
+    db.prepare(`
+      INSERT INTO geo_cache (ip, pais, regiao, cidade, updated_at) VALUES (?, ?, ?, ?, datetime('now'))
+      ON CONFLICT(ip) DO UPDATE SET pais = excluded.pais, regiao = excluded.regiao, cidade = excluded.cidade, updated_at = datetime('now')
+    `).run(ip, geo.pais, geo.regiao, geo.cidade);
+    return geo;
+  } catch (err) {
+    console.error('[geolocalizarIp] falha ao consultar geolocalização:', err.message);
+    return { pais: '', regiao: '', cidade: '' };
+  }
 }
 
 function produtoPublico(p) {
@@ -1276,6 +1350,25 @@ const routes = {
     json(res, 200, { ok: true });
   },
 
+  // Contador de acessos do site — chamado por js/site-track.js em toda
+  // página do site principal (não é a mesma coisa do jogo NectarMine, que já
+  // tem suas próprias contas). Público, sem autenticação — é só um "avisa
+  // que alguém abriu essa página". Nunca deve travar/atrasar a página do
+  // visitante nem devolver erro visível: se algo falhar aqui, o site continua
+  // funcionando normalmente, só não conta aquele acesso.
+  'POST /api/track-visit': async (req, res) => {
+    const b = await readBody(req).catch(() => ({}));
+    const ip = getClientIp(req);
+    const geo = await geolocalizarIp(ip);
+    const visitorId = String(b.visitor_id || '').slice(0, 100);
+    const pagina = String(b.pagina || '').slice(0, 200) || '/';
+    db.prepare(`
+      INSERT INTO site_acessos (visitor_id, ip, pais, regiao, cidade, pagina)
+      VALUES (?, ?, ?, ?, ?, ?)
+    `).run(visitorId, ip, geo.pais, geo.regiao, geo.cidade, pagina);
+    json(res, 200, { ok: true });
+  },
+
   // Atualiza o modal comunicativo — reservado para o futuro painel admin.
   // Protegido por chave simples (header x-admin-key) até existir login de admin de verdade.
   'PUT /api/announcement': async (req, res) => {
@@ -1551,6 +1644,39 @@ const routes = {
     const getItens = db.prepare('SELECT nome_snapshot, preco_cents_snapshot, quantidade FROM pedido_itens WHERE pedido_id = ?');
     const pedidos = rows.map(p => ({ ...p, itens: getItens.all(p.id) }));
     json(res, 200, { pedidos });
+  },
+
+  /* ═══ CONTADOR DE ACESSOS — PAINEL ADMIN (protegido por x-admin-key) ═══ */
+
+  // Contadores (diário/semanal/mensal, total de acessos e visitantes únicos)
+  // + a lista dos acessos mais recentes, com id, IP/localização, página e
+  // horário — exatamente o que o módulo "📊 Acessos" do admin mostra.
+  'GET /api/admin/acessos': async (req, res, url) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+
+    const total = (desde) => db.prepare(`SELECT COUNT(*) AS n FROM site_acessos WHERE created_at >= ${desde}`).get().n;
+    const unicos = (desde) => db.prepare(`SELECT COUNT(DISTINCT visitor_id) AS n FROM site_acessos WHERE created_at >= ${desde} AND visitor_id != ''`).get().n;
+
+    const contadores = {
+      hoje:   total(PERIODOS.diario),
+      semana: total(PERIODOS.semanal),
+      mes:    total(PERIODOS.mensal),
+    };
+    const visitantesUnicos = {
+      hoje:   unicos(PERIODOS.diario),
+      semana: unicos(PERIODOS.semanal),
+      mes:    unicos(PERIODOS.mensal),
+    };
+
+    const limite = Math.min(Math.max(Number(url.searchParams.get('limite')) || 300, 1), 1000);
+    const acessos = db.prepare(`
+      SELECT id, visitor_id, ip, pais, regiao, cidade, pagina, created_at
+      FROM site_acessos
+      ORDER BY created_at DESC, id DESC
+      LIMIT ?
+    `).all(limite);
+
+    json(res, 200, { contadores, visitantesUnicos, acessos, totalRegistros: db.prepare('SELECT COUNT(*) AS n FROM site_acessos').get().n });
   },
 
   /* ═══ LOJINHA — PAINEL ADMIN (protegido por x-admin-key) ═══ */

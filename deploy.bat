@@ -2,6 +2,7 @@
 cd /d "%~dp0"
 
 if exist ".git\index.lock" del /f /q ".git\index.lock"
+if exist ".git\HEAD.lock" del /f /q ".git\HEAD.lock"
 if exist ".git\rebase-merge" rd /s /q ".git\rebase-merge"
 if exist ".git\rebase-apply" rd /s /q ".git\rebase-apply"
 

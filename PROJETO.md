@@ -226,7 +226,48 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
 - **Módulos existentes:**
   - 📢 **Modal do Jogo** — edita Título / Texto / Subtítulo / Texto do modal comunicativo que aparece na tela de login do NectarMine (liga/desliga com o campo "ativo"). Lê/grava na tabela `site_config` do backend do NectarMine.
   - 🛒 **Produtos** — lista com toggle rápido de Destaque/Ativo direto na linha, e botão **"Editar"** que abre um modal completo com todos os campos do produto (nome, descrição, preço, imagem, categoria, estoque/ilimitado, destaque, ativo) + upload de PDF do e-book ou vínculo a uma pasta já processada. O formulário "Novo produto" também aceita anexar um PDF direto na criação — sobe e converte automaticamente (ver seção "Livraria Digital" acima).
+  - 📊 **Acessos** (sessão 07/08/2026) — contador de acessos ao site, ver seção própria abaixo.
 - **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
+
+## Contador de Acessos ao Site — sessão 07/08/2026
+Novo módulo **📊 Acessos** no painel admin: mostra quantos acessos o site teve
+hoje / nos últimos 7 dias / neste mês (e também quantos *visitantes únicos*,
+sem contar a mesma pessoa duas vezes), mais uma lista com cada acesso
+individual — id, data/hora, página visitada, localização aproximada (país /
+região / cidade, via IP) e o próprio IP.
+
+- **Como é registrado:** `js/site-track.js` (arquivo novo, na raiz do site) —
+  dispara um `POST /api/track-visit` silencioso a cada carregamento de
+  página, sem mostrar nada pro visitante e sem travar a página se falhar.
+  Incluído nas 14 páginas do site principal: `index.html`, `missao.html`,
+  `sobre.html`, `o-sonho.html`, `biblioteca.html`, `cafe.html`, `blog.html`,
+  `estudos.html`, `parcerias.html`, `loja.html`, `checkout.html`,
+  `meus-pedidos.html`, `login.html` e `leitor.html`. Não é usado dentro de
+  `admin/` (não faz sentido contar acesso do próprio painel) nem de
+  `NectarMine/` (o jogo já tem suas próprias métricas via conta/login).
+- **Identificação do visitante:** um id aleatório é gerado uma vez por
+  navegador e salvo em `localStorage` (`biffi_visitor_id`) — não é ligado à
+  conta/login, só serve pra distinguir "visitante novo" de "visitante
+  voltando" nos contadores de únicos. Não usa cookies.
+- **Localização por IP:** o backend (`NectarMine/server/server.js`) descobre
+  o IP do visitante pelo header `x-forwarded-for` (padrão atrás do proxy do
+  Railway) e consulta a API gratuita `ip-api.com` (sem chave, sem custo) pra
+  descobrir país/região/cidade aproximados. O resultado fica guardado na
+  tabela `geo_cache` (por IP), então o mesmo IP nunca bate na API externa
+  duas vezes. Se a consulta falhar (API fora do ar, limite excedido), o
+  acesso é salvo do mesmo jeito, só sem a localização.
+- **Banco de dados — tabelas novas:**
+  - `site_acessos` (id, visitor_id, ip, pais, regiao, cidade, pagina, created_at) — uma linha por carregamento de página.
+  - `geo_cache` (ip, pais, regiao, cidade, updated_at) — cache de IP → localização.
+- **Rotas de API novas:**
+  - `POST /api/track-visit` — pública, chamada pelo `site-track.js`. Body: `{ visitor_id, pagina }`.
+  - `GET /api/admin/acessos` — protegida (`x-admin-key`). Devolve contadores (hoje/semana/mês, total e visitantes únicos) + lista dos acessos mais recentes (padrão: últimos 300, ajustável via `?limite=`).
+- **No painel:** cards com os contadores no topo, e uma tabela com busca (por página, cidade, região, país ou IP) embaixo, mesma linha visual do módulo Clientes.
+
+### Limitações conhecidas
+- A geolocalização por IP é aproximada (baseada no provedor de internet, não no endereço exato) — normal para esse tipo de serviço gratuito.
+- `ip-api.com` no plano grátis tem limite de 45 requisições/minuto; como cada IP só é consultado uma vez (graças ao `geo_cache`), isso só seria um problema num pico muito grande de visitantes novos ao mesmo tempo — nesse caso, o acesso ainda é salvo, só sem localização.
+- Visitantes com bloqueador de anúncios/rastreamento agressivo podem impedir o `fetch` para o domínio do Railway — nesse caso, o acesso simplesmente não é contado (não gera erro visível pro visitante).
 
 ### Upload de foto/capa do produto (sessão 09/07/2026)
 Antes, o campo "Imagem" só aceitava texto (emoji ou nome de arquivo já existente no repositório) — não dava pra simplesmente anexar uma foto. Agora dá:

@@ -149,4 +149,7 @@ const BiffiAdmin = {
   /* ── CONTATOS DO RODAPÉ (Instagram, Facebook, Telegram, e-mail) ── */
   getContatos() { return this._fetch('/api/site-contatos'); },
   saveContatos(payload) { return this._fetch('/api/site-contatos', 'PUT', payload); },
+
+  /* ── CONTADOR DE ACESSOS ── */
+  getAcessos(limite) { return this._fetch('/api/admin/acessos' + (limite ? `?limite=${limite}` : '')); },
 };
