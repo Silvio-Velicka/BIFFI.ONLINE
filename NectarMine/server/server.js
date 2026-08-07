@@ -250,6 +250,25 @@ db.exec(`
   addCol('frete_prazo_dias', 'INTEGER');
 }
 
+/* ── MIGRAÇÃO LEVE: entrega internacional (sessão 07/08/2026) ──
+   O Melhor Envio (Correios/Jadlog) só cota/emite etiqueta pra endereço
+   dentro do Brasil — a API não tem campo de país, só CEP. Pra pedidos com
+   entrega fora do Brasil, o frete não é calculado automaticamente: fica
+   marcado como "pendente" (frete_pendente=1, frete_cents=0 no checkout) e o
+   admin cota manualmente nos Correios (Exporta Fácil) e preenche o valor
+   depois, pelo painel (ver PUT /api/admin/pedidos/:id). */
+{
+  const cols = db.prepare(`PRAGMA table_info(pedidos)`).all().map(c => c.name);
+  const addCol = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE pedidos ADD COLUMN ${name} ${def}`); };
+  addCol('pais', `TEXT NOT NULL DEFAULT 'Brasil'`);
+  addCol('frete_pendente', 'INTEGER NOT NULL DEFAULT 0');
+}
+{
+  const cols = db.prepare(`PRAGMA table_info(enderecos)`).all().map(c => c.name);
+  const addCol = (name, def) => { if (!cols.includes(name)) db.exec(`ALTER TABLE enderecos ADD COLUMN ${name} ${def}`); };
+  addCol('pais', `TEXT NOT NULL DEFAULT 'Brasil'`);
+}
+
 /* ── MIGRAÇÃO LEVE: tabela de tokens OAuth2 do Melhor Envio ──
    client_id/client_secret ficam fixos nas variáveis de ambiente do Railway
    (nunca expiram); aqui só ficam access/refresh token, que precisam
@@ -450,6 +469,16 @@ function produtoPublico(p) {
 // ar no momento — o cliente nunca vê o checkout travado por causa disso.
 function calcularFrete(subtotalCents) {
   return 1500;
+}
+
+// O Melhor Envio (Correios/Jadlog) só cota/emite etiqueta pra endereço dentro
+// do Brasil — a API deles só aceita CEP, sem campo de país (confirmado na
+// documentação oficial). Então qualquer país diferente de "Brasil" (aceita
+// também "brazil"/"br", pra não travar por causa de maiúscula/idioma) cai no
+// fluxo manual: frete_pendente=1, sem cotação automática.
+function ehEnderecoNoBrasil(pais) {
+  const p = String(pais ?? '').trim().toLowerCase();
+  return p === '' || p === 'brasil' || p === 'brazil' || p === 'br';
 }
 
 /* ── FRETE REAL — Melhor Envio (Correios PAC/SEDEX/Mini Envios, Jadlog etc.) ──
@@ -1507,10 +1536,11 @@ const routes = {
 
     if (b.padrao) db.prepare('UPDATE enderecos SET padrao = 0 WHERE user_id = ?').run(user.id);
     const info = db.prepare(`
-      INSERT INTO enderecos (user_id, nome_destinatario, cep, rua, numero, complemento, bairro, cidade, estado, padrao)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO enderecos (user_id, nome_destinatario, cep, rua, numero, complemento, bairro, cidade, estado, pais, padrao)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(user.id, b.nome_destinatario.trim(), b.cep.trim(), b.rua.trim(), String(b.numero).trim(),
-           String(b.complemento ?? '').trim(), b.bairro.trim(), b.cidade.trim(), b.estado.trim(), b.padrao ? 1 : 0);
+           String(b.complemento ?? '').trim(), b.bairro.trim(), b.cidade.trim(), b.estado.trim(),
+           String(b.pais ?? 'Brasil').trim() || 'Brasil', b.padrao ? 1 : 0);
     json(res, 201, { id: Number(info.lastInsertRowid) });
   },
 
@@ -1528,6 +1558,12 @@ const routes = {
     for (const c of camposEndereco) if (!end[c] || !String(end[c]).trim()) return json(res, 400, { error: `Endereço incompleto: ${c}` });
     if (!end.cpf || !String(end.cpf).trim()) return json(res, 400, { error: 'CPF é obrigatório para finalizar a compra.' });
     if (!end.telefone || !String(end.telefone).trim()) return json(res, 400, { error: 'Telefone é obrigatório para finalizar a compra.' });
+
+    // Entrega internacional (endereço fora do Brasil): aceita normalmente —
+    // o pagamento (Mercado Pago, em BRL) não depende de pra onde vai a
+    // encomenda. Só o frete não é calculado na hora (ver ehEnderecoNoBrasil).
+    const paisDestino = String(end.pais ?? 'Brasil').trim() || 'Brasil';
+    const entregaInternacional = !ehEnderecoNoBrasil(paisDestino);
 
     const metodo = ['manual', 'mercadopago', 'paypal'].includes(b.metodo_pagamento) ? b.metodo_pagamento : 'manual';
 
@@ -1554,21 +1590,31 @@ const routes = {
     let freteServico = '';
     let freteServicoId = null;
     let fretePrazoDias = null;
+    let fretePendente = 0;
 
     if (itensFisicos.length > 0) {
-      const cepDestino = String(end.cep).replace(/\D/g, '');
-      try {
-        const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
-        const escolhida = (opcoes.find(o => o.id === Number(b.frete_servico_id)) || opcoes[0]);
-        if (!escolhida) throw new Error('Nenhuma opção de frete disponível.');
-        freteCents = escolhida.preco_cents;
-        freteServico = `${escolhida.empresa} ${escolhida.nome}`.trim();
-        freteServicoId = escolhida.id;
-        fretePrazoDias = escolhida.prazo_dias;
-      } catch (err) {
-        console.error('[checkout] fallback pro frete fixo:', err.message);
-        freteCents = calcularFrete(subtotalFisicoCents);
-        freteServico = 'Frete padrão';
+      if (entregaInternacional) {
+        // Sem cotação automática pra fora do Brasil (Melhor Envio não cobre) —
+        // fica marcado como pendente pro admin cotar manualmente nos Correios
+        // (Exporta Fácil) e preencher o valor depois (PUT /api/admin/pedidos/:id).
+        freteCents = 0;
+        freteServico = 'Frete internacional — cotação manual (entraremos em contato)';
+        fretePendente = 1;
+      } else {
+        const cepDestino = String(end.cep).replace(/\D/g, '');
+        try {
+          const opcoes = await calcularFreteReal(cepDestino, itensFisicos);
+          const escolhida = (opcoes.find(o => o.id === Number(b.frete_servico_id)) || opcoes[0]);
+          if (!escolhida) throw new Error('Nenhuma opção de frete disponível.');
+          freteCents = escolhida.preco_cents;
+          freteServico = `${escolhida.empresa} ${escolhida.nome}`.trim();
+          freteServicoId = escolhida.id;
+          fretePrazoDias = escolhida.prazo_dias;
+        } catch (err) {
+          console.error('[checkout] fallback pro frete fixo:', err.message);
+          freteCents = calcularFrete(subtotalFisicoCents);
+          freteServico = 'Frete padrão';
+        }
       }
     }
     const totalCents = subtotalCents + freteCents;
@@ -1576,15 +1622,15 @@ const routes = {
     const infoPedido = db.prepare(`
       INSERT INTO pedidos (
         user_id, status, metodo_pagamento, subtotal_cents, frete_cents, total_cents,
-        frete_servico, frete_servico_id, frete_prazo_dias,
-        nome_destinatario, cpf, telefone, email, cep, rua, numero, complemento, bairro, cidade, estado
-      ) VALUES (?, 'aguardando_pagamento', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        frete_servico, frete_servico_id, frete_prazo_dias, frete_pendente,
+        nome_destinatario, cpf, telefone, email, cep, rua, numero, complemento, bairro, cidade, estado, pais
+      ) VALUES (?, 'aguardando_pagamento', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `).run(
       user.id, metodo, subtotalCents, freteCents, totalCents,
-      freteServico, freteServicoId, fretePrazoDias,
+      freteServico, freteServicoId, fretePrazoDias, fretePendente,
       String(end.nome_destinatario).trim(), String(end.cpf).trim(), String(end.telefone).trim(), user.email || '',
       String(end.cep).trim(), String(end.rua).trim(), String(end.numero).trim(), String(end.complemento ?? '').trim(),
-      String(end.bairro).trim(), String(end.cidade).trim(), String(end.estado).trim()
+      String(end.bairro).trim(), String(end.cidade).trim(), String(end.estado).trim(), paisDestino
     );
     const pedidoId = Number(infoPedido.lastInsertRowid);
 
@@ -1612,12 +1658,17 @@ const routes = {
       db.prepare('UPDATE pedidos SET pagamento_ref=?, pagamento_url=? WHERE id=?').run(pagamento.ref, pagamento.url || '', pedidoId);
     }
 
+    const avisoPagamento = pagamento ? null : 'Pedido registrado! O pagamento por gateway ainda não foi configurado — entraremos em contato para combinar o pagamento (PIX/transferência).';
+    const avisoFrete = fretePendente ? 'Como a entrega é internacional, o frete não entrou no total ainda — vamos cotar nos Correios e entrar em contato com o valor exato e a forma de pagamento dele antes de enviar.' : null;
+    const aviso = [avisoPagamento, avisoFrete].filter(Boolean).join(' ') || null;
+
     json(res, 201, {
       pedido_id: pedidoId,
       total_cents: totalCents,
       metodo_pagamento: metodo,
       pagamento_url: pagamento ? pagamento.url : null,
-      aviso: pagamento ? null : 'Pedido registrado! O pagamento por gateway ainda não foi configurado — entraremos em contato para combinar o pagamento (PIX/transferência).',
+      frete_pendente: !!fretePendente,
+      aviso,
     });
   },
 
@@ -2237,14 +2288,42 @@ const paramRoutes = [
   },
   {
     method: 'PUT', re: /^\/api\/admin\/pedidos\/(\d+)$/,
+    // Atualiza status e/ou frete de um pedido. O frete é editável separado do
+    // status porque pedidos internacionais (frete_pendente=1) chegam sem
+    // cotação automática — o admin cota manualmente nos Correios e preenche
+    // aqui (frete_cents em centavos, frete_servico como texto livre); ao
+    // informar o frete, total_cents é recalculado e frete_pendente cai pra 0
+    // automaticamente (a não ser que venha explícito no corpo).
     handler: async (req, res, url, m) => {
       if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
       const id = Number(m[1]);
       const b = await readBody(req);
-      const statusValidos = ['aguardando_pagamento', 'pago', 'enviado', 'entregue', 'cancelado'];
-      if (!statusValidos.includes(b.status)) return json(res, 400, { error: 'Status inválido.' });
-      const info = db.prepare(`UPDATE pedidos SET status=?, updated_at=datetime('now') WHERE id=?`).run(b.status, id);
-      if (info.changes === 0) return json(res, 404, { error: 'Pedido não encontrado.' });
+      const pedido = db.prepare('SELECT * FROM pedidos WHERE id = ?').get(id);
+      if (!pedido) return json(res, 404, { error: 'Pedido não encontrado.' });
+
+      const sets = [];
+      const params = [];
+
+      if (b.status !== undefined) {
+        const statusValidos = ['aguardando_pagamento', 'pago', 'enviado', 'entregue', 'cancelado'];
+        if (!statusValidos.includes(b.status)) return json(res, 400, { error: 'Status inválido.' });
+        sets.push('status = ?'); params.push(b.status);
+      }
+
+      if (b.frete_cents !== undefined) {
+        const freteCents = Math.max(0, Math.round(Number(b.frete_cents)) || 0);
+        const novoTotal = pedido.subtotal_cents + freteCents;
+        sets.push('frete_cents = ?', 'total_cents = ?'); params.push(freteCents, novoTotal);
+        // Informar o frete já resolve a pendência, a menos que o admin mande frete_pendente explicitamente.
+        if (b.frete_pendente === undefined) { sets.push('frete_pendente = 0'); }
+      }
+      if (b.frete_servico !== undefined) { sets.push('frete_servico = ?'); params.push(String(b.frete_servico).trim()); }
+      if (b.frete_pendente !== undefined) { sets.push('frete_pendente = ?'); params.push(b.frete_pendente ? 1 : 0); }
+
+      if (sets.length === 0) return json(res, 400, { error: 'Nada para atualizar.' });
+
+      sets.push(`updated_at = datetime('now')`);
+      db.prepare(`UPDATE pedidos SET ${sets.join(', ')} WHERE id = ?`).run(...params, id);
       json(res, 200, { ok: true });
     },
   },

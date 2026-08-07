@@ -165,6 +165,22 @@ Públicas: `GET /api/shop/products`, `GET /api/shop/products/:id`.
 Do cliente logado (header `Authorization: Bearer <token>`, mesmo token do jogo): `GET/PUT /api/me/perfil`, `POST /api/me/enderecos`, `POST /api/checkout`, `GET /api/shop/pedidos`, `GET /api/shop/pedidos/:id`.
 Do admin (header `x-admin-key`, mesma chave `ADMIN_KEY` do painel): `GET/POST /api/admin/products`, `PUT/DELETE /api/admin/products/:id`, `GET /api/admin/pedidos`, `PUT /api/admin/pedidos/:id`.
 
+### Entrega internacional — sessão 07/08/2026
+Cliente pediu suporte a vendas com entrega fora do Brasil (ex.: brasileiro morando nos EUA — tem CPF, paga normalmente via Mercado Pago em BRL, mas o endereço de entrega é no exterior). O pagamento já funcionava independente do destino; o que faltava era o **endereço** e o **frete**.
+
+**Limitação confirmada na documentação oficial do Melhor Envio:** a API de cotação (`POST /shipment/calculate`) só aceita `postal_code` em `from`/`to`, sem campo de país — não cota nem emite etiqueta pra fora do Brasil. Não é limitação do nosso código, é do serviço. Não existe hoje (nem foi contratado) nenhum serviço com API pra cotação/etiqueta internacional automática a partir do Brasil (ex.: Correios Exporta Fácil tem API própria, mas exige contrato empresarial separado).
+
+**Decisão (a pedido da dona do site):** fluxo manual por enquanto — o cliente cadastra endereço internacional normalmente e fecha a compra (paga em BRL, CPF continua obrigatório); o frete fica marcado como **pendente** e o admin cota manualmente nos Correios depois, preenchendo o valor no painel.
+
+- **`checkout.html`**: novo campo **"País de entrega"** (texto com sugestões via `<datalist>`, começa em "Brasil"). Quando o país não é Brasil: os campos CEP e Estado deixam de ter formato fixo (sem exigir 8 dígitos nem sigla de 2 letras), a busca automática por CEP (ViaCEP) não é acionada, e a seção de frete mostra "frete internacional a combinar — não entra no total agora" em vez de tentar calcular. Ao confirmar, o pedido é registrado só com o subtotal dos produtos; a tela final avisa que o frete será combinado à parte.
+- **`server.js` — `POST /api/checkout`**: aceita `endereco.pais` (default `'Brasil'`). Se o país não for Brasil (`ehEnderecoNoBrasil()`), pula a cotação via Melhor Envio, grava `frete_cents = 0` e `frete_pendente = 1`, e o aviso de retorno já explica a situação pro cliente.
+- **Banco — colunas novas:** `pedidos.pais` (default `'Brasil'`), `pedidos.frete_pendente` (0/1), `enderecos.pais` (default `'Brasil'`, endereços salvos).
+- **`PUT /api/admin/pedidos/:id`** (estendida): agora aceita, além de `status`, também `frete_cents` / `frete_servico` / `frete_pendente` (qualquer combinação) — ao informar `frete_cents`, `total_cents` é recalculado e `frete_pendente` volta pra 0 automaticamente.
+- **Painel admin (📦 Pedidos):** pedidos internacionais mostram uma tag "🌍 &lt;país&gt;" e, se o frete ainda não foi cotado, uma tag "⏳ Frete pendente" + botão **"✈️ Definir frete"** — abre um formulário simples (valor em R$ + serviço usado, ex. "Correios Exporta Fácil") que salva o frete e recalcula o total do pedido.
+- **Testado localmente (07/08/2026):** checkout com `pais: "Estados Unidos"` → pedido criado com `frete_pendente=1`, `frete_cents=0`, total = só subtotal; admin define frete manualmente (`PUT` com `frete_cents`) → `frete_pendente` volta a 0 e `total_cents` recalculado corretamente. Checkout brasileiro normal (sem enviar `pais`) testado em seguida pra confirmar que o comportamento de antes não mudou (cai no fallback de frete fixo de R$15, igual sempre foi, já que `ME_CEP_ORIGEM` não estava configurado no teste).
+
+**Pendência real:** isso resolve o cadastro/registro do pedido, mas a etiqueta de postagem internacional ainda precisa ser gerada manualmente (Correios Exporta Fácil, no site/app dos Correios ou no balcão) — não existe automação de etiqueta internacional configurada. Se no futuro quiser automatizar de verdade (cotação + etiqueta), é preciso contratar acesso à API de exportação dos Correios (ou outro serviço equivalente) e integrar separadamente.
+
 ### Painel admin — módulos novos
 - **🛒 Produtos**: cadastrar produto novo (nome, preço, descrição, imagem, categoria, estoque, destaque) e editar/excluir os existentes direto na lista.
 - **📦 Pedidos**: lista todos os pedidos com dados do cliente/endereço/total, com um seletor pra mudar o status (aguardando pagamento → pago → enviado → entregue, ou cancelado).

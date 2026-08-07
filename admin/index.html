@@ -1058,13 +1058,21 @@
         pedidosCache = pedidos;
         if (!pedidos.length) { lista.innerHTML = '<p style="font-size:12.5px;">Nenhum pedido encontrado.</p>'; return; }
 
-        lista.innerHTML = pedidos.map(p => `
+        lista.innerHTML = pedidos.map(p => {
+          const internacional = p.pais && p.pais.trim().toLowerCase() !== 'brasil';
+          const freteTexto = p.frete_pendente
+            ? '⏳ Frete pendente de cotação'
+            : (p.frete_cents > 0 ? `Frete: R$ ${(p.frete_cents / 100).toFixed(2)}${p.frete_servico ? ' — ' + p.frete_servico : ''}` : 'Frete: grátis/sem frete');
+          return `
           <div class="pedido-row">
             <div class="info">
               <strong>Pedido #${p.id} — ${p.nome_destinatario || p.username || 'Cliente'}</strong>
-              <span class="sub">${new Date(p.created_at).toLocaleDateString('pt-BR')} · R$ ${(p.total_cents / 100).toFixed(2)}</span>
+              ${internacional ? `<span class="badge-origem loja" style="background:rgba(122,74,45,0.14);margin-left:8px;">🌍 ${p.pais}</span>` : ''}
+              ${p.frete_pendente ? `<span class="badge-origem" style="background:rgba(201,162,39,0.22);color:#8a6d00;margin-left:6px;">⏳ Frete pendente</span>` : ''}
+              <span class="sub">${new Date(p.created_at).toLocaleDateString('pt-BR')} · R$ ${(p.total_cents / 100).toFixed(2)} · ${freteTexto}</span>
             </div>
             <div class="pedido-acoes">
+              ${internacional ? `<button class="btn-secundario btn-definir-frete" data-id="${p.id}" style="padding:6px 10px;font-size:11px;" title="Informar o valor do frete cotado nos Correios">✈️ Definir frete</button>` : ''}
               <button class="btn-imprimir-pedido" data-id="${p.id}" title="Imprimir este pedido">🖨️</button>
               <select data-id="${p.id}" class="select-status-pedido">
                 <option value="aguardando_pagamento" ${p.status === 'aguardando_pagamento' ? 'selected' : ''}>Aguardando pagamento</option>
@@ -1076,7 +1084,8 @@
               <button class="btn-excluir-pedido" data-id="${p.id}" title="Excluir este pedido" style="background:none;border:none;cursor:pointer;font-size:16px;color:#a02020;">🗑️</button>
             </div>
           </div>
-        `).join('');
+        `;
+        }).join('');
 
         lista.querySelectorAll('.select-status-pedido').forEach(sel => {
           sel.addEventListener('change', async () => {
@@ -1087,6 +1096,9 @@
               carregarPedidos();
             }
           });
+        });
+        lista.querySelectorAll('.btn-definir-frete').forEach(btn => {
+          btn.addEventListener('click', () => abrirDefinirFrete(Number(btn.dataset.id)));
         });
         lista.querySelectorAll('.btn-imprimir-pedido').forEach(btn => {
           btn.addEventListener('click', () => imprimirPedido(Number(btn.dataset.id)));
@@ -1115,11 +1127,55 @@
 
     document.getElementById('filtro-status').addEventListener('change', carregarPedidos);
 
+    // Preenche manualmente o frete de um pedido internacional (cotado à parte
+    // nos Correios, já que o Melhor Envio não calcula fora do Brasil) —
+    // atualiza frete_cents/frete_servico e tira o pedido da lista "pendente".
+    async function abrirDefinirFrete(id) {
+      const p = pedidosCache.find(x => x.id === id);
+      if (!p) return;
+
+      const result = await Swal.fire({
+        title: `Frete do pedido #${id}`,
+        html: `
+          <div style="text-align:left;font-size:13px;">
+            <p style="margin-bottom:12px;">Destino: <strong>${p.cidade || ''}${p.cidade ? ', ' : ''}${p.pais || ''}</strong></p>
+            <label style="display:block;font-weight:bold;margin:8px 0 4px;">Valor do frete (R$)</label>
+            <input id="fr-valor" type="number" step="0.01" min="0" class="swal2-input" style="margin:0;width:100%;" value="${p.frete_cents ? (p.frete_cents / 100).toFixed(2) : ''}">
+            <label style="display:block;font-weight:bold;margin:10px 0 4px;">Serviço usado (opcional)</label>
+            <input id="fr-servico" class="swal2-input" style="margin:0;width:100%;" placeholder="Ex.: Correios Exporta Fácil" value="${p.frete_servico && !p.frete_pendente ? p.frete_servico : ''}">
+          </div>
+        `,
+        showCancelButton: true,
+        confirmButtonText: 'Salvar frete',
+        cancelButtonText: 'Cancelar',
+        confirmButtonColor: '#7A4A2D',
+        focusConfirm: false,
+        preConfirm: () => {
+          const valor = Number(document.getElementById('fr-valor').value);
+          if (!(valor >= 0)) { Swal.showValidationMessage('Informe um valor de frete válido.'); return false; }
+          return {
+            frete_cents: Math.round(valor * 100),
+            frete_servico: document.getElementById('fr-servico').value.trim() || 'Frete internacional (cotado manualmente)',
+          };
+        },
+      });
+
+      if (!result.isConfirmed) return;
+      try {
+        await BiffiAdmin.atualizarFretePedido(id, result.value);
+        Swal.fire({ icon: 'success', title: 'Frete atualizado!', timer: 1600, showConfirmButton: false });
+        carregarPedidos();
+      } catch (err) {
+        Swal.fire({ icon: 'error', title: 'Erro ao salvar', text: err.message });
+      }
+    }
+
     /* ── ENDEREÇO FORMATADO (reaproveitado no comprovante individual) ── */
     function enderecoFormatado(p) {
       const linha1 = [p.rua, p.numero].filter(Boolean).join(', ') + (p.complemento ? ` — ${p.complemento}` : '');
       const linha2 = [p.bairro, p.cidade, p.estado].filter(Boolean).join(', ');
-      return `${linha1 || '—'}<br>${linha2 || '—'}${p.cep ? ' · CEP ' + p.cep : ''}`;
+      const internacional = p.pais && p.pais.trim().toLowerCase() !== 'brasil';
+      return `${linha1 || '—'}<br>${linha2 || '—'}${p.cep ? ' · CEP ' + p.cep : ''}${internacional ? '<br><strong>' + p.pais + '</strong>' : ''}`;
     }
 
     /* ── IMPRIME O HISTÓRICO INTEIRO (lista filtrada que está na tela) ── */

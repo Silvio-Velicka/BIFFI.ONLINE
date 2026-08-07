@@ -136,6 +136,11 @@ const BiffiAdmin = {
   atualizarStatusPedido(id, status) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', { status }); },
   excluirPedido(id) { return this._fetch(`/api/admin/pedidos/${id}`, 'DELETE'); },
 
+  // Preenche o frete de um pedido manualmente (ex.: pedidos internacionais,
+  // que chegam sem cotação automática — ver frete_pendente). payload aceita
+  // frete_cents, frete_servico e/ou frete_pendente (qualquer combinação).
+  atualizarFretePedido(id, payload) { return this._fetch(`/api/admin/pedidos/${id}`, 'PUT', payload); },
+
   /* ── CLIENTES CADASTRADOS (jogo + loja, mesma conta) ── */
   getClientes() { return this._fetch('/api/admin/clientes'); },
   atualizarCliente(id, payload) { return this._fetch(`/api/admin/clientes/${id}`, 'PUT', payload); },

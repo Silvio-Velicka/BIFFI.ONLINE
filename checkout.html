@@ -209,6 +209,14 @@
       if (totalEl) totalEl.textContent = formatarReais(subtotalCents + freteEscolhido.cents);
     }
 
+    // Mesma regra do backend (server.js → ehEnderecoNoBrasil): o Melhor Envio
+    // só cota/emite etiqueta pra dentro do Brasil, então qualquer país
+    // diferente cai no fluxo manual (frete "a combinar" depois da compra).
+    function paisEhBrasil(pais) {
+      const p = String(pais ?? '').trim().toLowerCase();
+      return p === '' || p === 'brasil' || p === 'brazil' || p === 'br';
+    }
+
     async function iniciar() {
       // Exige login de verdade — consulta o servidor (SITE_AUTH.verificar()),
       // não só olha se existe um token guardado no localStorage. Assim, um
@@ -254,6 +262,42 @@
               <h2>📦 Endereço de entrega</h2>
 
               <div class="field">
+                <label>País de entrega</label>
+                <input type="text" id="f-pais" list="lista-paises" required autocomplete="off" value="${enderecoPadrao.pais || 'Brasil'}">
+                <datalist id="lista-paises">
+                  <option value="Brasil">
+                  <option value="Estados Unidos">
+                  <option value="Portugal">
+                  <option value="Reino Unido">
+                  <option value="Irlanda">
+                  <option value="Canadá">
+                  <option value="Austrália">
+                  <option value="Alemanha">
+                  <option value="França">
+                  <option value="Espanha">
+                  <option value="Itália">
+                  <option value="Países Baixos">
+                  <option value="Bélgica">
+                  <option value="Suíça">
+                  <option value="Suécia">
+                  <option value="Noruega">
+                  <option value="Dinamarca">
+                  <option value="Polônia">
+                  <option value="México">
+                  <option value="Argentina">
+                  <option value="Chile">
+                  <option value="Uruguai">
+                  <option value="Paraguai">
+                  <option value="Colômbia">
+                  <option value="Peru">
+                  <option value="Japão">
+                  <option value="Emirados Árabes Unidos">
+                  <option value="Nova Zelândia">
+                </datalist>
+                <p id="pais-aviso-internacional" class="frete-aviso" style="display:none;margin-top:8px;">✈️ Entrega internacional: o frete não é calculado automaticamente — vamos cotar nos Correios e falar com você (WhatsApp/e-mail) com o valor exato antes do envio.</p>
+              </div>
+
+              <div class="field">
                 <label>Nome do destinatário</label>
                 <input type="text" id="f-nome" required value="${enderecoPadrao.nome_destinatario || perfil.perfil.nome_completo || ''}">
               </div>
@@ -271,8 +315,8 @@
 
               <div class="field half-row">
                 <div>
-                  <label>CEP</label>
-                  <input type="text" id="f-cep" required maxlength="9" placeholder="00000-000" value="${enderecoPadrao.cep || ''}">
+                  <label id="label-cep">CEP</label>
+                  <input type="text" id="f-cep" required maxlength="12" placeholder="00000-000" value="${enderecoPadrao.cep || ''}">
                 </div>
                 <div>
                   <label>Rua</label>
@@ -301,8 +345,8 @@
                   <input type="text" id="f-cidade" required value="${enderecoPadrao.cidade || ''}">
                 </div>
                 <div>
-                  <label>Estado (UF)</label>
-                  <input type="text" id="f-estado" required maxlength="2" style="text-transform:uppercase;" value="${enderecoPadrao.estado || ''}">
+                  <label id="label-estado">Estado (UF)</label>
+                  <input type="text" id="f-estado" required maxlength="40" value="${enderecoPadrao.estado || ''}">
                 </div>
               </div>
 
@@ -360,8 +404,57 @@
         });
       });
 
-      // Busca automática de endereço pelo CEP (ViaCEP — API pública, sem chave)
+      // Ajusta os campos de CEP/Estado e o comportamento do frete conforme o
+      // país escolhido: dentro do Brasil, mantém CEP/UF no formato brasileiro
+      // e cálculo automático de frete; fora do Brasil, libera os campos (sem
+      // formato fixo) e mostra o aviso de frete manual, sem tentar calcular.
+      function atualizarCamposPorPais() {
+        const pais = document.getElementById('f-pais').value;
+        const brasil = paisEhBrasil(pais);
+        const campoEstado = document.getElementById('f-estado');
+        const avisoInternacional = document.getElementById('pais-aviso-internacional');
+
+        document.getElementById('label-cep').textContent = brasil ? 'CEP' : 'CEP / Código postal';
+        document.getElementById('f-cep').placeholder = brasil ? '00000-000' : 'Código postal do país';
+        document.getElementById('label-estado').textContent = brasil ? 'Estado (UF)' : 'Estado / Província / Região';
+        campoEstado.style.textTransform = brasil ? 'uppercase' : 'none';
+        if (avisoInternacional) avisoInternacional.style.display = brasil ? 'none' : 'block';
+
+        if (itensFisicos.length > 0) {
+          if (brasil) {
+            const cep = document.getElementById('f-cep').value.replace(/\D/g, '');
+            if (cep.length === 8) { calcularFreteUI(cep, itensFisicos, subtotal); }
+            else {
+              freteEscolhido = { cents: 0, servico_id: null, calculado: false };
+              const freteResumoEl = document.getElementById('resumo-frete');
+              if (freteResumoEl) freteResumoEl.textContent = 'Informe o CEP';
+              const avisoEl = document.getElementById('frete-aviso');
+              const opcoesEl = document.getElementById('frete-opcoes');
+              if (avisoEl) { avisoEl.textContent = 'Preencha o CEP acima para calcular o frete.'; avisoEl.style.display = 'block'; avisoEl.classList.remove('carregando'); }
+              if (opcoesEl) { opcoesEl.style.display = 'none'; opcoesEl.innerHTML = ''; }
+              atualizarResumoTotal(subtotal);
+            }
+          } else {
+            // Frete internacional: não calcula — fica "a combinar", sem entrar no total agora.
+            freteEscolhido = { cents: 0, servico_id: null, calculado: true, internacional: true };
+            const avisoEl = document.getElementById('frete-aviso');
+            const opcoesEl = document.getElementById('frete-opcoes');
+            if (avisoEl) { avisoEl.textContent = '✈️ Frete internacional a combinar — não entra no total agora.'; avisoEl.style.display = 'block'; avisoEl.classList.remove('carregando'); }
+            if (opcoesEl) { opcoesEl.style.display = 'none'; opcoesEl.innerHTML = ''; }
+            const freteResumoEl = document.getElementById('resumo-frete');
+            if (freteResumoEl) freteResumoEl.textContent = 'A combinar';
+            atualizarResumoTotal(subtotal);
+          }
+        }
+      }
+
+      document.getElementById('f-pais').addEventListener('input', atualizarCamposPorPais);
+      document.getElementById('f-pais').addEventListener('change', atualizarCamposPorPais);
+
+      // Busca automática de endereço pelo CEP (ViaCEP — API pública, sem chave;
+      // só faz sentido pra CEP brasileiro, então só tenta se o país for Brasil)
       document.getElementById('f-cep').addEventListener('blur', async (e) => {
+        if (!paisEhBrasil(document.getElementById('f-pais').value)) return;
         const cep = e.target.value.replace(/\D/g, '');
         if (cep.length !== 8) return;
         try {
@@ -377,8 +470,11 @@
         if (itensFisicos.length > 0) calcularFreteUI(cep, itensFisicos, subtotal);
       });
 
-      // Se já tem CEP salvo do perfil, calcula o frete assim que a tela abre
-      if (itensFisicos.length > 0 && enderecoPadrao.cep) {
+      // Estado inicial dos campos (aplica o país já pré-preenchido — Brasil por padrão)
+      atualizarCamposPorPais();
+
+      // Se já tem CEP salvo do perfil (e o país é Brasil), calcula o frete assim que a tela abre
+      if (itensFisicos.length > 0 && enderecoPadrao.cep && paisEhBrasil(document.getElementById('f-pais').value)) {
         calcularFreteUI(enderecoPadrao.cep.replace(/\D/g, ''), itensFisicos, subtotal);
       }
 
@@ -457,9 +553,13 @@
       btn.disabled = true;
       btn.textContent = 'Processando...';
 
+      const paisEscolhido = document.getElementById('f-pais').value.trim() || 'Brasil';
+      const brasil = paisEhBrasil(paisEscolhido);
+
       const payload = {
         itens: CART.itens().map(i => ({ produto_id: i.produto_id, quantidade: i.quantidade })),
         endereco: {
+          pais: paisEscolhido,
           nome_destinatario: document.getElementById('f-nome').value.trim(),
           cpf: document.getElementById('f-cpf').value.trim(),
           telefone: document.getElementById('f-telefone').value.trim(),
@@ -469,7 +569,9 @@
           complemento: document.getElementById('f-complemento').value.trim(),
           bairro: document.getElementById('f-bairro').value.trim(),
           cidade: document.getElementById('f-cidade').value.trim(),
-          estado: document.getElementById('f-estado').value.trim().toUpperCase(),
+          // Só força maiúsculas na sigla de UF brasileira — estado/província
+          // estrangeiro mantém a capitalização que a pessoa digitou.
+          estado: brasil ? document.getElementById('f-estado').value.trim().toUpperCase() : document.getElementById('f-estado').value.trim(),
         },
         metodo_pagamento: document.querySelector('input[name="pagamento"]:checked').value,
         frete_servico_id: freteEscolhido.servico_id,
@@ -490,7 +592,7 @@
             <span class="emoji-grande">🐝💌</span>
             <h2>Pedido #${resultado.pedido_id} registrado!</h2>
             <p>${resultado.aviso || 'Em breve entraremos em contato para combinar os próximos passos.'}</p>
-            <p style="font-weight:700;">Total: ${formatarReais(resultado.total_cents)}</p>
+            <p style="font-weight:700;">${resultado.frete_pendente ? 'Total (sem o frete, que será combinado à parte):' : 'Total:'} ${formatarReais(resultado.total_cents)}</p>
             <div class="btns">
               <a class="primario" href="meus-pedidos.html">Ver meus pedidos</a>
               <a class="secundario" href="loja.html">Voltar à loja</a>
