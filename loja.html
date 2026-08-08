@@ -188,6 +188,35 @@
       line-height: 1.6;
     }
 
+    /* ── SEÇÕES DA LOJA (Livros Físicos / Versões em E-book) ── */
+    .loja-secao { margin-bottom: 52px; }
+    .loja-secao:last-child { margin-bottom: 0; }
+
+    .loja-secao-header {
+      text-align: center;
+      margin-bottom: 28px;
+      padding-bottom: 18px;
+      border-bottom: 2px solid rgba(201,162,39,0.35);
+    }
+
+    .loja-secao-title {
+      font-size: 22px;
+      color: var(--roxo);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      margin-bottom: 8px;
+    }
+
+    .loja-secao-sub {
+      font-size: 13px;
+      font-family: Arial, sans-serif;
+      color: var(--roxo-esc);
+      opacity: 0.85;
+      max-width: 620px;
+      margin: 0 auto;
+      line-height: 1.6;
+    }
+
     /* ── GRADE DE PRODUTOS — foto grande em destaque, estilo vitrine ── */
     .product-grid {
       display: grid;
@@ -609,8 +638,31 @@
   <script src="js/contatos-footer.js"></script>
   <script src="js/shop-api.js"></script>
   <script>
-    // Todos os produtos aparecem em uma lista simples, um embaixo do outro,
-    // sem separar "destaque" do resto — mesmo tratamento visual pra todos.
+    // Produtos organizados em duas seções fixas — Livros Físicos e Versões em
+    // E-book — pra deixar claro pro cliente o que é entregue pelo correio e
+    // o que é liberado direto na Biblioteca de Oração. Dentro de cada seção,
+    // mesmo tratamento visual pra todos os produtos (sem destaque separado).
+    function gradeProdutosHTML(lista) {
+      return `<div class="product-grid">${lista.map(p => `
+        <div class="product-card">
+          <div class="product-thumb">
+            ${p.ebook ? '<span class="badge">📖 E-book</span>' : ''}
+            ${imagemProdutoHTML(p.imagem)}
+          </div>
+          <div class="product-info">
+            <h3>${p.nome}</h3>
+            ${p.descricao ? `<p>${p.descricao}</p>` : ''}
+            <div class="product-footer">
+              <div class="product-price">${formatarReais(p.preco_cents)}</div>
+              <button class="btn-small" data-add="${p.id}" ${p.disponivel ? '' : 'disabled'}>
+                ${p.disponivel ? 'Adicionar' : 'Indisponível'}
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('')}</div>`;
+    }
+
     async function carregarLoja() {
       const container = document.getElementById('loja-conteudo');
       try {
@@ -620,24 +672,32 @@
           return;
         }
 
-        const html = `<div class="product-grid">${produtos.map(p => `
-          <div class="product-card">
-            <div class="product-thumb">
-              ${p.ebook ? '<span class="badge">📖 E-book</span>' : ''}
-              ${imagemProdutoHTML(p.imagem)}
-            </div>
-            <div class="product-info">
-              <h3>${p.nome}</h3>
-              ${p.descricao ? `<p>${p.descricao}</p>` : ''}
-              <div class="product-footer">
-                <div class="product-price">${formatarReais(p.preco_cents)}</div>
-                <button class="btn-small" data-add="${p.id}" ${p.disponivel ? '' : 'disabled'}>
-                  ${p.disponivel ? 'Adicionar' : 'Indisponível'}
-                </button>
+        const fisicos = produtos.filter(p => !p.ebook);
+        const ebooks  = produtos.filter(p => p.ebook);
+
+        let html = '';
+
+        if (fisicos.length > 0) {
+          html += `
+            <div class="loja-secao">
+              <div class="loja-secao-header">
+                <h2 class="loja-secao-title">📕 Livros Físicos</h2>
+                <p class="loja-secao-sub">Nesta versão, o livro físico será enviado de acordo com o frete escolhido no checkout.</p>
               </div>
-            </div>
-          </div>
-        `).join('')}</div>`;
+              ${gradeProdutosHTML(fisicos)}
+            </div>`;
+        }
+
+        if (ebooks.length > 0) {
+          html += `
+            <div class="loja-secao">
+              <div class="loja-secao-header">
+                <h2 class="loja-secao-title">📖 Versões em E-book</h2>
+                <p class="loja-secao-sub">Nesta versão, o e-book será disponibilizado para leitura na página Biblioteca de Oração.</p>
+              </div>
+              ${gradeProdutosHTML(ebooks)}
+            </div>`;
+        }
 
         container.innerHTML = html;
 
