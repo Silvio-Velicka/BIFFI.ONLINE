@@ -343,7 +343,7 @@
                   <input type="text" id="f-cpf" required maxlength="14" placeholder="000.000.000-00" value="${perfil.perfil.cpf || ''}">
                 </div>
                 <div>
-                  <label>Telefone / WhatsApp</label>
+                  <label id="label-telefone">Telefone / WhatsApp</label>
                   <input type="text" id="f-telefone" required placeholder="(11) 90000-0000" value="${perfil.perfil.telefone || ''}">
                 </div>
               </div>
@@ -454,6 +454,16 @@
         document.getElementById('label-estado').textContent = brasil ? 'Estado (UF)' : 'Estado / Província / Região';
         campoEstado.style.textTransform = brasil ? 'uppercase' : 'none';
         if (avisoInternacional) avisoInternacional.style.display = brasil ? 'none' : 'block';
+
+        // Telefone: no Brasil mantém o formato local; fora do Brasil, pede o
+        // código do país (DDI) junto do número, já que o campo aceita
+        // qualquer formato/tamanho (sem máscara nem limite de dígitos).
+        const labelTelefone = document.getElementById('label-telefone');
+        const campoTelefone = document.getElementById('f-telefone');
+        if (labelTelefone && campoTelefone) {
+          labelTelefone.textContent = brasil ? 'Telefone / WhatsApp' : 'Telefone / WhatsApp (com código do país)';
+          campoTelefone.placeholder = brasil ? '(11) 90000-0000' : '+1 234 567 8900';
+        }
 
         if (itensFisicos.length > 0) {
           if (brasil) {
