@@ -14,7 +14,7 @@
 | sobre.html | Quem sou (biografia) | ⚠️ Aguarda conteúdo real |
 | o-sonho.html | O Sonho | ✅ Conteúdo definitivo (sessão 18/08/2026) |
 | biblioteca.html | Biblioteca de Oração | ✅ Com trilhas e materiais de exemplo (conteúdo ainda genérico, a adaptar para o tema de oração) |
-| cafe.html | Sala de Oração | ✅ Com receitas e meditações (conteúdo ainda genérico, a adaptar para o tema de oração) |
+| cafe.html | Sala de Oração | ✅ Conteúdo definitivo de café & meditação cristã (sessão 18/08/2026) |
 | loja.html | Lojinha (e-commerce completo — ver seção própria abaixo) | ✅ |
 | checkout.html | Finalizar compra (endereço + pagamento) | ✅ |
 | meus-pedidos.html | Histórico de pedidos do cliente | ✅ |
@@ -349,7 +349,7 @@ A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada 
 - [ ] Materiais reais para download na Biblioteca
 - [ ] Conteúdo definitivo de missao.html (Missão)
 - [ ] Conteúdo definitivo de parcerias.html (Parcerias)
-- [ ] Adaptar biblioteca.html e cafe.html para o tema de oração (hoje têm conteúdo genérico de trilhas/receitas, mas os ícones do menu já chamam "Biblioteca de Oração" e "Sala de Oração")
+- [ ] Adaptar biblioteca.html para o tema de oração (cafe.html já foi adaptado na sessão 18/08/2026; biblioteca.html ainda tem conteúdo genérico de trilhas/materiais, mas o ícone do menu já chama "Biblioteca de Oração")
 
 ## Dev
 - **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com
