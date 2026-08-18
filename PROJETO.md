@@ -11,7 +11,7 @@
 |---|---|---|
 | index.html | Home (landing page) | ✅ Completo |
 | missao.html | Missão | ✅ Conteúdo definitivo (sessão 18/08/2026) |
-| sobre.html | Quem sou (biografia) | ⚠️ Aguarda conteúdo real |
+| sobre.html | Quem sou (biografia) | ✅ Texto biográfico definitivo (sessão 18/08/2026) — falta só a foto real |
 | o-sonho.html | O Sonho | ✅ Conteúdo definitivo (sessão 18/08/2026) |
 | biblioteca.html | Biblioteca de Oração | ✅ Com trilhas e materiais de exemplo (conteúdo ainda genérico, a adaptar para o tema de oração) |
 | cafe.html | Sala de Oração | ✅ Conteúdo definitivo de café & meditação cristã (sessão 18/08/2026) |
@@ -341,7 +341,6 @@ A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada 
 ## Pendências
 - [ ] Configurar `DATA_DIR=/data` no Railway (Variables) — sem isso, fotos de produto e e-books enviados via admin são perdidos a cada novo deploy (ver seção "Persistência de arquivos enviados" acima)
 - [ ] Foto real na página Sobre (substituir emoji 🐝 por `<img>`)
-- [ ] Texto biográfico real na página Sobre
 - [ ] URLs reais do Instagram, Facebook e Telegram no footer
 - [ ] Criar conta e pegar chaves de API no Mercado Pago e/ou PayPal, e configurar `MP_ACCESS_TOKEN` / `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` no Railway (sem isso, a loja funciona no modo "combinar pagamento manualmente")
 - [ ] Cadastrar/revisar produtos reais da loja no painel admin (🛒 Produtos) — hoje estão os 5 produtos de exemplo que já existiam
