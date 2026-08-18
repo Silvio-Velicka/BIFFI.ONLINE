@@ -215,6 +215,20 @@ db.exec(`
     total_paginas  INTEGER NOT NULL,
     created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
   );
+
+  /* ═══ NOVIDADES DAS PÁGINAS DO SITE ═══
+     Um aviso opcional e independente por página (Missão, Quem sou, O Sonho,
+     Sala de Oração, Biblioteca de Oração), editável pela dona do site no
+     painel admin, e exibido no final de cada página respectiva pelo
+     js/site-novidades.js. Cada página tem seu próprio título/texto — não é
+     um mural compartilhado. */
+  CREATE TABLE IF NOT EXISTS site_novidades (
+    pagina     TEXT PRIMARY KEY,
+    ativo      INTEGER NOT NULL DEFAULT 0,
+    titulo     TEXT    NOT NULL DEFAULT '',
+    texto      TEXT    NOT NULL DEFAULT '',
+    updated_at TEXT    NOT NULL DEFAULT (datetime('now'))
+  );
 `);
 
 /* ── MIGRAÇÃO LEVE: novas colunas em users para dados de compra ──
@@ -358,6 +372,13 @@ db.exec(`
     ];
     for (const p of produtosIniciais) seed.run(p);
   }
+}
+
+/* ── SEED: uma linha de novidade por página do site (só roda se não existir) ── */
+{
+  const paginasComNovidade = ['missao', 'sobre', 'o-sonho', 'cafe', 'biblioteca'];
+  const seedNovidade = db.prepare(`INSERT OR IGNORE INTO site_novidades (pagina) VALUES (?)`);
+  for (const p of paginasComNovidade) seedNovidade.run(p);
 }
 
 /* ── HELPERS ── */
@@ -1398,6 +1419,20 @@ const routes = {
     json(res, 200, { ok: true });
   },
 
+  // Lista as novidades de todas as páginas — reservado ao painel admin, pra
+  // popular os 5 formulários (um por página) de uma vez só.
+  'GET /api/admin/novidades': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    const rows = db.prepare(`
+      SELECT pagina, ativo, titulo, texto, updated_at FROM site_novidades ORDER BY pagina
+    `).all();
+    json(res, 200, {
+      novidades: rows.map(r => ({
+        pagina: r.pagina, ativo: !!r.ativo, titulo: r.titulo, texto: r.texto, updated_at: r.updated_at,
+      })),
+    });
+  },
+
   // Login do painel admin (senha única, comparada com a variável de ambiente ADMIN_KEY)
   'POST /api/admin/login': async (req, res) => {
     const { senha } = await readBody(req);
@@ -2118,6 +2153,41 @@ const routes = {
    O roteador principal é por correspondência exata "MÉTODO caminho"; estas
    rotas têm um segmento variável (id), então usam regex à parte. */
 const paramRoutes = [
+  // Novidade de UMA página específica do site — pública, sem autenticação,
+  // consultada por js/site-novidades.js no final de cada página (Missão,
+  // Quem sou, O Sonho, Sala de Oração, Biblioteca de Oração). Se a página não
+  // tiver nada cadastrado ainda, devolve ativo:false (a página simplesmente
+  // não mostra nada, sem erro visível pro visitante).
+  {
+    method: 'GET', re: /^\/api\/novidades\/([a-z0-9-]+)$/,
+    handler: async (req, res, url, m) => {
+      const row = db.prepare(`
+        SELECT ativo, titulo, texto FROM site_novidades WHERE pagina = ?
+      `).get(m[1]);
+      json(res, 200, {
+        ativo: !!(row && row.ativo),
+        titulo: row ? row.titulo : '',
+        texto: row ? row.texto : '',
+      });
+    },
+  },
+  // Salva a novidade de uma página específica — reservado ao painel admin.
+  // Cada página é independente: salvar a de "cafe" não altera as outras 4.
+  {
+    method: 'PUT', re: /^\/api\/admin\/novidades\/([a-z0-9-]+)$/,
+    handler: async (req, res, url, m) => {
+      if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      const b = await readBody(req);
+      db.prepare(`
+        INSERT INTO site_novidades (pagina, ativo, titulo, texto, updated_at)
+        VALUES (?, ?, ?, ?, datetime('now'))
+        ON CONFLICT(pagina) DO UPDATE SET
+          ativo = excluded.ativo, titulo = excluded.titulo, texto = excluded.texto,
+          updated_at = excluded.updated_at
+      `).run(m[1], b.ativo ? 1 : 0, String(b.titulo ?? ''), String(b.texto ?? ''));
+      json(res, 200, { ok: true });
+    },
+  },
   {
     method: 'GET', re: /^\/api\/shop\/products\/(\d+)$/,
     handler: async (req, res, url, m) => {

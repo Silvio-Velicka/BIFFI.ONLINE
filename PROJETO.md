@@ -253,9 +253,43 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
 - **Visual:** identidade BIFFI.ONLINE (rosa/roxo/dourado, Georgia + Arial), sidebar de ícones — pensado para crescer com mais módulos no futuro.
 - **Módulos existentes:**
   - 📢 **Modal do Jogo** — edita Título / Texto / Subtítulo / Texto do modal comunicativo que aparece na tela de login do NectarMine (liga/desliga com o campo "ativo"). Lê/grava na tabela `site_config` do backend do NectarMine.
+  - ✨ **Novidades das Páginas** (sessão 18/08/2026) — ver seção própria abaixo.
   - 🛒 **Produtos** — lista com toggle rápido de Destaque/Ativo direto na linha, e botão **"Editar"** que abre um modal completo com todos os campos do produto (nome, descrição, preço, imagem, categoria, estoque/ilimitado, destaque, ativo) + upload de PDF do e-book ou vínculo a uma pasta já processada. O formulário "Novo produto" também aceita anexar um PDF direto na criação — sobe e converte automaticamente (ver seção "Livraria Digital" acima).
   - 📊 **Acessos** (sessão 07/08/2026) — contador de acessos ao site, ver seção própria abaixo.
 - **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
+
+## Novidades das Páginas — sessão 18/08/2026
+Um aviso opcional (título + texto) que aparece no final de 5 páginas do site
+— Missão, Quem sou, O Sonho, Sala de Oração e Biblioteca de Oração — editável
+pela Verônica direto no painel admin, sem precisar de deploy. As 5 páginas
+são **independentes**: cada uma tem seu próprio texto e seu próprio
+liga/desliga; não é um mural compartilhado.
+
+- **Banco de dados — tabela nova:** `site_novidades` (`pagina` como chave
+  primária — `missao`, `sobre`, `o-sonho`, `cafe`, `biblioteca` — `ativo`,
+  `titulo`, `texto`, `updated_at`). Semeada automaticamente com as 5 linhas
+  (todas desativadas por padrão) na primeira inicialização do servidor.
+- **Rotas de API novas:**
+  - `GET /api/novidades/:pagina` — pública, sem autenticação. Devolve
+    `{ ativo, titulo, texto }`; se a página não tiver nada cadastrado,
+    devolve `ativo: false` (sem erro).
+  - `GET /api/admin/novidades` — protegida (`x-admin-key`), lista as 5 de
+    uma vez, para popular o painel.
+  - `PUT /api/admin/novidades/:pagina` — protegida, salva a novidade de uma
+    página específica (upsert).
+- **Painel admin (✨ Novidades das Páginas):** um card por página, cada um
+  com toggle "ativo", campo Título (opcional) e campo Texto, com botão
+  Salvar próprio — salvar uma página não afeta as outras.
+- **No site:** `js/site-novidades.js` (novo, incluído nas 5 páginas) busca
+  `GET /api/novidades/:pagina` ao carregar e, se `ativo` e `texto` não
+  estiverem vazios, monta o bloco `.novidade-box` (mesmo estilo visual
+  dourado/terracota usado nos destaques do site) dentro de
+  `<div id="novidade-pagina" data-pagina="...">`, colocado no final do
+  `.page` de cada uma das 5 páginas. Se a API falhar ou não houver nada
+  ativo, a `div` simplesmente fica vazia — sem quebrar a página nem mostrar
+  erro pro visitante.
+- **Estado atual:** todas as 5 começam desativadas (sem texto) — a Verônica
+  cadastra e ativa quando quiser, pelo painel admin.
 
 ## Contador de Acessos ao Site — sessão 07/08/2026
 Novo módulo **📊 Acessos** no painel admin: mostra quantos acessos o site teve

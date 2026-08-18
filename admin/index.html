@@ -328,6 +328,9 @@
     <div class="nav-item active" data-view="anuncio">
       <span class="icon">📢</span> Modal do Jogo
     </div>
+    <div class="nav-item" data-view="novidades">
+      <span class="icon">✨</span> Novidades das Páginas
+    </div>
     <div class="nav-item" data-view="produtos">
       <span class="icon">🛒</span> Produtos
     </div>
@@ -398,6 +401,13 @@
           <div class="save-msg" id="save-msg"></div>
         </form>
       </div>
+    </div>
+
+    <!-- ═══ VIEW: NOVIDADES DAS PÁGINAS ═══ -->
+    <div class="view" id="view-novidades">
+      <h1>✨ Novidades das Páginas</h1>
+      <p class="subtitle">Um aviso opcional que aparece no final de cada uma destas 5 páginas do site. São 5 textos independentes — mudar um não afeta os outros.</p>
+      <div id="novidades-lista"></div>
     </div>
 
     <!-- ═══ VIEW: PRODUTOS ═══ -->
@@ -672,6 +682,7 @@
         if (item.dataset.view === 'doar-ebook') carregarDoarEbook();
         if (item.dataset.view === 'contatos') carregarContatos();
         if (item.dataset.view === 'acessos') carregarAcessos();
+        if (item.dataset.view === 'novidades') carregarNovidades();
       });
     });
 
@@ -734,6 +745,89 @@
         confirmButtonColor: '#C9A227',
       });
     });
+
+    /* ═══ NOVIDADES DAS PÁGINAS ═══
+       5 páginas independentes (Missão, Quem sou, O Sonho, Sala de Oração,
+       Biblioteca de Oração), cada uma com seu próprio título/texto/ativo.
+       Renderiza um card por página e salva cada um separadamente. */
+    const PAGINAS_NOVIDADE = [
+      { pagina: 'missao',     label: 'Missão' },
+      { pagina: 'sobre',      label: 'Quem sou' },
+      { pagina: 'o-sonho',    label: 'O Sonho' },
+      { pagina: 'cafe',       label: 'Sala de Oração' },
+      { pagina: 'biblioteca', label: 'Biblioteca de Oração' },
+    ];
+
+    async function carregarNovidades() {
+      const lista = document.getElementById('novidades-lista');
+      lista.innerHTML = PAGINAS_NOVIDADE.map(p => `
+        <div class="card" data-pagina="${p.pagina}" style="margin-bottom:20px;">
+          <h2 style="font-family:Georgia,serif;color:var(--roxo);font-size:16px;margin-bottom:16px;">${p.label}</h2>
+          <form class="form-novidade">
+            <div class="toggle-row">
+              <input type="checkbox" id="nov-ativo-${p.pagina}">
+              <label for="nov-ativo-${p.pagina}" style="margin:0;text-transform:none;letter-spacing:0;">Exibir esta novidade no final de "${p.label}"</label>
+            </div>
+            <div class="field">
+              <label>Título (opcional)</label>
+              <input type="text" id="nov-titulo-${p.pagina}" maxlength="120">
+            </div>
+            <div class="field">
+              <label>Texto</label>
+              <textarea id="nov-texto-${p.pagina}" maxlength="800"></textarea>
+            </div>
+            <div class="actions">
+              <button type="submit" class="btn-salvar">
+                <i class="fa-solid fa-floppy-disk"></i> Salvar
+              </button>
+            </div>
+            <div class="save-msg" id="nov-msg-${p.pagina}"></div>
+          </form>
+        </div>
+      `).join('');
+
+      try {
+        const { novidades } = await BiffiAdmin.getNovidades();
+        (novidades || []).forEach(n => {
+          const ativo = document.getElementById(`nov-ativo-${n.pagina}`);
+          const titulo = document.getElementById(`nov-titulo-${n.pagina}`);
+          const texto = document.getElementById(`nov-texto-${n.pagina}`);
+          if (!ativo) return; // página desconhecida, ignora
+          ativo.checked = !!n.ativo;
+          titulo.value = n.titulo || '';
+          texto.value = n.texto || '';
+        });
+      } catch (err) {
+        lista.insertAdjacentHTML('afterbegin', `<div class="save-msg err" style="display:block;">Não foi possível carregar as novidades atuais: ${err.message}</div>`);
+      }
+
+      lista.querySelectorAll('.form-novidade').forEach(form => {
+        form.addEventListener('submit', async (e) => {
+          e.preventDefault();
+          const card = form.closest('.card');
+          const pagina = card.dataset.pagina;
+          const btn = form.querySelector('.btn-salvar');
+          const msg = document.getElementById(`nov-msg-${pagina}`);
+          btn.disabled = true;
+          msg.className = 'save-msg';
+          msg.style.display = 'none';
+          try {
+            await BiffiAdmin.salvarNovidade(pagina, {
+              ativo: document.getElementById(`nov-ativo-${pagina}`).checked,
+              titulo: document.getElementById(`nov-titulo-${pagina}`).value,
+              texto: document.getElementById(`nov-texto-${pagina}`).value,
+            });
+            msg.className = 'save-msg ok';
+            msg.textContent = '✔ Salvo!';
+          } catch (err) {
+            msg.className = 'save-msg err';
+            msg.textContent = 'Erro ao salvar: ' + err.message;
+          } finally {
+            btn.disabled = false;
+          }
+        });
+      });
+    }
 
     /* ═══ PRODUTOS ═══ */
     // Fotos enviadas via upload ficam salvas no próprio backend (Railway) e

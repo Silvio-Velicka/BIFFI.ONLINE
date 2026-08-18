@@ -157,4 +157,8 @@ const BiffiAdmin = {
 
   /* ── CONTADOR DE ACESSOS ── */
   getAcessos(limite) { return this._fetch('/api/admin/acessos' + (limite ? `?limite=${limite}` : '')); },
+
+  /* ── NOVIDADES DAS PÁGINAS (Missão, Quem sou, O Sonho, Sala de Oração, Biblioteca de Oração) ── */
+  getNovidades() { return this._fetch('/api/admin/novidades'); },
+  salvarNovidade(pagina, payload) { return this._fetch(`/api/admin/novidades/${pagina}`, 'PUT', payload); },
 };
