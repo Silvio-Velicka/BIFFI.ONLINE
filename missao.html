@@ -145,30 +145,85 @@
       line-height: 1.6;
     }
 
-    .em-breve-banner {
+    /* ── TEXTO (prosa) ── */
+    .missao-texto {
       background: rgba(255,255,255,0.55);
       backdrop-filter: blur(12px);
       border: 2px solid rgba(122,74,45,0.2);
       border-radius: 24px;
-      padding: 48px 40px;
-      text-align: center;
+      padding: 44px 48px;
+      margin-bottom: 32px;
     }
 
-    .em-breve-banner .big-emoji { font-size: 64px; margin-bottom: 16px; display: block; }
-
-    .em-breve-banner h2 {
-      font-size: 26px;
-      color: var(--roxo);
-      margin-bottom: 16px;
-    }
-
-    .em-breve-banner p {
-      font-size: 15px;
+    .missao-texto p {
+      font-size: 16px;
+      line-height: 1.95;
       color: var(--roxo-esc);
       font-family: Arial, sans-serif;
+      margin-bottom: 20px;
+    }
+
+    .missao-texto p:last-child { margin-bottom: 0; }
+
+    .missao-texto em {
+      color: var(--roxo);
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    /* ── DESTAQUE ── */
+    .missao-destaque {
+      background: linear-gradient(135deg, rgba(201,162,39,0.14), rgba(122,74,45,0.10));
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(201,162,39,0.4);
+      border-radius: 24px;
+      padding: 40px 44px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .missao-destaque .bloco-icon { font-size: 44px; margin-bottom: 14px; display: block; }
+
+    .missao-destaque h2 {
+      font-size: 22px;
+      color: var(--roxo);
+      text-shadow: 2px 2px 0 var(--dourado);
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .missao-destaque p {
+      font-size: 15px;
       line-height: 1.9;
-      max-width: 560px;
+      color: var(--roxo-esc);
+      font-family: Arial, sans-serif;
+      max-width: 620px;
       margin: 0 auto;
+    }
+
+    /* ── CITAÇÃO FINAL ── */
+    .citacao {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      border-left: 5px solid var(--roxo);
+      border-radius: 0 16px 16px 0;
+      padding: 30px 36px;
+    }
+
+    .citacao blockquote {
+      font-size: 19px;
+      color: var(--roxo);
+      font-style: italic;
+      line-height: 1.75;
+      margin-bottom: 10px;
+    }
+
+    .citacao cite {
+      font-size: 13px;
+      color: var(--rosa-med);
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
 
     footer {
@@ -269,7 +324,9 @@
       header.sidebar nav a { padding: 10px 10px; font-size: 9.5px; }
       footer { left: 130px; }
       .page { padding: 30px 16px 60px; }
-      .em-breve-banner { padding: 28px 20px; }
+      .missao-texto { padding: 28px 22px; }
+      .missao-destaque { padding: 28px 20px; }
+      .citacao { padding: 24px 22px; }
     }
   </style>
 </head>
@@ -306,16 +363,26 @@
     <div class="page-title">
       <span class="emoji">🎯</span>
       <h1>Missão</h1>
-      <p>O propósito que move este espaço.</p>
+      <p>BIFFI.ONLINE — Teologia que motiva</p>
     </div>
 
-    <div class="em-breve-banner">
-      <span class="big-emoji">🚧</span>
-      <h2>Conteúdo em breve</h2>
-      <p>
-        Estamos preparando esta página com carinho para contar a missão
-        por trás de BIFFI.ONLINE. Volte em breve para conferir.
-      </p>
+    <div class="missao-texto">
+      <p>Nossa missão é aproximar pessoas de Deus por meio da fé, do conhecimento e de experiências que transformam.</p>
+      <p>"Teologia que motiva" nasceu para ser uma casa digital de acolhimento, aprendizado e inspiração — um lugar onde a teologia se torna acessível, a oração encontra espaço e cada pessoa é incentivada a descobrir seu propósito e fortalecer sua caminhada com Deus.</p>
+      <p>Por meio de livros, devocionais e projetos especiais, queremos semear conhecimento, esperança e fé, contribuindo também para a realização de um grande sonho: <em>a Biblioteca de Oração</em>, um espaço de leitura, descanso, comunhão e encontro com Deus.</p>
+    </div>
+
+    <div class="missao-destaque">
+      <span class="bloco-icon">🎯</span>
+      <h2>Mais do que um site, uma missão</h2>
+      <p>Levar conhecimento à mente, fé ao coração, e esperança para a vida.</p>
+    </div>
+
+    <div class="citacao">
+      <blockquote>
+        "Conhecimento que fortalece a fé.<br>Fé que transforma vidas."
+      </blockquote>
+      <cite>— BIFFI.ONLINE · Teologia que motiva</cite>
     </div>
   </div>
 
