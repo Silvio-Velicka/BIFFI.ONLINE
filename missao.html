@@ -226,7 +226,13 @@
       letter-spacing: 1px;
     }
 
-    /* ── NOVIDADE (editável via admin) ── */
+    /* ── NOVIDADES (editável via admin — pode ter várias, mais recente primeiro) ── */
+    .novidade-secao {
+      margin-top: 40px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
     .novidade-box {
       background: linear-gradient(135deg, rgba(201,162,39,0.14), rgba(122,74,45,0.10));
       backdrop-filter: blur(10px);
@@ -234,9 +240,18 @@
       border-radius: 24px;
       padding: 36px 40px;
       text-align: center;
-      margin-top: 40px;
     }
-    .novidade-box .novidade-icon { font-size: 34px; margin-bottom: 12px; display: block; }
+    .novidade-box .novidade-icon { font-size: 34px; margin-bottom: 10px; display: block; }
+    .novidade-box .novidade-data {
+      display: block;
+      font-size: 11px;
+      color: var(--rosa-med);
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      letter-spacing: 1.5px;
+      text-transform: uppercase;
+      margin-bottom: 10px;
+    }
     .novidade-box h2 {
       font-size: 19px;
       color: var(--roxo);
@@ -251,6 +266,7 @@
       font-family: Arial, sans-serif;
       max-width: 640px;
       margin: 0 auto;
+      white-space: pre-line;
     }
 
     footer {
@@ -354,7 +370,8 @@
       .missao-texto { padding: 28px 22px; }
       .missao-destaque { padding: 28px 20px; }
       .citacao { padding: 24px 22px; }
-      .novidade-box { padding: 24px 20px; margin-top: 28px; }
+      .novidade-secao { margin-top: 28px; gap: 14px; }
+      .novidade-box { padding: 24px 20px; }
     }
   </style>
 </head>

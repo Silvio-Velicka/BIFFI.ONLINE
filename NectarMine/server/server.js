@@ -216,20 +216,9 @@ db.exec(`
     created_at     TEXT    NOT NULL DEFAULT (datetime('now'))
   );
 
-  /* ═══ NOVIDADES DAS PÁGINAS DO SITE ═══
-     Um aviso opcional e independente por página (Missão, Quem sou, O Sonho,
-     Sala de Oração, Biblioteca de Oração), editável pela dona do site no
-     painel admin, e exibido no final de cada página respectiva pelo
-     js/site-novidades.js. Cada página tem seu próprio título/texto — não é
-     um mural compartilhado. */
-  CREATE TABLE IF NOT EXISTS site_novidades (
-    pagina     TEXT PRIMARY KEY,
-    ativo      INTEGER NOT NULL DEFAULT 0,
-    titulo     TEXT    NOT NULL DEFAULT '',
-    texto      TEXT    NOT NULL DEFAULT '',
-    updated_at TEXT    NOT NULL DEFAULT (datetime('now'))
-  );
 `);
+/* site_novidades (novidades das páginas) é criada mais abaixo, junto da
+   migração que a criou originalmente (ver "NOVIDADES DAS PÁGINAS DO SITE"). */
 
 /* ── MIGRAÇÃO LEVE: novas colunas em users para dados de compra ──
    (ALTER TABLE ADD COLUMN quebra se a coluna já existir, então checamos antes) */
@@ -374,11 +363,55 @@ db.exec(`
   }
 }
 
-/* ── SEED: uma linha de novidade por página do site (só roda se não existir) ── */
+/* ═══ NOVIDADES DAS PÁGINAS DO SITE ═══
+   Uma LISTA de avisos por página (Missão, Quem sou, O Sonho, Sala de
+   Oração, Biblioteca de Oração), editável pela dona do site no painel
+   admin, exibida no final de cada página respectiva por js/site-novidades.js.
+   Cada página tem sua própria lista, independente das outras — e cada
+   novidade pode ser editada ou excluída individualmente depois de criada.
+   IMPORTANTE: data_publicacao é fixada só na criação (POST) e NUNCA muda
+   num PUT/edição depois — é a data que aparece pro visitante, mesmo que o
+   texto seja corrigido meses depois.
+
+   (sessão 18/08/2026, 2ª parte — antes disso existiu uma versão só com "1
+   texto fixo por página", sem histórico; o bloco abaixo migra quem já
+   tinha essa versão antiga instalada, sem perder o que já estava escrito.) */
 {
-  const paginasComNovidade = ['missao', 'sobre', 'o-sonho', 'cafe', 'biblioteca'];
-  const seedNovidade = db.prepare(`INSERT OR IGNORE INTO site_novidades (pagina) VALUES (?)`);
-  for (const p of paginasComNovidade) seedNovidade.run(p);
+  const existe = db.prepare(`SELECT name FROM sqlite_master WHERE type='table' AND name='site_novidades'`).get();
+  const colsAntigas = existe ? db.prepare(`PRAGMA table_info(site_novidades)`).all().map(c => c.name) : [];
+  const formatoAntigo = existe && colsAntigas.includes('pagina') && !colsAntigas.includes('id');
+
+  if (formatoAntigo) {
+    db.exec(`ALTER TABLE site_novidades RENAME TO site_novidades_old_20260818`);
+  }
+
+  db.exec(`
+    CREATE TABLE IF NOT EXISTS site_novidades (
+      id              INTEGER PRIMARY KEY AUTOINCREMENT,
+      pagina          TEXT    NOT NULL,
+      ativo           INTEGER NOT NULL DEFAULT 1,
+      titulo          TEXT    NOT NULL DEFAULT '',
+      texto           TEXT    NOT NULL DEFAULT '',
+      data_publicacao TEXT    NOT NULL DEFAULT (datetime('now')),
+      created_at      TEXT    NOT NULL DEFAULT (datetime('now')),
+      updated_at      TEXT    NOT NULL DEFAULT (datetime('now'))
+    );
+    CREATE INDEX IF NOT EXISTS idx_novidades_pagina ON site_novidades (pagina, data_publicacao DESC);
+  `);
+
+  if (formatoAntigo) {
+    // Só migra linhas que já tinham texto de verdade escrito (o formato
+    // antigo criava 1 linha vazia por página só pra existir no seed).
+    const antigas = db.prepare(`SELECT * FROM site_novidades_old_20260818 WHERE texto <> ''`).all();
+    const inserir = db.prepare(`
+      INSERT INTO site_novidades (pagina, ativo, titulo, texto, data_publicacao, created_at, updated_at)
+      VALUES (@pagina, @ativo, @titulo, @texto, @data, @data, @data)
+    `);
+    for (const n of antigas) {
+      inserir.run({ pagina: n.pagina, ativo: n.ativo, titulo: n.titulo, texto: n.texto, data: n.updated_at });
+    }
+    db.exec(`DROP TABLE site_novidades_old_20260818`);
+  }
 }
 
 /* ── HELPERS ── */
@@ -409,6 +442,15 @@ function json(res, status, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(status, { 'Content-Type': 'application/json; charset=utf-8' });
   res.end(body);
+}
+
+// Converte um datetime do SQLite ("YYYY-MM-DD HH:MM:SS", sempre UTC) pro
+// formato ISO 8601 ("...T...Z") — o front-end (js/site-novidades.js e o
+// admin) usa isso pra formatar a data de publicação com new Date(...), que
+// só é confiável entre navegadores se a string já tiver o "T" e o "Z".
+function toIsoUtc(sqliteDatetime) {
+  if (!sqliteDatetime) return null;
+  return sqliteDatetime.replace(' ', 'T') + 'Z';
 }
 
 function readBody(req) {
@@ -1419,18 +1461,38 @@ const routes = {
     json(res, 200, { ok: true });
   },
 
-  // Lista as novidades de todas as páginas — reservado ao painel admin, pra
-  // popular os 5 formulários (um por página) de uma vez só.
+  // Lista TODAS as novidades de TODAS as páginas (ativas ou não) — reservado
+  // ao painel admin, pra montar a lista de cada uma das 5 páginas de uma vez.
   'GET /api/admin/novidades': async (req, res) => {
     if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
     const rows = db.prepare(`
-      SELECT pagina, ativo, titulo, texto, updated_at FROM site_novidades ORDER BY pagina
+      SELECT id, pagina, ativo, titulo, texto, data_publicacao, updated_at
+      FROM site_novidades
+      ORDER BY pagina ASC, data_publicacao DESC
     `).all();
     json(res, 200, {
       novidades: rows.map(r => ({
-        pagina: r.pagina, ativo: !!r.ativo, titulo: r.titulo, texto: r.texto, updated_at: r.updated_at,
+        id: r.id, pagina: r.pagina, ativo: !!r.ativo, titulo: r.titulo, texto: r.texto,
+        data_publicacao: toIsoUtc(r.data_publicacao), updated_at: toIsoUtc(r.updated_at),
       })),
     });
+  },
+
+  // Cria uma NOVA novidade numa página. A data de publicação é fixada agora
+  // e não muda mais depois, mesmo que o texto seja editado (ver
+  // PUT /api/admin/novidades/:id, que nunca toca em data_publicacao).
+  'POST /api/admin/novidades': async (req, res) => {
+    if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+    const b = await readBody(req);
+    const pagina = String(b.pagina || '').trim();
+    const texto = String(b.texto || '').trim();
+    if (!pagina) return json(res, 400, { error: 'Página é obrigatória.' });
+    if (!texto) return json(res, 400, { error: 'Texto é obrigatório.' });
+    const info = db.prepare(`
+      INSERT INTO site_novidades (pagina, ativo, titulo, texto)
+      VALUES (?, ?, ?, ?)
+    `).run(pagina, b.ativo === false ? 0 : 1, String(b.titulo || ''), texto);
+    json(res, 200, { ok: true, id: Number(info.lastInsertRowid) });
   },
 
   // Login do painel admin (senha única, comparada com a variável de ambiente ADMIN_KEY)
@@ -2153,38 +2215,57 @@ const routes = {
    O roteador principal é por correspondência exata "MÉTODO caminho"; estas
    rotas têm um segmento variável (id), então usam regex à parte. */
 const paramRoutes = [
-  // Novidade de UMA página específica do site — pública, sem autenticação,
-  // consultada por js/site-novidades.js no final de cada página (Missão,
-  // Quem sou, O Sonho, Sala de Oração, Biblioteca de Oração). Se a página não
-  // tiver nada cadastrado ainda, devolve ativo:false (a página simplesmente
-  // não mostra nada, sem erro visível pro visitante).
+  // Lista as novidades ATIVAS de UMA página específica do site — pública,
+  // sem autenticação, consultada por js/site-novidades.js no final de cada
+  // página (Missão, Quem sou, O Sonho, Sala de Oração, Biblioteca de
+  // Oração). Mais recente primeiro; se não houver nenhuma, devolve lista
+  // vazia (a página simplesmente não mostra nada, sem erro pro visitante).
   {
     method: 'GET', re: /^\/api\/novidades\/([a-z0-9-]+)$/,
     handler: async (req, res, url, m) => {
-      const row = db.prepare(`
-        SELECT ativo, titulo, texto FROM site_novidades WHERE pagina = ?
-      `).get(m[1]);
+      const rows = db.prepare(`
+        SELECT id, titulo, texto, data_publicacao
+        FROM site_novidades
+        WHERE pagina = ? AND ativo = 1
+        ORDER BY data_publicacao DESC
+      `).all(m[1]);
       json(res, 200, {
-        ativo: !!(row && row.ativo),
-        titulo: row ? row.titulo : '',
-        texto: row ? row.texto : '',
+        novidades: rows.map(r => ({
+          id: r.id, titulo: r.titulo, texto: r.texto,
+          data_publicacao: toIsoUtc(r.data_publicacao),
+        })),
       });
     },
   },
-  // Salva a novidade de uma página específica — reservado ao painel admin.
-  // Cada página é independente: salvar a de "cafe" não altera as outras 4.
+  // Edita uma novidade já existente (título/texto/ativo) — reservado ao
+  // painel admin. NUNCA mexe em data_publicacao de propósito: a data que o
+  // visitante vê é a da criação, mesmo que o texto seja corrigido depois.
   {
-    method: 'PUT', re: /^\/api\/admin\/novidades\/([a-z0-9-]+)$/,
+    method: 'PUT', re: /^\/api\/admin\/novidades\/(\d+)$/,
     handler: async (req, res, url, m) => {
       if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      const id = Number(m[1]);
+      const atual = db.prepare(`SELECT * FROM site_novidades WHERE id = ?`).get(id);
+      if (!atual) return json(res, 404, { error: 'Novidade não encontrada.' });
       const b = await readBody(req);
       db.prepare(`
-        INSERT INTO site_novidades (pagina, ativo, titulo, texto, updated_at)
-        VALUES (?, ?, ?, ?, datetime('now'))
-        ON CONFLICT(pagina) DO UPDATE SET
-          ativo = excluded.ativo, titulo = excluded.titulo, texto = excluded.texto,
-          updated_at = excluded.updated_at
-      `).run(m[1], b.ativo ? 1 : 0, String(b.titulo ?? ''), String(b.texto ?? ''));
+        UPDATE site_novidades SET ativo = ?, titulo = ?, texto = ?, updated_at = datetime('now')
+        WHERE id = ?
+      `).run(
+        b.ativo !== undefined ? (b.ativo ? 1 : 0) : atual.ativo,
+        String(b.titulo ?? atual.titulo),
+        String(b.texto ?? atual.texto),
+        id
+      );
+      json(res, 200, { ok: true });
+    },
+  },
+  // Exclui uma novidade específica — reservado ao painel admin.
+  {
+    method: 'DELETE', re: /^\/api\/admin\/novidades\/(\d+)$/,
+    handler: async (req, res, url, m) => {
+      if (!isAdmin(req)) return json(res, 403, { error: 'Não autorizado.' });
+      db.prepare(`DELETE FROM site_novidades WHERE id = ?`).run(Number(m[1]));
       json(res, 200, { ok: true });
     },
   },

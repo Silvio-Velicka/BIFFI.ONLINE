@@ -158,7 +158,12 @@ const BiffiAdmin = {
   /* ── CONTADOR DE ACESSOS ── */
   getAcessos(limite) { return this._fetch('/api/admin/acessos' + (limite ? `?limite=${limite}` : '')); },
 
-  /* ── NOVIDADES DAS PÁGINAS (Missão, Quem sou, O Sonho, Sala de Oração, Biblioteca de Oração) ── */
+  /* ── NOVIDADES DAS PÁGINAS (Missão, Quem sou, O Sonho, Sala de Oração, Biblioteca de Oração) ──
+     Cada página tem uma LISTA de novidades (não é mais um texto único fixo):
+     dá pra criar quantas quiser, editar ou excluir cada uma depois. A data de
+     publicação é fixada na criação e não muda quando o texto é editado. */
   getNovidades() { return this._fetch('/api/admin/novidades'); },
-  salvarNovidade(pagina, payload) { return this._fetch(`/api/admin/novidades/${pagina}`, 'PUT', payload); },
+  criarNovidade(payload) { return this._fetch('/api/admin/novidades', 'POST', payload); },
+  atualizarNovidade(id, payload) { return this._fetch(`/api/admin/novidades/${id}`, 'PUT', payload); },
+  excluirNovidade(id) { return this._fetch(`/api/admin/novidades/${id}`, 'DELETE'); },
 };

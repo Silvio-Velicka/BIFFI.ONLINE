@@ -259,37 +259,52 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
 - **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
 
 ## Novidades das Páginas — sessão 18/08/2026
-Um aviso opcional (título + texto) que aparece no final de 5 páginas do site
-— Missão, Quem sou, O Sonho, Sala de Oração e Biblioteca de Oração — editável
-pela Verônica direto no painel admin, sem precisar de deploy. As 5 páginas
-são **independentes**: cada uma tem seu próprio texto e seu próprio
-liga/desliga; não é um mural compartilhado.
+Uma LISTA de avisos (título opcional + texto) que aparece no final de 5
+páginas do site — Missão, Quem sou, O Sonho, Sala de Oração e Biblioteca de
+Oração — editável pela Verônica direto no painel admin, sem precisar de
+deploy. As 5 páginas são **independentes** (cada uma com sua própria lista).
 
-- **Banco de dados — tabela nova:** `site_novidades` (`pagina` como chave
-  primária — `missao`, `sobre`, `o-sonho`, `cafe`, `biblioteca` — `ativo`,
-  `titulo`, `texto`, `updated_at`). Semeada automaticamente com as 5 linhas
-  (todas desativadas por padrão) na primeira inicialização do servidor.
-- **Rotas de API novas:**
-  - `GET /api/novidades/:pagina` — pública, sem autenticação. Devolve
-    `{ ativo, titulo, texto }`; se a página não tiver nada cadastrado,
-    devolve `ativo: false` (sem erro).
-  - `GET /api/admin/novidades` — protegida (`x-admin-key`), lista as 5 de
-    uma vez, para popular o painel.
-  - `PUT /api/admin/novidades/:pagina` — protegida, salva a novidade de uma
-    página específica (upsert).
-- **Painel admin (✨ Novidades das Páginas):** um card por página, cada um
-  com toggle "ativo", campo Título (opcional) e campo Texto, com botão
-  Salvar próprio — salvar uma página não afeta as outras.
-- **No site:** `js/site-novidades.js` (novo, incluído nas 5 páginas) busca
-  `GET /api/novidades/:pagina` ao carregar e, se `ativo` e `texto` não
-  estiverem vazios, monta o bloco `.novidade-box` (mesmo estilo visual
-  dourado/terracota usado nos destaques do site) dentro de
-  `<div id="novidade-pagina" data-pagina="...">`, colocado no final do
-  `.page` de cada uma das 5 páginas. Se a API falhar ou não houver nada
-  ativo, a `div` simplesmente fica vazia — sem quebrar a página nem mostrar
-  erro pro visitante.
-- **Estado atual:** todas as 5 começam desativadas (sem texto) — a Verônica
-  cadastra e ativa quando quiser, pelo painel admin.
+**Evolução dentro da mesma sessão:** a 1ª versão permitia só 1 texto fixo por
+página; a pedido, virou uma lista — dá pra publicar quantas novidades
+quiser ao longo do tempo, cada uma editável/desativável/excluível
+individualmente, e cada uma mostra pro visitante a **data de publicação
+original, que nunca muda** mesmo que o texto seja corrigido depois (só o
+texto muda; a data fica congelada desde a primeira publicação).
+
+- **Banco de dados — tabela `site_novidades`:** `id` (autoincrement),
+  `pagina` (`missao` / `sobre` / `o-sonho` / `cafe` / `biblioteca`), `ativo`,
+  `titulo`, `texto`, `data_publicacao` (fixada só na criação — nunca
+  atualizada num PUT), `created_at`, `updated_at`. Migração automática do
+  formato antigo (1 linha fixa por página) preserva qualquer texto que já
+  tivesse sido cadastrado, convertendo pra 1ª novidade da lista.
+- **Rotas de API:**
+  - `GET /api/novidades/:pagina` — pública. Devolve `{ novidades: [...] }`
+    só com as ativas daquela página, mais recente primeiro.
+  - `GET /api/admin/novidades` — protegida (`x-admin-key`), lista todas (de
+    todas as páginas, ativas ou não), pro painel montar as 5 listas.
+  - `POST /api/admin/novidades` — protegida, cria uma novidade nova
+    (`pagina`, `titulo`, `texto`, `ativo`) — fixa `data_publicacao` agora.
+  - `PUT /api/admin/novidades/:id` — protegida, edita título/texto/ativo de
+    UMA novidade (por id) — nunca toca em `data_publicacao`.
+  - `DELETE /api/admin/novidades/:id` — protegida, exclui uma novidade.
+- **Painel admin (✨ Novidades das Páginas):** um card por página, com um
+  formulário "Publicar novidade" no topo e, abaixo, a lista do que já foi
+  publicado (com data, ativo/desativada, botões Editar e Excluir por item).
+- **No site:** `js/site-novidades.js` busca `GET /api/novidades/:pagina` ao
+  carregar e, se houver alguma ativa, monta um `.novidade-box` por item
+  (empilhados dentro de `.novidade-secao`), cada um com a data de
+  publicação formatada em pt-BR, dentro de
+  `<div id="novidade-pagina" data-pagina="...">` no final do `.page` de
+  cada uma das 5 páginas. Se a API falhar ou não houver nada ativo, a `div`
+  fica vazia — sem quebrar a página nem mostrar erro pro visitante.
+- **Testado localmente (18/08/2026):** criação, listagem pública x admin,
+  edição (confirmando que `data_publicacao` não muda mas `updated_at`
+  muda), desativação (some da lista pública mas continua no admin),
+  exclusão, bloqueio sem `x-admin-key` (403), página sem nada cadastrado
+  (lista vazia) — e a migração do formato antigo pro novo, inclusive
+  rodando duas vezes seguidas pra confirmar que não duplica nem quebra.
+- **Estado atual:** nenhuma novidade publicada ainda — a Verônica cria pela
+  primeira vez quando quiser, pelo painel admin.
 
 ## Contador de Acessos ao Site — sessão 07/08/2026
 Novo módulo **📊 Acessos** no painel admin: mostra quantos acessos o site teve

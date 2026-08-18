@@ -406,7 +406,7 @@
     <!-- ═══ VIEW: NOVIDADES DAS PÁGINAS ═══ -->
     <div class="view" id="view-novidades">
       <h1>✨ Novidades das Páginas</h1>
-      <p class="subtitle">Um aviso opcional que aparece no final de cada uma destas 5 páginas do site. São 5 textos independentes — mudar um não afeta os outros.</p>
+      <p class="subtitle">Mensagens que aparecem no final de cada uma destas 5 páginas do site. Publique quantas quiser ao longo do tempo — cada uma pode ser editada, desativada ou excluída depois. A data de publicação de cada novidade fica fixa desde a primeira vez que ela foi publicada, mesmo que o texto seja corrigido depois.</p>
       <div id="novidades-lista"></div>
     </div>
 
@@ -748,8 +748,12 @@
 
     /* ═══ NOVIDADES DAS PÁGINAS ═══
        5 páginas independentes (Missão, Quem sou, O Sonho, Sala de Oração,
-       Biblioteca de Oração), cada uma com seu próprio título/texto/ativo.
-       Renderiza um card por página e salva cada um separadamente. */
+       Biblioteca de Oração). Cada uma tem sua própria LISTA de novidades —
+       não é mais 1 texto fixo por página: dá pra publicar quantas quiser ao
+       longo do tempo, e cada novidade pode ser editada, ativada/desativada
+       ou excluída individualmente, sem afetar as outras. A data de
+       publicação de cada novidade é fixada na criação e não muda quando o
+       texto é editado depois (ver server.js, PUT /api/admin/novidades/:id). */
     const PAGINAS_NOVIDADE = [
       { pagina: 'missao',     label: 'Missão' },
       { pagina: 'sobre',      label: 'Quem sou' },
@@ -758,72 +762,158 @@
       { pagina: 'biblioteca', label: 'Biblioteca de Oração' },
     ];
 
+    function formatarDataPublicacao(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d)) return '';
+      return d.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric' })
+        + ' às ' + d.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+    }
+
     async function carregarNovidades() {
       const lista = document.getElementById('novidades-lista');
       lista.innerHTML = PAGINAS_NOVIDADE.map(p => `
-        <div class="card" data-pagina="${p.pagina}" style="margin-bottom:20px;">
+        <div class="card" data-pagina="${p.pagina}" style="margin-bottom:24px;">
           <h2 style="font-family:Georgia,serif;color:var(--roxo);font-size:16px;margin-bottom:16px;">${p.label}</h2>
-          <form class="form-novidade">
-            <div class="toggle-row">
-              <input type="checkbox" id="nov-ativo-${p.pagina}">
-              <label for="nov-ativo-${p.pagina}" style="margin:0;text-transform:none;letter-spacing:0;">Exibir esta novidade no final de "${p.label}"</label>
-            </div>
+
+          <form class="form-nova-novidade" style="margin-bottom:20px;padding-bottom:20px;border-bottom:1px dashed rgba(122,74,45,0.25);">
             <div class="field">
               <label>Título (opcional)</label>
-              <input type="text" id="nov-titulo-${p.pagina}" maxlength="120">
+              <input type="text" class="nn-titulo" maxlength="120">
             </div>
             <div class="field">
               <label>Texto</label>
-              <textarea id="nov-texto-${p.pagina}" maxlength="800"></textarea>
+              <textarea class="nn-texto" maxlength="800" required placeholder="Escreva a novidade que vai aparecer no final de &quot;${p.label}&quot;..."></textarea>
             </div>
             <div class="actions">
               <button type="submit" class="btn-salvar">
-                <i class="fa-solid fa-floppy-disk"></i> Salvar
+                <i class="fa-solid fa-plus"></i> Publicar novidade
               </button>
             </div>
-            <div class="save-msg" id="nov-msg-${p.pagina}"></div>
+            <div class="save-msg nn-msg"></div>
           </form>
+
+          <div class="nn-lista" style="display:flex;flex-direction:column;gap:12px;"></div>
         </div>
       `).join('');
 
+      let novidades = [];
       try {
-        const { novidades } = await BiffiAdmin.getNovidades();
-        (novidades || []).forEach(n => {
-          const ativo = document.getElementById(`nov-ativo-${n.pagina}`);
-          const titulo = document.getElementById(`nov-titulo-${n.pagina}`);
-          const texto = document.getElementById(`nov-texto-${n.pagina}`);
-          if (!ativo) return; // página desconhecida, ignora
-          ativo.checked = !!n.ativo;
-          titulo.value = n.titulo || '';
-          texto.value = n.texto || '';
-        });
+        ({ novidades } = await BiffiAdmin.getNovidades());
       } catch (err) {
         lista.insertAdjacentHTML('afterbegin', `<div class="save-msg err" style="display:block;">Não foi possível carregar as novidades atuais: ${err.message}</div>`);
       }
 
-      lista.querySelectorAll('.form-novidade').forEach(form => {
+      // Renderiza a lista de cada página com o que já existe
+      lista.querySelectorAll('.card').forEach(card => {
+        const pagina = card.dataset.pagina;
+        const container = card.querySelector('.nn-lista');
+        const dessaPagina = novidades.filter(n => n.pagina === pagina);
+        if (!dessaPagina.length) {
+          container.innerHTML = `<p style="font-size:12.5px;opacity:0.7;">Nenhuma novidade publicada ainda nesta página.</p>`;
+        } else {
+          container.innerHTML = dessaPagina.map(n => `
+            <div class="nn-item" data-id="${n.id}" style="background:rgba(122,74,45,0.05);border:1px solid rgba(122,74,45,0.15);border-radius:12px;padding:14px 16px;">
+              <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;">
+                <div style="flex:1;min-width:200px;">
+                  <div style="font-size:11px;opacity:0.65;margin-bottom:4px;">Publicado em ${formatarDataPublicacao(n.data_publicacao)}${n.ativo ? '' : ' · <span style="color:#a02020;">desativada</span>'}</div>
+                  ${n.titulo ? `<div style="font-weight:bold;color:var(--roxo);margin-bottom:2px;">${n.titulo}</div>` : ''}
+                  <div style="font-size:13px;white-space:pre-line;">${n.texto}</div>
+                </div>
+                <div style="display:flex;gap:6px;flex-shrink:0;">
+                  <button type="button" class="btn-preview nn-editar" style="padding:6px 10px;font-size:11px;">Editar</button>
+                  <button type="button" class="btn-excluir nn-excluir" style="padding:6px 10px;font-size:11px;">Excluir</button>
+                </div>
+              </div>
+            </div>
+          `).join('');
+        }
+      });
+
+      // Publicar novidade nova
+      lista.querySelectorAll('.form-nova-novidade').forEach(form => {
         form.addEventListener('submit', async (e) => {
           e.preventDefault();
           const card = form.closest('.card');
           const pagina = card.dataset.pagina;
           const btn = form.querySelector('.btn-salvar');
-          const msg = document.getElementById(`nov-msg-${pagina}`);
+          const msg = form.querySelector('.nn-msg');
+          const tituloInput = form.querySelector('.nn-titulo');
+          const textoInput = form.querySelector('.nn-texto');
           btn.disabled = true;
-          msg.className = 'save-msg';
+          msg.className = 'save-msg nn-msg';
           msg.style.display = 'none';
           try {
-            await BiffiAdmin.salvarNovidade(pagina, {
-              ativo: document.getElementById(`nov-ativo-${pagina}`).checked,
-              titulo: document.getElementById(`nov-titulo-${pagina}`).value,
-              texto: document.getElementById(`nov-texto-${pagina}`).value,
+            await BiffiAdmin.criarNovidade({
+              pagina, titulo: tituloInput.value, texto: textoInput.value, ativo: true,
             });
-            msg.className = 'save-msg ok';
-            msg.textContent = '✔ Salvo!';
+            tituloInput.value = '';
+            textoInput.value = '';
+            carregarNovidades();
           } catch (err) {
-            msg.className = 'save-msg err';
-            msg.textContent = 'Erro ao salvar: ' + err.message;
+            msg.className = 'save-msg nn-msg err';
+            msg.textContent = 'Erro ao publicar: ' + err.message;
           } finally {
             btn.disabled = false;
+          }
+        });
+      });
+
+      // Editar/excluir uma novidade já publicada
+      lista.querySelectorAll('.nn-editar').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const item = btn.closest('.nn-item');
+          const id = Number(item.dataset.id);
+          const n = novidades.find(x => x.id === id);
+          if (!n) return;
+
+          const esc = (s) => String(s ?? '').replace(/"/g, '&quot;');
+          const html = `
+            <div style="text-align:left;font-size:13px;">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Título (opcional)</label>
+              <input id="edit-nov-titulo" class="swal2-input" style="margin:0;width:100%;" value="${esc(n.titulo)}">
+              <label style="display:block;font-weight:bold;margin:10px 0 4px;">Texto</label>
+              <textarea id="edit-nov-texto" class="swal2-textarea" style="margin:0;width:100%;">${n.texto || ''}</textarea>
+              <label style="display:flex;align-items:center;gap:6px;font-weight:normal;margin-top:14px;">
+                <input type="checkbox" id="edit-nov-ativo" ${n.ativo ? 'checked' : ''}> Ativa (exibir no site)
+              </label>
+              <p style="font-size:11px;opacity:0.65;margin-top:10px;">Publicada em ${formatarDataPublicacao(n.data_publicacao)} — essa data não muda ao salvar a edição.</p>
+            </div>
+          `;
+          const result = await Swal.fire({
+            title: 'Editar novidade', html, width: 480,
+            showCancelButton: true, confirmButtonText: 'Salvar', cancelButtonText: 'Cancelar',
+            confirmButtonColor: '#7A4A2D', focusConfirm: false,
+            preConfirm: () => ({
+              titulo: document.getElementById('edit-nov-titulo').value.trim(),
+              texto: document.getElementById('edit-nov-texto').value.trim(),
+              ativo: document.getElementById('edit-nov-ativo').checked,
+            }),
+          });
+          if (!result.isConfirmed) return;
+          try {
+            await BiffiAdmin.atualizarNovidade(id, result.value);
+            carregarNovidades();
+          } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+          }
+        });
+      });
+
+      lista.querySelectorAll('.nn-excluir').forEach(btn => {
+        btn.addEventListener('click', async () => {
+          const item = btn.closest('.nn-item');
+          const id = Number(item.dataset.id);
+          const confirmar = await Swal.fire({
+            title: 'Excluir esta novidade?', icon: 'warning', showCancelButton: true,
+            confirmButtonText: 'Excluir', cancelButtonText: 'Cancelar', confirmButtonColor: '#a02020',
+          });
+          if (!confirmar.isConfirmed) return;
+          try {
+            await BiffiAdmin.excluirNovidade(id);
+            carregarNovidades();
+          } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
           }
         });
       });
