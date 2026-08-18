@@ -145,30 +145,85 @@
       line-height: 1.6;
     }
 
-    .em-breve-banner {
+    /* ── TEXTO (prosa) ── */
+    .sonho-texto {
       background: rgba(255,255,255,0.55);
       backdrop-filter: blur(12px);
       border: 2px solid rgba(122,74,45,0.2);
       border-radius: 24px;
-      padding: 48px 40px;
-      text-align: center;
+      padding: 44px 48px;
+      margin-bottom: 32px;
     }
 
-    .em-breve-banner .big-emoji { font-size: 64px; margin-bottom: 16px; display: block; }
-
-    .em-breve-banner h2 {
-      font-size: 26px;
-      color: var(--roxo);
-      margin-bottom: 16px;
-    }
-
-    .em-breve-banner p {
-      font-size: 15px;
+    .sonho-texto p {
+      font-size: 16px;
+      line-height: 1.95;
       color: var(--roxo-esc);
       font-family: Arial, sans-serif;
+      margin-bottom: 20px;
+    }
+
+    .sonho-texto p:last-child { margin-bottom: 0; }
+
+    .sonho-texto em {
+      color: var(--roxo);
+      font-style: italic;
+      font-weight: 700;
+    }
+
+    /* ── DESTAQUE (Biblioteca de Oração) ── */
+    .sonho-destaque {
+      background: linear-gradient(135deg, rgba(201,162,39,0.14), rgba(122,74,45,0.10));
+      backdrop-filter: blur(10px);
+      border: 2px solid rgba(201,162,39,0.4);
+      border-radius: 24px;
+      padding: 40px 44px;
+      text-align: center;
+      margin-bottom: 32px;
+    }
+
+    .sonho-destaque .bloco-icon { font-size: 44px; margin-bottom: 14px; display: block; }
+
+    .sonho-destaque h2 {
+      font-size: 22px;
+      color: var(--roxo);
+      text-shadow: 2px 2px 0 var(--dourado);
+      margin-bottom: 16px;
+      letter-spacing: 0.5px;
+    }
+
+    .sonho-destaque p {
+      font-size: 15px;
       line-height: 1.9;
-      max-width: 560px;
+      color: var(--roxo-esc);
+      font-family: Arial, sans-serif;
+      max-width: 620px;
       margin: 0 auto;
+    }
+
+    /* ── CITAÇÃO FINAL ── */
+    .citacao {
+      background: rgba(255,255,255,0.5);
+      backdrop-filter: blur(10px);
+      border-left: 5px solid var(--roxo);
+      border-radius: 0 16px 16px 0;
+      padding: 30px 36px;
+    }
+
+    .citacao blockquote {
+      font-size: 19px;
+      color: var(--roxo);
+      font-style: italic;
+      line-height: 1.75;
+      margin-bottom: 10px;
+    }
+
+    .citacao cite {
+      font-size: 13px;
+      color: var(--rosa-med);
+      font-family: Arial, sans-serif;
+      font-weight: 700;
+      letter-spacing: 1px;
     }
 
     footer {
@@ -269,7 +324,9 @@
       header.sidebar nav a { padding: 10px 10px; font-size: 9.5px; }
       footer { left: 130px; }
       .page { padding: 30px 16px 60px; }
-      .em-breve-banner { padding: 28px 20px; }
+      .sonho-texto { padding: 28px 22px; }
+      .sonho-destaque { padding: 28px 20px; }
+      .citacao { padding: 24px 22px; }
     }
   </style>
 </head>
@@ -306,16 +363,39 @@
     <div class="page-title">
       <span class="emoji">✨</span>
       <h1>O Sonho</h1>
-      <p>A visão que inspira este projeto.</p>
+      <p>A visão que Deus vem construindo, passo a passo.</p>
     </div>
 
-    <div class="em-breve-banner">
-      <span class="big-emoji">🚧</span>
-      <h2>Conteúdo em breve</h2>
+    <div class="sonho-texto">
+      <p>O meu sonho é, antes de tudo, <em>cumprir o propósito que Deus me confiou</em>.</p>
+      <p>Levar a Sua Palavra, compartilhar fé, conhecimento, esperança e acolhimento por onde Ele me permitir caminhar.</p>
+      <p>Ao longo da minha vida, tenho compreendido que Deus conduz cada etapa no tempo certo. Já passei por diferentes lugares, vivi experiências nos Estados Unidos, hoje estou no Brasil e, futuramente, a caminhada poderá me levar à Itália.</p>
+      <p>Não vejo esses caminhos como simples mudanças de lugar. Vejo como parte de uma missão.</p>
+      <p>Creio que Deus vai me mostrando onde preciso estar, o que preciso fazer e de que forma posso servir em cada fase da minha vida.</p>
+    </div>
+
+    <div class="sonho-destaque">
+      <span class="bloco-icon">📖</span>
+      <h2>Um sonho muito especial: a Biblioteca de Oração</h2>
       <p>
-        Estamos preparando esta página com carinho para contar o sonho
-        por trás de BIFFI.ONLINE. Volte em breve para conferir.
+        Um espaço dedicado à Palavra de Deus, à leitura, ao conhecimento, à oração, ao
+        descanso e ao acolhimento. Um lugar onde pessoas possam entrar, respirar,
+        encontrar paz e se aproximar de Deus.
       </p>
+    </div>
+
+    <div class="sonho-texto">
+      <p>Mas a Biblioteca de Oração não é o começo nem o fim da missão. Ela é parte de uma caminhada.</p>
+      <p>Até chegar lá, quero continuar seguindo a direção de Deus, levando a Sua Palavra onde Ele abrir portas e permitindo que cada experiência, cada lugar e cada encontro façam parte da construção desse propósito.</p>
+      <p>Não sei todos os caminhos que ainda virão.<br>Mas sei Quem está me guiando.<br>E enquanto Deus me conduzir, continuarei caminhando.</p>
+    </div>
+
+    <div class="citacao">
+      <blockquote>
+        "Esse é o sonho: viver o propósito, servir a Deus e permitir que Ele transforme
+        cada passo em parte de uma missão maior."
+      </blockquote>
+      <cite>— O Sonho, BIFFI.ONLINE</cite>
     </div>
   </div>
 

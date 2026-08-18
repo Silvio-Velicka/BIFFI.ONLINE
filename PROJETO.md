@@ -12,7 +12,7 @@
 | index.html | Home (landing page) | ✅ Completo |
 | missao.html | Missão | ⚠️ Placeholder "conteúdo em breve" |
 | sobre.html | Quem sou (biografia) | ⚠️ Aguarda conteúdo real |
-| o-sonho.html | O Sonho | ⚠️ Placeholder "conteúdo em breve" |
+| o-sonho.html | O Sonho | ✅ Conteúdo definitivo (sessão 18/08/2026) |
 | biblioteca.html | Biblioteca de Oração | ✅ Com trilhas e materiais de exemplo (conteúdo ainda genérico, a adaptar para o tema de oração) |
 | cafe.html | Sala de Oração | ✅ Com receitas e meditações (conteúdo ainda genérico, a adaptar para o tema de oração) |
 | loja.html | Lojinha (e-commerce completo — ver seção própria abaixo) | ✅ |
@@ -348,7 +348,6 @@ A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada 
 - [ ] Conteúdo real para posts do Blog
 - [ ] Materiais reais para download na Biblioteca
 - [ ] Conteúdo definitivo de missao.html (Missão)
-- [ ] Conteúdo definitivo de o-sonho.html (O Sonho)
 - [ ] Conteúdo definitivo de parcerias.html (Parcerias)
 - [ ] Adaptar biblioteca.html e cafe.html para o tema de oração (hoje têm conteúdo genérico de trilhas/receitas, mas os ícones do menu já chamam "Biblioteca de Oração" e "Sala de Oração")
 
