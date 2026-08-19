@@ -368,24 +368,32 @@
       line-height: 1.7;
     }
 
-    .btn-contato {
-      display: inline-block;
-      padding: 13px 32px;
+    .cta-social {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+
+    .cta-social a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 52px;
+      height: 52px;
+      border-radius: 50%;
       background: var(--roxo);
       color: var(--branco);
-      border-radius: 50px;
+      font-size: 20px;
       text-decoration: none;
-      font-weight: 700;
-      font-family: Arial, sans-serif;
-      font-size: 14px;
-      letter-spacing: 1px;
       box-shadow: 0 6px 20px rgba(122,74,45,0.35);
       transition: background 0.2s, transform 0.2s;
     }
 
-    .btn-contato:hover {
+    .cta-social a:hover {
       background: var(--roxo-esc);
-      transform: translateY(-2px);
+      transform: translateY(-2px) scale(1.08);
     }
 
     /* ── FOOTER ── */
@@ -593,11 +601,14 @@
 
     <!-- CTA -->
     <div class="cta-box">
-      <h3>🐝 Vamos conversar?</h3>
-      <p>Se quiser saber mais, trocar uma ideia ou simplesmente dizer olá — estou aqui.</p>
-      <a class="btn-contato" href="https://wa.me/5511947377498" target="_blank" rel="noopener">
-        Falar no WhatsApp 💬
-      </a>
+      <h3>🐝 Siga-me nas redes sociais</h3>
+      <p>Acompanhe novidades, bastidores e reflexões — venha fazer parte dessa comunidade.</p>
+      <div class="cta-social">
+        <a data-rede="instagram" href="#" target="_blank" rel="noopener" title="Instagram" style="display:none;"><i class="fab fa-instagram"></i></a>
+        <a data-rede="facebook" href="#" target="_blank" rel="noopener" title="Facebook" style="display:none;"><i class="fab fa-facebook"></i></a>
+        <a data-rede="telegram" href="#" target="_blank" rel="noopener" title="Telegram" style="display:none;"><i class="fab fa-telegram"></i></a>
+        <a data-rede="email" data-tipo="email" href="#" title="E-mail" style="display:none;"><i class="fa-solid fa-envelope"></i></a>
+      </div>
     </div>
 
     <div id="novidade-pagina" data-pagina="sobre"></div>
