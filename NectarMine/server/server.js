@@ -669,6 +669,41 @@ function usuarioComprouProduto(userId, produtoId) {
    (nunca existe uma cópia "limpa" acessível pela internet). */
 const LIVRARIA_DIR = path.join(DATA_DIR, 'biblioteca-privada');
 
+/* ── MIGRAÇÃO ÚNICA: e-books que vieram junto no deploy (Git) pro volume persistente ──
+   BUG encontrado em 19/08/2026 (clientes reportando "Não foi possível carregar
+   o livro agora" ao tentar ler um e-book já comprado): antes de configurar
+   DATA_DIR=/data no Railway, LIVRARIA_DIR apontava pra dentro do próprio
+   código (__dirname/biblioteca-privada), que é recriado do zero a cada deploy
+   a partir do Git — e como a pasta biblioteca-privada/mulheres-na-teologia/
+   (as 124 páginas já processadas do "Livro BIFFI") está commitada no
+   repositório, ela sempre "reaparecia" ali, sem precisar de nenhuma migração.
+   Ao configurar DATA_DIR=/data (pra fotos/e-books enviados via admin não se
+   perderem a cada deploy — ver comentário de DATA_DIR acima), LIVRARIA_DIR
+   passou a apontar pro volume persistente, que começa vazio: o e-book que
+   veio junto no código deixou de ser encontrado, e a leitura passou a falhar
+   pra quem já tinha comprado. Este bloco corrige isso copiando, uma única vez
+   e de forma idempotente, qualquer pasta de e-book que exista no código
+   (__dirname/biblioteca-privada) e ainda não exista no volume persistente
+   (LIVRARIA_DIR) — sem sobrescrever nada que já esteja lá (ex.: um e-book
+   novo enviado via admin depois da migração, ou uma migração anterior).
+   Testado localmente (19/08/2026): migra na 1ª execução, não duplica nem
+   sobrescreve na 2ª (deploy seguinte), e não mexe em nada quando DATA_DIR
+   não está configurado (ambiente local, sem essa variável). */
+{
+  const LIVRARIA_DIR_DEPLOY = path.join(__dirname, 'biblioteca-privada');
+  if (LIVRARIA_DIR_DEPLOY !== LIVRARIA_DIR && fs.existsSync(LIVRARIA_DIR_DEPLOY)) {
+    fs.mkdirSync(LIVRARIA_DIR, { recursive: true });
+    for (const slug of fs.readdirSync(LIVRARIA_DIR_DEPLOY)) {
+      const origem = path.join(LIVRARIA_DIR_DEPLOY, slug);
+      const destino = path.join(LIVRARIA_DIR, slug);
+      if (!fs.statSync(origem).isDirectory()) continue;
+      if (fs.existsSync(destino)) continue; // já migrado (ou já existe outro e-book com esse slug) — não sobrescreve
+      fs.cpSync(origem, destino, { recursive: true });
+      console.log(`📚 E-book migrado do deploy pro volume persistente: ${slug}`);
+    }
+  }
+}
+
 // Fotos de produto enviadas pelo admin (capa do livro físico, etc.) — ficam
 // aqui e são servidas publicamente por GET /api/imagens/produtos/:arquivo,
 // já que a loja (GitHub Pages) precisa conseguir exibi-las por fora.

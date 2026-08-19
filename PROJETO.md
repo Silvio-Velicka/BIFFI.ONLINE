@@ -13,15 +13,15 @@
 | missao.html | Missão | ✅ Conteúdo definitivo (sessão 18/08/2026) |
 | sobre.html | Quem sou (biografia) | ✅ Completo — texto biográfico definitivo (sessão 18/08/2026) e foto real (sessão 19/08/2026) |
 | o-sonho.html | O Sonho | ✅ Conteúdo definitivo (sessão 18/08/2026) |
-| biblioteca.html | Biblioteca de Oração | ✅ Com trilhas e materiais de exemplo (conteúdo ainda genérico, a adaptar para o tema de oração) |
+| biblioteca.html | Biblioteca de Oração | ✅ Redesenhada (sessão não documentada, confirmada em 19/08/2026) — não é mais "trilhas/materiais genéricos". Agora é a **biblioteca pessoal do cliente**: lista os e-books que o usuário logado comprou (via `SHOP_API.meusLivros()`), com capa, nº de páginas e botão "Ler agora" pra cada um; se não estiver logado, pede pra entrar; se a biblioteca estiver vazia, convida pra loja. Ver detalhe no JS do próprio arquivo. |
 | cafe.html | Sala de Oração | ✅ Conteúdo definitivo de café & meditação cristã (sessão 18/08/2026) |
 | loja.html | Lojinha (e-commerce completo — ver seção própria abaixo) | ✅ |
 | checkout.html | Finalizar compra (endereço + pagamento) | ✅ |
 | meus-pedidos.html | Histórico de pedidos do cliente | ✅ |
-| parcerias.html | Parcerias | ⚠️ Placeholder "conteúdo em breve" |
-| blog.html | Blog | ✅ Com posts de exemplo — fora do menu principal, arquivo mantido mas sem link na navegação |
-| estudos.html | Biblioteca (cópia própria, mesmo conteúdo de biblioteca.html) | ✅ |
+| parcerias.html | Parcerias | ⚠️ Confirmado em 19/08/2026: continua só com o placeholder "conteúdo em breve" — ainda pendente |
 | dashboard.html | (redireciona → index.html) | ✅ |
+
+**Removidas em 19/08/2026:** `blog.html` (ainda com os 6 posts de exemplo, nunca recebeu conteúdo real) e `estudos.html` (cópia órfã e desatualizada da Biblioteca). Nenhuma das duas tinha link em nenhum menu, e nenhum outro arquivo do site referenciava elas (conferido antes de remover). Não foram apagadas de verdade — movidas para `_to_delete/` na raiz do site; apague essa pasta quando confirmar que não precisa de nada nela. **Consequência:** a pendência "Conteúdo real para posts do Blog" saiu da lista — não existe mais página de Blog no site.
 
 ## Navegação (barra lateral esquerda — sessão 10/07/2026)
 A navegação era um header horizontal fixo no topo, com ícones emoji + label
@@ -265,7 +265,26 @@ Obs: um produto que já tem pedidos associados não pode ser excluído (só desa
   - ✨ **Novidades das Páginas** (sessão 18/08/2026) — ver seção própria abaixo.
   - 🛒 **Produtos** — lista com toggle rápido de Destaque/Ativo direto na linha, e botão **"Editar"** que abre um modal completo com todos os campos do produto (nome, descrição, preço, imagem, categoria, estoque/ilimitado, destaque, ativo) + upload de PDF do e-book ou vínculo a uma pasta já processada. O formulário "Novo produto" também aceita anexar um PDF direto na criação — sobe e converte automaticamente (ver seção "Livraria Digital" acima).
   - 📊 **Acessos** (sessão 07/08/2026) — contador de acessos ao site, ver seção própria abaixo.
+  - 📱 **Contatos** (sessão não documentada — confirmada no código em 19/08/2026) — formulário simples com Instagram / Facebook / Telegram / E-mail. Salva em `site_config` (colunas `contato_instagram`, `contato_facebook`, `contato_telegram`, `contato_email`, mesma tabela do Modal do Jogo). Rotas: `GET /api/site-contatos` (pública) e `PUT /api/site-contatos` (protegida, `x-admin-key`). Substituiu a abordagem antiga de digitar a URL direto no `href="#"` de cada página — agora é 1 lugar só, editável sem deploy, e todas as páginas do site puxam os links dinamicamente. Ver seção "Contatos dinâmicos do rodapé" abaixo.
 - **Arquivos:** `admin/login.html`, `admin/index.html`, `admin/js/admin.js`
+
+## Contatos dinâmicos do rodapé — sessão não documentada (confirmada em 19/08/2026)
+Os links de Instagram/Facebook/Telegram/E-mail do rodapé (e do quadro de redes
+sociais em `sobre.html`) **não são mais hardcoded** no HTML. Um arquivo novo,
+`js/contatos-footer.js`, busca `GET /api/site-contatos` (backend do
+NectarMine no Railway) e preenche automaticamente qualquer elemento com
+`id="contato-<rede>"` (rodapé) ou `data-rede="<rede>"` (quadro de redes
+sociais). Um contato sem valor cadastrado fica **oculto** (`display:none`),
+em vez de mostrar um link quebrado apontando pra "#". Editável pelo módulo
+📱 **Contatos** do painel admin, sem precisar de deploy. Incluído em todas as
+páginas do site principal (o mesmo `<script src="js/contatos-footer.js">`
+usado em `sobre.html`, `blog.html`, `biblioteca.html` etc.).
+
+**Não verificado nesta sessão:** se as URLs reais (Instagram/Facebook/Telegram)
+já foram de fato preenchidas no painel admin, ou se os campos ainda estão
+vazios (o que faria os ícones ficarem ocultos no rodapé). O mecanismo está
+pronto e funcionando — falta confirmar se o conteúdo (as URLs em si) já foi
+cadastrado.
 
 ## Novidades das Páginas — sessão 18/08/2026
 Uma LISTA de avisos (título opcional + texto) que aparece no final de 5
@@ -366,6 +385,44 @@ Tanto as páginas de e-book geradas pelo upload de PDF quanto as fotos de produt
 - O servidor agora usa `const DATA_DIR = process.env.DATA_DIR || __dirname;` — tanto `biblioteca-privada/` (páginas de e-book) quanto `imagens-produtos/` (fotos de produto) ficam dentro de `DATA_DIR`.
 - **Recomendação:** configurar a variável de ambiente `DATA_DIR=/data` no Railway (Variables), apontando para o mesmo volume persistente já usado por `DB_PATH`. Sem isso, tudo continua funcionando normalmente entre uma request e outra, mas **fotos e e-books enviados via admin seriam perdidos no próximo deploy**.
 
+#### Bug: leitor parou de carregar após configurar DATA_DIR (encontrado e corrigido em 19/08/2026)
+Depois de configurar `DATA_DIR=/data` (item acima), clientes que já tinham
+comprado o e-book passaram a ver **"Não foi possível carregar o livro agora.
+Tente novamente em instantes."** ao tentar ler — reportado pela dona do site
+via print de conversa do WhatsApp com uma cliente.
+
+**Causa:** `LIVRARIA_DIR = path.join(DATA_DIR, 'biblioteca-privada')` — antes
+de configurar `DATA_DIR`, isso apontava pra dentro do próprio código
+(`__dirname/biblioteca-privada`), que é recriado a cada deploy a partir do
+Git. As 124 páginas já processadas do "Livro BIFFI"
+(`biblioteca-privada/mulheres-na-teologia/`) estão commitadas no
+repositório (não estão no `.gitignore`), então sempre "reapareciam" ali sem
+precisar de nenhuma migração. Ao apontar `DATA_DIR` pro volume persistente
+(`/data`), que **começa vazio** (só tinha o banco de dados até então), o
+e-book que vinha junto no código deixou de ser encontrado — o pedido
+`GET /api/livraria/:id/info` continuava funcionando (lê só o banco), mas
+`GET /api/livraria/:id/pagina/:n` (lê o arquivo PNG do disco) passou a
+falhar pra esse livro específico.
+
+**Correção:** bloco novo em `server.js`, logo depois de `LIVRARIA_DIR`, que
+roda uma vez a cada início do servidor: se existir uma pasta de e-book em
+`__dirname/biblioteca-privada` (a que veio junto no deploy) que ainda não
+exista dentro de `DATA_DIR/biblioteca-privada` (o volume persistente), copia
+ela pra lá — sem sobrescrever nada que já esteja no volume (e-book novo
+enviado via admin depois, ou uma migração anterior). Idempotente: já migrado,
+não faz nada nas próximas vezes; sem `DATA_DIR` configurado (ambiente
+local), a origem e o destino são a mesma pasta e o bloco não faz nada.
+**Testado localmente (19/08/2026)** com pastas de teste simulando o cenário:
+migra na 1ª execução, não duplica/sobrescreve na 2ª (deploy seguinte,
+inclusive com um arquivo "enviado via admin" no meio), e não mexe em nada
+quando `DATA_DIR` não está configurado.
+
+**Ainda por fazer:** esse bloco corrige o problema assim que o próximo
+deploy subir (a migração roda automaticamente ao iniciar o servidor) — não
+precisa de nenhuma ação manual no Railway além do deploy normal
+(`deploy.bat` ou git push). Vale avisar a cliente que reportou o problema
+pra tentar ler de novo depois que o deploy terminar.
+
 ### Loja (`loja.html`) — layout simplificado (sessão 09/07/2026)
 A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada dos demais. Agora todos os produtos aparecem numa única lista vertical, um embaixo do outro, com o mesmo tratamento visual (miniatura + nome + descrição + preço + botão "Adicionar"/"Indisponível") — sem nenhuma configuração de destaque na exibição pública (o campo "Destaque" ainda existe no admin, mas hoje não altera a ordem/aparência na loja).
 
@@ -397,15 +454,16 @@ A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada 
 - `poppler-utils` (pacote de sistema, não npm) — fornece o binário `pdftoppm` usado na conversão de PDF → PNG; instalado automaticamente no Railway via `NectarMine/nixpacks.toml` (`aptPkgs = ["poppler-utils"]`). Se algum dia trocar de plataforma de deploy (sair do Nixpacks/Railway), lembrar de instalar esse pacote de sistema também no novo ambiente.
 
 ## Pendências
-- [x] Configurar `DATA_DIR=/data` no Railway (Variables) — feito em 19/08/2026 (variável criada em Railway → sweet-endurance → BIFFI.ONLINE → Variables; redeploy automático disparado). Sem isso, fotos de produto e e-books enviados via admin eram perdidos a cada novo deploy (ver seção "Persistência de arquivos enviados" acima).
+- [x] Configurar `DATA_DIR=/data` no Railway (Variables) — feito em 19/08/2026 (variável criada em Railway → sweet-endurance → BIFFI.ONLINE → Variables; redeploy automático disparado). Sem isso, fotos de produto e e-books enviados via admin eram perdidos a cada novo deploy (ver seção "Persistência de arquivos enviados" acima). **⚠️ Efeito colateral encontrado e corrigido no mesmo dia — ver "Bug: leitor parou de carregar após configurar DATA_DIR" logo abaixo.**
 - [x] Foto real na página Sobre — feito em 19/08/2026 (`PerfilVeronica.jpg`, colocada na raiz do site; placeholder 🐝 substituído por `<img class="foto">` já preparada no CSS)
-- [ ] URLs reais do Instagram, Facebook e Telegram no footer
-- [ ] Criar conta e pegar chaves de API no Mercado Pago e/ou PayPal, e configurar `MP_ACCESS_TOKEN` / `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` no Railway (sem isso, a loja funciona no modo "combinar pagamento manualmente")
-- [ ] Cadastrar/revisar produtos reais da loja no painel admin (🛒 Produtos) — hoje estão os 5 produtos de exemplo que já existiam
-- [ ] Conteúdo real para posts do Blog
-- [ ] Materiais reais para download na Biblioteca
-- [ ] Conteúdo definitivo de parcerias.html (Parcerias)
-- [ ] Adaptar biblioteca.html para o tema de oração (cafe.html já foi adaptado na sessão 18/08/2026; biblioteca.html ainda tem conteúdo genérico de trilhas/materiais, mas o ícone do menu já chama "Biblioteca de Oração")
+- [x] Mecanismo pra editar URLs de Instagram/Facebook/Telegram/E-mail sem deploy — feito (sessão não documentada, confirmada em 19/08/2026): módulo 📱 Contatos no admin + `js/contatos-footer.js` em todas as páginas (ver seção "Contatos dinâmicos do rodapé" acima). **Falta só confirmar** se as URLs reais já foram digitadas nesse formulário do admin — não deu pra verificar isso pelos arquivos.
+- [x] Adaptar `biblioteca.html` — feito, mas de um jeito diferente do planejado original: em vez de adaptar o conteúdo de trilhas/materiais pro tema de oração, a página virou a **biblioteca pessoal do cliente** (lista os e-books que ele comprou, com botão "Ler agora" pra cada um).
+- [x] Blog — removido em 19/08/2026 (não recebeu conteúdo real, tinha só os posts de exemplo, e não tinha link em nenhum menu). Deixa de ser pendência: não existe mais página de Blog no site. `blog.html` movido para `_to_delete/` na raiz.
+- [x] `estudos.html` (cópia órfã e desatualizada da Biblioteca) — removida em 19/08/2026 pelo mesmo motivo do Blog. Movida para `_to_delete/`.
+- [ ] Confirmar se as chaves de Mercado Pago/PayPal já foram cadastradas no Railway — **`MP_ACCESS_TOKEN` já aparece configurada** (confirmado ao vivo no painel do Railway em 19/08/2026, junto com `ME_CEP_ORIGEM`, `MELHOR_ENVIO_CLIENT_ID/SECRET`). Não vi variáveis de `PAYPAL_CLIENT_ID`/`PAYPAL_CLIENT_SECRET` na lista — se só o Mercado Pago for suficiente por enquanto, esse item pode ser considerado concluído.
+- [ ] Confirmar se os produtos reais da loja já foram cadastrados no painel admin (🛒 Produtos) — não deu pra verificar pelos arquivos locais (fica no banco de dados); antes eram os 5 produtos de exemplo.
+- [ ] Materiais reais para download na Biblioteca — pendência antiga, meio superada pelo redesenho de `biblioteca.html` (virou biblioteca pessoal de e-books comprados, não uma lista de materiais gratuitos pra baixar). Vale confirmar se ainda faz sentido ou se pode ser removida da lista.
+- [ ] Conteúdo definitivo de `parcerias.html` (Parcerias) — confirmado em 19/08/2026, continua só com o placeholder "conteúdo em breve".
 
 ## Dev
 - **Desenvolvedor:** Silvio Velicka — silviovelicka@gmail.com
