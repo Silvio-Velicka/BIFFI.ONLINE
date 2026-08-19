@@ -216,6 +216,15 @@ Nenhuma tecnologia web impede 100% print de tela — isso é uma limitação fí
 ### O leitor (`leitor.html?produto=<id>`)
 Efeito de virar página feito com a biblioteca **StPageFlip** (`page-flip` no npm, carregada via CDN jsDelivr) — funciona com mouse (PC) e touch/swipe (celular). Exige login (reaproveita o mesmo `nm_token` do jogo); se não estiver logado, redireciona para `NectarMine/login.html?redirect=...` e volta pro leitor depois de entrar.
 
+#### Correção — página pequena/travada no celular e sem zoom (sessão 19/08/2026)
+Cliente reportou (com print do celular) que comprou um e-book mas não conseguia ler: a página aparecia pequena, presa no centro da tela, sem nenhuma forma de dar zoom.
+
+**Causa raiz (confirmada lendo o código-fonte da biblioteca `page-flip`):** com a configuração usada (`usePortrait: true` + `size: 'fixed'`), a biblioteca **sempre** renderiza em modo retrato (1 página por vez) — o modo "livro aberto" com 2 páginas lado a lado nunca é ativado nessa configuração. Mesmo assim, o cálculo de tamanho da página em `leitor.html` dividia a largura disponível da tela por 2 (como se fosse reservar espaço pra 2 páginas), fazendo a página renderizar **sempre com metade do tamanho possível — em qualquer aparelho**, mas o efeito só ficava grave o bastante pra "quebrar" a leitura no celular (onde a tela já é pequena por si só).
+
+- **Correção:** removida a divisão por 2 no cálculo de escala da página. Testado localmente com a biblioteca real (Playwright, simulando um iPhone de 390px de largura): a página foi de 200px (mínimo permitido, esbarrava no piso) para 359px de largura — quase dobrou, ocupando ~92% da tela disponível. Testado também no desktop (1400px) pra confirmar que não regrediu nem distorceu nada lá.
+- **Botão de ampliar (🔍, novo, ao lado dos botões de navegação):** mesmo com a página maior, o gesto de pinça-pra-ampliar do celular não funciona *dentro* da área de leitura — ali o `touch-action: none` é necessário pra biblioteca reconhecer o gesto de arrastar/virar a página sem competir com o zoom nativo do navegador. O botão novo abre a página atual (já em cache, mesma imagem com marca d'água) numa camada simples de tela cheia, sem esse bloqueio — nela o pinça-pra-ampliar nativo funciona normalmente. Fecha pelo X ou tecla Esc.
+- Nenhuma proteção contra cópia foi enfraquecida: a camada de ampliar reaproveita a mesma imagem já protegida/com marca d'água, sem link de download, e os bloqueios de clique-direito/arrastar/seleção (a nível de `document`) continuam valendo dentro dela também.
+
 Link de acesso: aparece automaticamente em `meus-pedidos.html` (seção "📚 Meus e-books") para quem já comprou.
 
 ### Banco de dados — tabela nova
@@ -388,7 +397,7 @@ A pedido, a vitrine deixou de ter uma seção de "produto em destaque" separada 
 - `poppler-utils` (pacote de sistema, não npm) — fornece o binário `pdftoppm` usado na conversão de PDF → PNG; instalado automaticamente no Railway via `NectarMine/nixpacks.toml` (`aptPkgs = ["poppler-utils"]`). Se algum dia trocar de plataforma de deploy (sair do Nixpacks/Railway), lembrar de instalar esse pacote de sistema também no novo ambiente.
 
 ## Pendências
-- [ ] Configurar `DATA_DIR=/data` no Railway (Variables) — sem isso, fotos de produto e e-books enviados via admin são perdidos a cada novo deploy (ver seção "Persistência de arquivos enviados" acima)
+- [x] Configurar `DATA_DIR=/data` no Railway (Variables) — feito em 19/08/2026 (variável criada em Railway → sweet-endurance → BIFFI.ONLINE → Variables; redeploy automático disparado). Sem isso, fotos de produto e e-books enviados via admin eram perdidos a cada novo deploy (ver seção "Persistência de arquivos enviados" acima).
 - [ ] Foto real na página Sobre (substituir emoji 🐝 por `<img>`)
 - [ ] URLs reais do Instagram, Facebook e Telegram no footer
 - [ ] Criar conta e pegar chaves de API no Mercado Pago e/ou PayPal, e configurar `MP_ACCESS_TOKEN` / `PAYPAL_CLIENT_ID` / `PAYPAL_CLIENT_SECRET` no Railway (sem isso, a loja funciona no modo "combinar pagamento manualmente")

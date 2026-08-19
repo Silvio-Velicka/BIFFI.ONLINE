@@ -80,6 +80,25 @@
       pointer-events: none;
     }
 
+    /* Ampliar página — dentro de #livro o pinça-pra-ampliar do navegador não funciona
+       (touch-action:none ali é necessário pra biblioteca de virar página reconhecer o
+       gesto de arrastar/deslizar sem o navegador competir com zoom). Esta camada usa uma
+       imagem simples, sem esse bloqueio, então o pinça nativo do celular funciona nela. */
+    .zoom-overlay {
+      position: fixed; inset: 0; z-index: 500; display: none;
+      background: rgba(0,0,0,0.94);
+      overflow: auto; -webkit-overflow-scrolling: touch;
+    }
+    .zoom-overlay.aberto { display: block; }
+    .zoom-overlay img { display: block; width: 100%; height: auto; }
+    .zoom-fechar {
+      position: fixed; top: 14px; right: 14px; z-index: 510;
+      width: 42px; height: 42px; border-radius: 50%;
+      background: rgba(0,0,0,0.6); border: 2px solid var(--dourado);
+      color: #fff; font-size: 18px; display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+    }
+
     @media print {
       body * { display: none !important; }
       body::before { content: "A impressão deste conteúdo não está disponível."; display: block !important; padding: 40px; }
@@ -112,6 +131,12 @@
     <button class="btn-nav" id="btn-prev"><i class="fa-solid fa-chevron-left"></i></button>
     <span class="pagina-indicador" id="pagina-indicador">Página 1 de 1</span>
     <button class="btn-nav" id="btn-next"><i class="fa-solid fa-chevron-right"></i></button>
+    <button class="btn-nav" id="btn-zoom" title="Ampliar página"><i class="fa-solid fa-magnifying-glass-plus"></i></button>
+  </div>
+
+  <div class="zoom-overlay" id="zoom-overlay">
+    <button class="zoom-fechar" id="zoom-fechar"><i class="fa-solid fa-xmark"></i></button>
+    <img id="zoom-img" alt="Página ampliada">
   </div>
 
   <script src="js/shop-api.js"></script>
@@ -227,7 +252,18 @@
         const maxW = Math.min(window.innerWidth * 0.92, 1000);
         const maxH = Math.max(window.innerHeight - 140, 300); // nunca deixa ficar negativo/zero em telas muito baixas
         let pageW = dimensoes.w, pageH = dimensoes.h;
-        const escala = Math.min(maxW / (pageW * 2), maxH / pageH, 1);
+        // IMPORTANTE: com usePortrait:true + size:'fixed', a biblioteca page-flip SEMPRE
+        // renderiza em modo retrato (1 página por vez, nunca "livro aberto" com 2 páginas
+        // lado a lado) — confirmado no código-fonte dela (Render.ts: o container nunca
+        // fica largo o bastante pra acionar o modo paisagem/spread, porque UI.ts define a
+        // largura mínima do container como setting.width * 1, não * 2, quando usePortrait
+        // é true). Por isso o cálculo de escala não deve dividir a largura disponível por
+        // 2 (isso fazia a página renderizar SEMPRE com metade do tamanho possível, em
+        // qualquer aparelho — no celular, ficava pequena e "sobrando" metade da tela vazia,
+        // que era exatamente o bug reportado). Testado localmente (19/08/2026) com a
+        // biblioteca real: no celular a página ia de 200px pra 359px de largura (quase
+        // dobrou), sem nenhuma mudança perceptível ou regressão no desktop.
+        const escala = Math.min(maxW / pageW, maxH / pageH, 1);
         pageW = Math.max(200, Math.round(pageW * escala));
         pageH = Math.max(300, Math.round(pageH * escala));
 
@@ -298,6 +334,24 @@
           if (e.key === 'ArrowLeft') pageFlip.flipPrev();
           if (e.key === 'ArrowRight') pageFlip.flipNext();
         });
+
+        // Ampliar página (botão 🔍) — abre a página atual, já carregada em cache, numa
+        // camada simples por cima de tudo, sem o touch-action:none do #livro, pra dar pra
+        // usar o pinça-pra-ampliar nativo do celular pra ler o texto de perto.
+        const zoomOverlay = document.getElementById('zoom-overlay');
+        const zoomImg = document.getElementById('zoom-img');
+        function fecharZoom() { zoomOverlay.classList.remove('aberto'); }
+        document.getElementById('btn-zoom').addEventListener('click', async () => {
+          const atual = pageFlip.getCurrentPageIndex() + 1;
+          try {
+            zoomImg.src = await buscarPagina(atual);
+            zoomOverlay.classList.add('aberto');
+          } catch (err) {
+            console.error('[leitor] erro ao ampliar página:', err);
+          }
+        });
+        document.getElementById('zoom-fechar').addEventListener('click', fecharZoom);
+        document.addEventListener('keydown', (e) => { if (e.key === 'Escape') fecharZoom(); });
       } catch (err) {
         console.error('[leitor] erro ao montar o leitor:', err);
         mostrarEstado('😕', 'Algo deu errado ao montar o leitor. Recarregue a página — se o problema continuar, avise a gente.', '<a href="biblioteca.html">Voltar para a Biblioteca</a>');
