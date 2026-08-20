@@ -119,21 +119,21 @@
 
   <!-- Banner -->
   <div class="referral-banner">
-    <h1>🍯 Ganhe Potes de Mel indicando novos Apicultores</h1>
-    <p>Convide amigos para o NectarMine e receba <strong>10% da produção</strong> gerada por cada indicado, para sempre.</p>
+    <h1>🍯 Ganhe indicando novos Apicultores</h1>
+    <p>Convide amigos para o NectarMine: seu amigo ganha <strong>1.000 NCT extra</strong> ao entrar, você ganha <strong>5.000 NCT na hora</strong> + <strong>10% vitalício</strong> sobre tudo que ele vender no mercado, para sempre.</p>
   </div>
 
   <!-- Stats -->
   <div class="referral-stats">
     <div class="ref-stat-card">
       <div class="ref-stat-icon yellow"><i class="fa-solid fa-percent" style="color:var(--amarelo)"></i></div>
-      <div class="ref-stat-value amarelo">10%</div>
-      <div class="ref-stat-label">de comissão contínua</div>
+      <div class="ref-stat-value amarelo" id="ref-comissao-pct">10%</div>
+      <div class="ref-stat-label">de comissão vitalícia sobre vendas do indicado</div>
     </div>
     <div class="ref-stat-card">
-      <div class="ref-stat-icon verde"><i class="fa-solid fa-jar" style="color:var(--verde)"></i></div>
-      <div class="ref-stat-value verde">50 Potes</div>
-      <div class="ref-stat-label">bônus único por parceiro ativo</div>
+      <div class="ref-stat-icon verde"><i class="fa-solid fa-coins" style="color:var(--verde)"></i></div>
+      <div class="ref-stat-value verde">5.000 NCT</div>
+      <div class="ref-stat-label">bônus instantâneo por cada amigo cadastrado</div>
     </div>
     <div class="ref-stat-card">
       <div class="ref-stat-icon roxo"><i class="fa-solid fa-infinity" style="color:var(--roxo2)"></i></div>
@@ -142,7 +142,7 @@
     </div>
   </div>
 
-  <p class="referral-note">* Após a validação do parceiro, seu bônus único de 50 potes de mel será liberado para resgate.</p>
+  <p class="referral-note">* A comissão fica acumulada em potes (podendo ficar fracionada); ao resgatar, só a parte inteira vai para o seu estoque — a fração continua somando para o próximo resgate. Metas de indicação em 50/100/500 amigos dão apiários extras — veja em "Metas".</p>
 
   <!-- Info boxes -->
   <div class="referral-info-row">
@@ -184,9 +184,9 @@
     <h3><i class="fa-solid fa-users"></i> Parceiros Registrados</h3>
     <div style="overflow-x:auto;">
       <table class="referral-table">
-        <thead><tr><th>Usuário</th><th>Status</th><th>Data Cadastro</th></tr></thead>
+        <thead><tr><th>Usuário</th><th>Data Cadastro</th></tr></thead>
         <tbody id="tabela-parceiros">
-          <tr><td colspan="3" style="color:var(--texto3);">Carregando...</td></tr>
+          <tr><td colspan="2" style="color:var(--texto3);">Carregando...</td></tr>
         </tbody>
       </table>
     </div>
@@ -213,17 +213,17 @@
     try {
       AMIGOS = await NM_API.amigos();
       document.getElementById('ref-total-parceiros').textContent = nmFormatInt(AMIGOS.total_indicados);
-      document.getElementById('ref-potes-disponiveis').textContent = nmFormatInt(AMIGOS.bonus_pendente) + ' potes';
+      document.getElementById('ref-potes-disponiveis').textContent = nmFormat(AMIGOS.bonus_pendente, 1) + ' potes';
+      document.getElementById('ref-comissao-pct').textContent = nmFormatInt(AMIGOS.comissao_pct) + '%';
       document.getElementById('referral-link').value = AMIGOS.link;
 
       const tbody = document.getElementById('tabela-parceiros');
       if (!AMIGOS.indicados.length) {
-        tbody.innerHTML = `<tr><td colspan="3" style="color:var(--texto3);">Você ainda não indicou ninguém.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="2" style="color:var(--texto3);">Você ainda não indicou ninguém.</td></tr>`;
       } else {
         tbody.innerHTML = AMIGOS.indicados.map(i => `
           <tr>
             <td class="user">${i.username}</td>
-            <td>${i.validado ? '<span style="color:var(--verde)">Validado</span>' : '<span style="color:var(--texto3)">Aguardando 1ª produção</span>'}</td>
             <td>${new Date(i.indicado_em.replace(' ', 'T') + 'Z').toLocaleString('pt-BR', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' })}</td>
           </tr>`).join('');
       }
@@ -239,21 +239,23 @@
     NM_SWAL.success('Link copiado!', `Compartilhe com seus amigos:<br/><code style="color:var(--amarelo)">${link}</code>`);
   }
 
+  // Ação passa por um modal com anúncio (mesmo padrão de envasar/vender no
+  // resto do jogo) antes de confirmar o resgate.
   async function resgatarPotes() {
-    if (!AMIGOS || AMIGOS.bonus_pendente <= 0) {
-      NM_SWAL.info('Nada para resgatar', 'Você ainda não tem potes de comissão acumulados.');
+    if (!AMIGOS || AMIGOS.bonus_pendente_resgatavel <= 0) {
+      NM_SWAL.info('Nada para resgatar ainda', 'Sua comissão ainda não completou 1 pote inteiro — continue acumulando.');
       return;
     }
-    const { isConfirmed } = await NM_SWAL.confirm(
+    const { isConfirmed } = await NM_SWAL.withAd(
       '🏺 Resgatar Potes',
-      `Você tem <strong>${nmFormatInt(AMIGOS.bonus_pendente)} potes de mel</strong> em comissões de indicação disponíveis.<br/>Deseja transferir para o seu estoque agora?`,
-      'Resgatar agora'
+      `Você tem <strong>${nmFormatInt(AMIGOS.bonus_pendente_resgatavel)} potes de mel</strong> em comissões de indicação disponíveis para resgate.<br/>Deseja transferir para o seu estoque agora?`,
+      'Resgatar agora', 'ad-resgatar-amigos-modal'
     );
     if (!isConfirmed) return;
     try {
       const r = await NM_API.resgatarBonusAmigos();
       await carregarAmigos();
-      NM_SWAL.success('Potes resgatados!', `<strong>${nmFormatInt(r.potes_resgatados)} potes de mel</strong> foram adicionados ao seu estoque.`);
+      NM_SWAL.success('Potes resgatados!', `<strong>${nmFormatInt(r.potes_resgatados)} potes de mel</strong> foram adicionados ao seu estoque.${r.fracao_restante > 0 ? ` (mais ${nmFormat(r.fracao_restante, 1)} pote fracionado, aguardando a próxima venda do indicado)` : ''}`);
     } catch (e) {
       NM_SWAL.error('Ops!', e.message);
     }

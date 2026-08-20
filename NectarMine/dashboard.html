@@ -345,11 +345,11 @@
             <div class="producao-stats">
               <div class="prod-stat">
                 <strong id="prod-hora">0</strong>
-                <span>Potes / hora</span>
+                <span>Litros / hora</span>
               </div>
               <div class="prod-stat">
                 <strong id="prod-dia">0</strong>
-                <span>Potes / dia</span>
+                <span>Litros / dia (teórico)</span>
               </div>
               <div class="prod-stat">
                 <strong id="prod-preco">0,00</strong>
@@ -361,14 +361,28 @@
               </div>
             </div>
 
-            <!-- Flores -->
+            <!-- Reservatório -->
             <div class="flores-bar">
               <div class="flores-label">
-                <span>🌸 Flores (energia)</span>
-                <strong id="flores-label-val">0</strong>
+                <span>🍯 Reservatório de mel</span>
+                <strong id="reservatorio-label-val">0 / 0 L</strong>
               </div>
               <div class="progress-bar">
-                <div class="progress-fill" id="flores-fill" style="width:0%"></div>
+                <div class="progress-fill" id="reservatorio-fill" style="width:0%"></div>
+              </div>
+            </div>
+
+            <!-- Relógio de energia (flores) — único e compartilhado por todos os apiários -->
+            <div class="flores-bar">
+              <div class="flores-label">
+                <span>🌸 Relógio de energia (flores)</span>
+                <span id="energia-status" style="font-size:11px;"></span>
+              </div>
+              <div style="text-align:center;padding:8px 0;">
+                <span id="energia-relogio" style="font-family:monospace;font-size:28px;font-weight:bold;color:var(--verde);letter-spacing:1px;">00:00:00</span>
+              </div>
+              <div style="text-align:center;">
+                <a href="transicao.html?to=expansao.html" class="btn btn-sm btn-roxo"><i class="fa-solid fa-plus"></i> Comprar flores</a>
               </div>
             </div>
 
@@ -384,7 +398,7 @@
         <div class="dash-card">
           <div class="dash-card-header">
             <h3><i class="fa-solid fa-industry" style="color:var(--amarelo)"></i> Minha Colmeia</h3>
-            <a href="expansao.html" class="btn btn-sm btn-ghost">Ver tudo</a>
+            <a href="transicao.html?to=expansao.html" class="btn btn-sm btn-ghost">Ver tudo</a>
           </div>
           <div class="dash-card-body">
             <div class="colmeia-ad-wrap anuncio-desktop">
@@ -394,7 +408,7 @@
               <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
             </div>
             <div style="margin-top:12px;">
-              <a href="expansao.html" class="btn btn-block btn-roxo btn-sm">
+              <a href="transicao.html?to=expansao.html" class="btn btn-block btn-roxo btn-sm">
                 <i class="fa-solid fa-arrow-trend-up"></i> Comprar / Expandir
               </a>
             </div>
@@ -410,7 +424,7 @@
         <div class="dash-card">
           <div class="dash-card-header">
             <h3><i class="fa-solid fa-chart-candlestick" style="color:var(--amarelo)"></i> Mercado de Mel</h3>
-            <a href="mercado.html" class="btn btn-sm btn-ghost">Abrir</a>
+            <a href="transicao.html?to=mercado.html" class="btn btn-sm btn-ghost">Abrir</a>
           </div>
           <div id="chart-mercado"></div>
           <div class="mercado-info">
@@ -434,7 +448,7 @@
             <div class="ranking-list" id="ranking-list">
               <div style="color:var(--texto3);font-size:12px;">Carregando...</div>
             </div>
-            <a href="ranking-producao.html" class="rank-see-all">Ver ranking completo →</a>
+            <a href="transicao.html?to=ranking-producao.html" class="rank-see-all">Ver ranking completo →</a>
           </div>
         </div>
 
@@ -445,7 +459,7 @@
         <div class="dash-card">
           <div class="dash-card-header">
             <h3><i class="fa-solid fa-list-check" style="color:var(--amarelo)"></i> Missões do Dia</h3>
-            <a href="desafios.html" class="btn btn-sm btn-ghost">Ver todas</a>
+            <a href="transicao.html?to=desafios.html" class="btn btn-sm btn-ghost">Ver todas</a>
           </div>
           <div class="dash-card-body">
             <div class="mission-list" id="mission-list">
@@ -461,9 +475,9 @@
           <div class="promo-card roxo">
             <div class="promo-icon">🌐</div>
             <div class="promo-text">
-              <h4>Ganhe Néctar Agora</h4>
-              <p>Assista anúncios, complete pesquisas e ganhe Néctar extra instantaneamente.</p>
-              <a href="ganhar-nectar.html" class="btn btn-sm btn-roxo">Ganhar NCT →</a>
+              <h4>Indique amigos, ganhe pra sempre</h4>
+              <p>5.000 NCT na hora + 10% vitalício sobre tudo que seus indicados venderem no mercado.</p>
+              <a href="transicao.html?to=amigos.html" class="btn btn-sm btn-roxo">Meu link de indicação →</a>
             </div>
           </div>
           <!-- AD 300×250 -->
@@ -514,12 +528,28 @@
     chart.render();
   }
 
-  // Referência puramente visual pra barra de flores (não é um teto real no
-  // servidor — só o valor que consideramos "tanque cheio" pra desenhar a
-  // barra). Deve bater com RELOGIO_MAX_COMPRAS(5) * RELOGIO_FLORES_POR_COMPRA(50) + base(100).
-  const FLORES_REF_MAX = 350;
-
   let STATUS = null;
+
+  // Formata minutos (fracionados) de energia como relógio HH:MM:SS — puramente
+  // de exibição, o valor em si (flores_restantes) vem sempre do servidor.
+  function formatarRelogioEnergia(minutosFracionados) {
+    const totalSeg = Math.max(0, Math.round(minutosFracionados * 60));
+    const h = Math.floor(totalSeg / 3600);
+    const m = Math.floor((totalSeg % 3600) / 60);
+    const s = totalSeg % 60;
+    return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
+  }
+
+  // Dias/horas restantes até um apiário expirar, a partir do texto UTC que o
+  // servidor devolve — só formatação, não decide nada (o servidor já diz
+  // "ativo: true/false" com base no contrato real).
+  function formatarValidadeApiario(a) {
+    if (!a.expira_em) return 'Nunca expira';
+    const expiraEm = new Date(a.expira_em.replace(' ', 'T') + 'Z');
+    if (!a.ativo) return `Expirou em ${expiraEm.toLocaleDateString('pt-BR')}`;
+    const diasRestantes = Math.ceil((expiraEm - new Date()) / 86400000);
+    return diasRestantes <= 1 ? 'Expira em menos de 1 dia' : `Expira em ${diasRestantes} dias`;
+  }
 
   document.addEventListener('nm:ready', carregarDashboard);
 
@@ -535,51 +565,68 @@
     }
   }
 
+  // Relógio de energia visualmente "vivo" (desce segundo a segundo na tela),
+  // só pra ficar intuitivo de acompanhar — o valor real sempre vem do
+  // servidor: a cada tick local só decrementa o texto exibido, nunca é usado
+  // pra decidir nada (produção/compra continuam 100% calculadas no backend).
+  // A cada 20s busca o status de novo no servidor pra corrigir qualquer
+  // deriva e refletir pausa/retomada do reservatório.
+  setInterval(() => {
+    if (!STATUS) return;
+    if (!STATUS.energia.pausado && STATUS.energia.flores_restantes > 0) {
+      STATUS.energia.flores_restantes = Math.max(0, STATUS.energia.flores_restantes - (1 / 60));
+      document.getElementById('energia-relogio').textContent = formatarRelogioEnergia(STATUS.energia.flores_restantes);
+      document.getElementById('stat-flores').textContent = formatarRelogioEnergia(STATUS.energia.flores_restantes);
+    }
+  }, 1000);
+  setInterval(carregarDashboard, 20000);
+
   function renderStats() {
     const s = STATUS;
     document.getElementById('stat-nectar').textContent = nmFormat(s.nct, 0);
     document.getElementById('stat-potes').textContent = nmFormatInt(s.potes);
-    document.getElementById('stat-flores').textContent = nmFormatInt(Math.floor(s.flores));
-    document.getElementById('flores-pct').textContent = Math.round(Math.min(100, s.flores / FLORES_REF_MAX * 100)) + '% do tanque';
+    document.getElementById('stat-flores').textContent = formatarRelogioEnergia(s.energia.flores_restantes);
+    document.getElementById('flores-pct').textContent = s.energia.pausado ? 'pausado (reservatório cheio)' : 'contando';
     document.getElementById('stat-prod').textContent = nmFormatInt(s.producao_hora);
 
     document.getElementById('potes-disp').textContent = nmFormatInt(Math.floor(s.mel));
     document.getElementById('reservatorio-sub').textContent =
-      `${nmFormatInt(Math.floor(s.reservatorio.atual))} / ${nmFormatInt(s.reservatorio.capacidade)} de capacidade${s.reservatorio.cheio ? ' — CHEIO' : ''}`;
+      `${nmFormatInt(Math.floor(s.reservatorio.atual))} / ${nmFormatInt(s.reservatorio.capacidade)} L de capacidade${s.reservatorio.cheio ? ' — CHEIO' : ''}`;
+    document.getElementById('reservatorio-label-val').textContent = `${nmFormat(s.reservatorio.atual, 1)} / ${nmFormatInt(s.reservatorio.capacidade)} L`;
+    nmAnimateProgress('#reservatorio-fill', Math.min(100, s.reservatorio.atual / s.reservatorio.capacidade * 100));
+
     document.getElementById('prod-hora').textContent = nmFormatInt(s.producao_hora);
     document.getElementById('prod-dia').textContent = nmFormatInt(s.producao_hora * 24);
     document.getElementById('prod-preco').textContent = nmFormat(s.mercado.preco_pote);
     document.getElementById('prod-valor').textContent = nmFormat(s.mel * s.mercado.preco_pote, 0);
-    document.getElementById('flores-label-val').textContent = nmFormatInt(Math.floor(s.flores));
-    nmAnimateProgress('#flores-fill', Math.min(100, s.flores / FLORES_REF_MAX * 100));
+
+    document.getElementById('energia-relogio').textContent = formatarRelogioEnergia(s.energia.flores_restantes);
+    document.getElementById('energia-status').textContent = s.energia.pausado
+      ? '⏸️ pausado — reservatório cheio, envase para continuar'
+      : (s.energia.flores_restantes <= 0 ? '⛔ sem energia' : '▶️ funcionando');
   }
 
   function renderColmeia() {
     const el = document.getElementById('colmeia-list');
-    const contagem = {};
-    for (const a of STATUS.apiarios) contagem[a.tipo] = (contagem[a.tipo] || 0) + 1;
-    const tipos = Object.keys(contagem);
-    if (tipos.length === 0) {
-      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Você ainda não tem apiários. <a href="expansao.html" style="color:var(--amarelo)">Comprar o primeiro →</a></div>`;
+    if (!STATUS.apiarios.length) {
+      el.innerHTML = `<div style="color:var(--texto3);font-size:12px;">Você ainda não tem apiários comprados. <a href="transicao.html?to=expansao.html" style="color:var(--amarelo)">Comprar o primeiro →</a></div>`;
       return;
     }
-    el.innerHTML = tipos.map(tipo => {
-      const spec = STATUS.loja.apiarios[tipo];
-      const qtd = contagem[tipo];
-      return `
+    // Cada apiário aparece individualmente (não agrupado por tipo), porque
+    // cada um tem seu próprio contrato/validade — mais transparente pro jogador.
+    el.innerHTML = STATUS.apiarios.map(a => `
         <div class="machine-item">
-          <img class="machine-icon" src="${spec.imagem}" alt="${spec.nome}" style="width:22px;height:22px;object-fit:cover;border-radius:4px;"/>
+          <img class="machine-icon" src="${a.imagem}" alt="${a.nome}" style="width:22px;height:22px;object-fit:cover;border-radius:4px;" onerror="this.style.display='none'"/>
           <div class="machine-info">
-            <strong>${spec.nome}</strong>
-            <span>${qtd}x possuído${qtd > 1 ? 's' : ''}</span>
+            <strong>${a.nome}</strong>
+            <span>${formatarValidadeApiario(a)}</span>
           </div>
           <div class="machine-prod">
-            <strong>${nmFormatInt(spec.producao * qtd)}/h</strong>
-            <span>potes</span>
+            <strong>${a.ativo ? nmFormatInt(a.producao) + '/h' : '—'}</strong>
+            <span>litros</span>
           </div>
-          <span class="machine-badge ativo">ATIVO</span>
-        </div>`;
-    }).join('');
+          <span class="machine-badge ${a.ativo ? 'ativo' : ''}" ${a.ativo ? '' : 'style="background:rgba(255,255,255,.06);color:var(--texto3);"'}>${a.ativo ? 'ATIVO' : 'EXPIRADO'}</span>
+        </div>`).join('');
   }
 
   function renderMercadoMini() {
@@ -617,7 +664,7 @@
           </div>
           <div class="mission-bottom">
             <div class="progress-bar ${m.completa ? 'progress-bar-verde' : ''}"><div class="progress-fill ${m.completa ? 'progress-fill-verde' : ''}" style="width:${Math.min(100, m.progresso / m.target * 100)}%"></div></div>
-            <span class="mission-reward" style="${m.resgatada ? 'color:var(--verde)' : ''}">${m.resgatada ? 'COLETADA' : '+' + nmFormatInt(m.reward_nct) + ' NCT'}</span>
+            <span class="mission-reward" style="${m.resgatada ? 'color:var(--verde)' : ''}">${m.resgatada ? 'COLETADA' : '+' + nmFormatInt(m.reward_nct) + ' NCT' + (m.reward_potes ? ' +' + nmFormatInt(m.reward_potes) + ' potes' : '')}</span>
           </div>
         </div>`).join('');
     } catch {

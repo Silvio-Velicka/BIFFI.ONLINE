@@ -98,9 +98,9 @@
     <!-- Sumário -->
     <div class="prod-summary">
       <div class="sum-card"><strong id="sum-ativos">0</strong><span>Apiários ativos</span></div>
-      <div class="sum-card"><strong id="sum-producao">0/h</strong><span>Produção total</span></div>
-      <div class="sum-card"><strong id="sum-dia">0/dia</strong><span>Potes / dia</span></div>
-      <div class="sum-card"><strong id="sum-flores">0</strong><span>🌸 Flores restantes</span></div>
+      <div class="sum-card"><strong id="sum-producao">0/h</strong><span>Produção total (litros)</span></div>
+      <div class="sum-card"><strong id="sum-reservatorio">0/0 L</strong><span>Reservatório</span></div>
+      <div class="sum-card"><strong id="sum-flores">00:00:00</strong><span>🌸 Relógio de energia</span></div>
     </div>
 
     <!-- Grid de apiários -->
@@ -133,8 +133,8 @@
     <div class="shop-section-label">Capacidade do Reservatório</div>
     <div class="shop-grid" id="shop-capacidade"></div>
 
-    <div class="shop-section-label">Relógio (Flores / Energia)</div>
-    <div class="shop-grid" id="shop-relogio"></div>
+    <div class="shop-section-label">Relógio de Energia (Flores)</div>
+    <div id="shop-relogio"></div>
   </div>
 </div>
 
@@ -157,62 +157,62 @@
     }
   }
 
-  function renderSumario() {
-    const s = STATUS;
-    document.getElementById('sum-ativos').textContent = nmFormatInt(s.apiarios.length);
-    document.getElementById('sum-producao').textContent = nmFormatInt(s.producao_hora) + '/h';
-    document.getElementById('sum-dia').textContent = nmFormatInt(s.producao_hora * 24) + '/dia';
-    document.getElementById('sum-flores').textContent = nmFormatInt(Math.floor(s.flores));
+  function formatarRelogioEnergia(minutosFracionados) {
+    const totalSeg = Math.max(0, Math.round(minutosFracionados * 60));
+    const h = Math.floor(totalSeg / 3600), m = Math.floor((totalSeg % 3600) / 60), s = totalSeg % 60;
+    return [h, m, s].map(n => String(n).padStart(2, '0')).join(':');
   }
 
+  function formatarValidadeApiario(a) {
+    if (!a.expira_em) return 'Nunca expira';
+    const expiraEm = new Date(a.expira_em.replace(' ', 'T') + 'Z');
+    if (!a.ativo) return `Expirou em ${expiraEm.toLocaleDateString('pt-BR')}`;
+    const diasRestantes = Math.ceil((expiraEm - new Date()) / 86400000);
+    return diasRestantes <= 1 ? 'Expira em menos de 1 dia' : `Expira em ${diasRestantes} dias`;
+  }
+
+  function renderSumario() {
+    const s = STATUS;
+    document.getElementById('sum-ativos').textContent = nmFormatInt(s.apiarios.filter(a => a.ativo).length);
+    document.getElementById('sum-producao').textContent = nmFormatInt(s.producao_hora) + '/h';
+    document.getElementById('sum-reservatorio').textContent = `${nmFormat(s.reservatorio.atual, 1)} / ${nmFormatInt(s.reservatorio.capacidade)} L`;
+    document.getElementById('sum-flores').textContent = formatarRelogioEnergia(s.energia.flores_restantes);
+  }
+
+  // Cada apiário aparece individualmente — cada um tem seu próprio contrato
+  // de validade (30/45/60 dias, ou "nunca expira" no caso do gratuito), então
+  // agrupar por tipo esconderia informação importante de transparência.
   function renderApiarios() {
     const grid = document.getElementById('machines-grid');
-    const contagem = {};
-    for (const a of STATUS.apiarios) contagem[a.tipo] = (contagem[a.tipo] || 0) + 1;
-
-    const tipos = Object.keys(contagem);
-    if (tipos.length === 0) {
+    if (!STATUS.apiarios.length) {
       grid.innerHTML = `
         <div class="add-machine-card" onclick="abrirLoja()" style="cursor:pointer;grid-column:1/-1;">
           <i class="fa-solid fa-plus"></i>
           <span>Você ainda não tem nenhum apiário</span>
-          <small style="color:var(--texto3);font-size:11px;">A partir de ${nmFormatInt(STATUS.loja.apiarios.iniciante.preco)} NCT</small>
         </div>`;
       return;
     }
 
-    let html = '';
-    for (const tipo of tipos) {
-      const spec = STATUS.loja.apiarios[tipo];
-      const qtd = contagem[tipo];
-      html += `
+    let html = STATUS.apiarios.map(a => `
         <div class="machine-card">
           <div class="machine-card-header">
-            <img class="machine-emoji" src="${spec.imagem}" alt="${spec.nome}"/>
-            <div><h3>${spec.nome}</h3><div class="level">${qtd}x possuído${qtd > 1 ? 's' : ''}</div></div>
-            <span class="machine-badge-status badge-ativo">ATIVO</span>
+            <img class="machine-emoji" src="${a.imagem}" alt="${a.nome}" onerror="this.style.display='none'"/>
+            <div><h3>${a.nome}</h3><div class="level">${formatarValidadeApiario(a)}</div></div>
+            <span class="machine-badge-status ${a.ativo ? 'badge-ativo' : ''}" ${a.ativo ? '' : 'style="background:rgba(255,255,255,.06);color:var(--texto3);border:1px solid var(--borda2);"'}>${a.ativo ? 'ATIVO' : 'EXPIRADO'}</span>
           </div>
           <div class="machine-card-body">
             <div class="machine-stats">
-              <div class="mstat"><label>Produção unitária</label><strong>${spec.producao}/h</strong></div>
-              <div class="mstat"><label>Custo flores unit.</label><strong>${spec.energia}/h</strong></div>
-              <div class="mstat"><label>Produção total</label><strong>${nmFormatInt(spec.producao * qtd)}/h</strong></div>
-              <div class="mstat"><label>${spec.bloqueado ? 'Limite atingido' : 'Próximo custa'}</label><strong>${spec.bloqueado ? '—' : nmFormatInt(spec.preco_atual) + ' NCT'}</strong></div>
-            </div>
-            <div class="machine-card-footer">
-              <button class="btn btn-sm btn-primary" ${spec.bloqueado ? 'disabled' : ''} onclick="comprarApiario('${tipo}')">
-                <i class="fa-solid fa-plus"></i> Comprar mais um
-              </button>
+              <div class="mstat"><label>Produção</label><strong>${a.ativo ? a.producao + ' L/h' : '— (expirado)'}</strong></div>
+              <div class="mstat"><label>Origem</label><strong>${a.origem === 'inicial' ? 'Gratuito' : a.origem === 'meta' ? 'Meta de indicação' : 'Compra'}</strong></div>
             </div>
           </div>
-        </div>`;
-    }
+        </div>`).join('');
 
     html += `
       <div class="add-machine-card" onclick="abrirLoja()" style="cursor:pointer;">
         <i class="fa-solid fa-plus"></i>
         <span>Comprar novo apiário</span>
-        <small style="color:var(--texto3);font-size:11px;">Veja todos os tipos na loja</small>
+        <small style="color:var(--texto3);font-size:11px;">Até 3 ativos de cada tipo</small>
       </div>`;
     grid.innerHTML = html;
   }
@@ -222,39 +222,46 @@
 
     document.getElementById('shop-apiarios').innerHTML = Object.values(l.apiarios).map(spec => `
       <div class="shop-item">
-        <img class="shop-img" src="${spec.imagem}" alt="${spec.nome}"/>
+        <img class="shop-img" src="${spec.imagem}" alt="${spec.nome}" onerror="this.style.display='none'"/>
         <h4>${spec.nome}</h4>
-        <p>${spec.producao} potes/h · ${spec.energia} flores/h · ${spec.possui} possuído(s)</p>
+        <p>${spec.producao} L/h · contrato de ${spec.dias} dias · ${spec.possui_ativos}/${spec.max} ativos</p>
         ${spec.bloqueado
           ? `<div class="price maxed">Limite de ${spec.max} atingido</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
-          : `<div class="price">${nmFormatInt(spec.preco_atual)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarApiario('${spec.tipo}')">Comprar</button>`
+          : `<div class="price">${nmFormatInt(spec.preco)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarApiario('${spec.tipo}')">Comprar</button>`
         }
       </div>
     `).join('');
 
-    const cap = l.capacidade;
+    const res = l.reservatorio;
     document.getElementById('shop-capacidade').innerHTML = `
       <div class="shop-item">
         <div class="emoji">🏺</div>
-        <h4>+${cap.incremento} de capacidade</h4>
-        <p>Atual: ${nmFormatInt(cap.atual)} · Compras: ${cap.compras}/${cap.max_compras}</p>
-        ${cap.proximo_preco === null
-          ? `<div class="price maxed">Limite atingido</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
-          : `<div class="price">${nmFormatInt(cap.proximo_preco)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarCapacidade()">Comprar</button>`
+        <h4>+${res.incremento} L de capacidade</h4>
+        <p>Atual: ${nmFormatInt(res.atual_capacidade)} L · Compras: ${res.compras}/${res.max_compras} (máx. ${res.capacidade_maxima} L)</p>
+        ${res.proximo_preco === null
+          ? `<div class="price maxed">Capacidade máxima atingida</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
+          : `<div class="price">${nmFormatInt(res.proximo_preco)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarCapacidade()">Comprar</button>`
         }
       </div>`;
 
-    const rel = l.relogio;
+    // Relógio de energia: compra em quantidade livre (sem limite), 2 NCT por
+    // flor (minuto) — o input só mostra o cálculo em tempo real (quantidade ×
+    // preço), a compra de verdade é sempre validada e cobrada no servidor.
+    const flor = l.flor;
     document.getElementById('shop-relogio').innerHTML = `
-      <div class="shop-item">
+      <div class="shop-item" style="max-width:280px;">
         <div class="emoji">🌼</div>
-        <h4>+${rel.flores_por_compra} Flores</h4>
-        <p>Compras: ${rel.compras}/${rel.max_compras}</p>
-        ${rel.proximo_preco === null
-          ? `<div class="price maxed">Limite atingido</div><button class="btn btn-sm btn-block" disabled>Indisponível</button>`
-          : `<div class="price">${nmFormatInt(rel.proximo_preco)} NCT</div><button class="btn btn-sm btn-primary btn-block" onclick="comprarRelogio()">Comprar</button>`
-        }
+        <h4>Comprar flores (minutos de energia)</h4>
+        <p>${nmFormatInt(flor.preco_nct)} NCT por flor (1 flor = 1 minuto), sem limite de compra.</p>
+        <input type="number" id="flor-minutos" min="1" step="1" value="60" style="width:100%;margin-bottom:8px;padding:8px;border-radius:6px;border:1px solid var(--borda2);background:rgba(0,0,0,.3);color:var(--branco);text-align:center;" oninput="atualizarPrecoFlores()"/>
+        <div class="price" id="flor-preco-preview">${nmFormatInt(60 * flor.preco_nct)} NCT</div>
+        <button class="btn btn-sm btn-primary btn-block" onclick="comprarRelogio()">Comprar</button>
       </div>`;
+  }
+
+  function atualizarPrecoFlores() {
+    const qtd = Math.max(1, Math.floor(Number(document.getElementById('flor-minutos').value) || 0));
+    document.getElementById('flor-preco-preview').textContent = nmFormatInt(qtd * STATUS.loja.flor.preco_nct) + ' NCT';
   }
 
   function abrirLoja() { document.getElementById('shop').classList.add('open'); }
@@ -264,7 +271,7 @@
     const spec = STATUS.loja.apiarios[tipo];
     const { isConfirmed } = await NM_SWAL.confirm(
       `Comprar ${spec.nome}`,
-      `Custo: <strong>${nmFormatInt(spec.preco_atual)} NCT</strong><br/>Este apiário será ativado imediatamente.`
+      `Custo: <strong>${nmFormatInt(spec.preco)} NCT</strong><br/>Contrato de uso: <strong>${spec.dias} dias</strong>. Este apiário será ativado imediatamente.`
     );
     if (!isConfirmed) return;
     try {
@@ -277,32 +284,33 @@
   }
 
   async function comprarCapacidade() {
-    const cap = STATUS.loja.capacidade;
+    const res = STATUS.loja.reservatorio;
     const { isConfirmed } = await NM_SWAL.confirm(
-      'Ampliar Capacidade',
-      `Custo: <strong>${nmFormatInt(cap.proximo_preco)} NCT</strong><br/>+${cap.incremento} de capacidade no reservatório.`
+      'Ampliar Reservatório',
+      `Custo: <strong>${nmFormatInt(res.proximo_preco)} NCT</strong><br/>+${res.incremento} L de capacidade.`
     );
     if (!isConfirmed) return;
     try {
       await NM_API.comprarCapacidade();
       await carregar();
-      NM_SWAL.success('Capacidade ampliada!', 'Seu reservatório agora comporta mais mel.');
+      NM_SWAL.success('Reservatório ampliado!', 'Seu reservatório agora comporta mais mel.');
     } catch (e) {
       NM_SWAL.error('Ops!', e.message);
     }
   }
 
   async function comprarRelogio() {
-    const rel = STATUS.loja.relogio;
+    const qtd = Math.max(1, Math.floor(Number(document.getElementById('flor-minutos').value) || 0));
+    const custo = qtd * STATUS.loja.flor.preco_nct;
     const { isConfirmed } = await NM_SWAL.confirm(
       'Comprar Flores',
-      `Custo: <strong>${nmFormatInt(rel.proximo_preco)} NCT</strong><br/>+${rel.flores_por_compra} flores imediatamente.`
+      `Custo: <strong>${nmFormatInt(custo)} NCT</strong><br/>+${nmFormatInt(qtd)} minutos de energia.`
     );
     if (!isConfirmed) return;
     try {
-      await NM_API.comprarRelogio();
+      const r = await NM_API.comprarRelogio(qtd);
       await carregar();
-      NM_SWAL.success('Flores recarregadas!', `+${rel.flores_por_compra} flores adicionadas.`);
+      NM_SWAL.success('Flores recarregadas!', `+${nmFormatInt(r.flores_compradas)} minutos de energia adicionados.`);
     } catch (e) {
       NM_SWAL.error('Ops!', e.message);
     }

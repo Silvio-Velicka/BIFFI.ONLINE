@@ -77,11 +77,16 @@
 
     <div class="missoes-banner">
       <h1><i class="fa-solid fa-scroll"></i> Central de Missões</h1>
-      <p>Complete tarefas diárias, evolua sua operação e receba recompensas em Néctar, XP e Energia.</p>
+      <p>Complete tarefas diárias e receba recompensas em Néctar, potes e flores (energia). As metas diárias resetam <strong id="reset-info">às 21:00 (horário de Brasília)</strong>.</p>
     </div>
 
     <div class="missoes-grid" id="missoes-grid">
       <div style="color:var(--texto3);font-size:13px;">Carregando desafios...</div>
+    </div>
+
+    <h2 style="font-size:16px;color:var(--branco);margin:26px 0 14px;"><i class="fa-solid fa-user-group" style="color:var(--amarelo)"></i> Metas de Indicação (únicas)</h2>
+    <div class="missoes-grid" id="missoes-unicas-grid">
+      <div style="color:var(--texto3);font-size:13px;">Carregando...</div>
     </div>
 
     <!-- Propagandas do rodapé -->
@@ -98,21 +103,26 @@
 <script src="js/api.js"></script>
 <script>
   const ICONES_META = {
-    login_diario: '🎁', extrair_potes: '🍯', recarregar_energia: '⚡',
-    comprar_mercado: '📈', vender_mercado: '💰', producao_industrial: '🏭',
+    checkin: '🎁', vender_50: '💰', vender_100: '💰', vender_1000: '💰',
   };
+  const ICONES_META_UNICA = { indicar_50: '👥', indicar_100: '👥', indicar_500: '👥' };
+  const NOMES_APIARIO = { favo1: 'Favo 1 (Iniciante)', favo2: 'Favo 2 (Regular)', favo3: 'Favo 3 (Adeptos)' };
 
   document.addEventListener('nm:ready', carregarDesafios);
 
   async function carregarDesafios() {
     const grid = document.getElementById('missoes-grid');
+    const gridUnicas = document.getElementById('missoes-unicas-grid');
     try {
-      const { metas } = await NM_API.desafios();
+      const { metas, metas_unicas, reset_diario } = await NM_API.desafios();
+      if (reset_diario) document.getElementById('reset-info').textContent = reset_diario;
+
       grid.innerHTML = metas.map(m => {
         const pct = Math.min(100, m.progresso / m.target * 100);
         const rewards = `
           <span class="reward-chip nct">Néctar +${nmFormatInt(m.reward_nct)}</span>
-          ${m.reward_flores > 0 ? `<span class="reward-chip flores">Energia +${m.reward_flores}</span>` : ''}
+          ${m.reward_flores > 0 ? `<span class="reward-chip flores">Flores +${nmFormatInt(m.reward_flores)}</span>` : ''}
+          ${m.reward_potes > 0 ? `<span class="reward-chip xp">Potes +${nmFormatInt(m.reward_potes)}</span>` : ''}
         `;
         let btn;
         if (m.resgatada) btn = `<button class="mcard-btn coletada" disabled>Coletada</button>`;
@@ -135,6 +145,31 @@
             ${btn}
           </div>`;
       }).join('');
+
+      gridUnicas.innerHTML = (metas_unicas || []).map(m => {
+        const pct = Math.min(100, m.progresso / m.target * 100);
+        const rewards = m.apiarios.map(tipo => `<span class="reward-chip xp">${NOMES_APIARIO[tipo] || tipo}</span>`).join('');
+        let btn;
+        if (m.resgatada) btn = `<button class="mcard-btn coletada" disabled>Coletada</button>`;
+        else if (m.completa) btn = `<button class="mcard-btn coletar" onclick="resgatar('${m.chave}')">Coletar</button>`;
+        else btn = `<button class="mcard-btn andamento" disabled>Em andamento</button>`;
+
+        return `
+          <div class="mcard">
+            <div class="mcard-head">
+              <h4>${m.titulo}</h4>
+              <div class="mcard-icon">${ICONES_META_UNICA[m.chave] || '🎯'}</div>
+            </div>
+            <p class="mcard-desc">${m.descricao} Os apiários somam aos que você já tem, mesmo além do limite normal de 3.</p>
+            <span class="mcard-tipo">Missão única</span>
+            <div>
+              <div class="mcard-progress-label"><span>Amigos indicados</span><span>${nmFormatInt(m.progresso)} / ${nmFormatInt(m.target)}</span></div>
+              <div class="progress-bar ${m.completa ? 'progress-bar-verde' : ''}"><div class="progress-fill ${m.completa ? 'progress-fill-verde' : ''}" style="width:${pct}%"></div></div>
+            </div>
+            <div class="mcard-rewards">${rewards}</div>
+            ${btn}
+          </div>`;
+      }).join('');
     } catch (e) {
       grid.innerHTML = `<div style="color:var(--texto3);font-size:13px;">Não foi possível carregar os desafios.</div>`;
     }
@@ -144,7 +179,11 @@
     try {
       const r = await NM_API.resgatarDesafio(chave);
       await carregarDesafios();
-      NM_SWAL.success('Recompensa coletada!', `+${nmFormatInt(r.reward_nct)} NCT${r.reward_flores > 0 ? ` · +${r.reward_flores} flores` : ''}`);
+      if (r.apiarios_ganhos) {
+        NM_SWAL.success('Recompensa coletada!', `Você ganhou: ${r.apiarios_ganhos.map(t => NOMES_APIARIO[t] || t).join(', ')}`);
+      } else {
+        NM_SWAL.success('Recompensa coletada!', `+${nmFormatInt(r.reward_nct)} NCT${r.reward_flores > 0 ? ` · +${nmFormatInt(r.reward_flores)} flores` : ''}${r.reward_potes > 0 ? ` · +${nmFormatInt(r.reward_potes)} potes` : ''}`);
+      }
     } catch (e) {
       NM_SWAL.error('Ops!', e.message);
     }

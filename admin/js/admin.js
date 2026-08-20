@@ -166,4 +166,20 @@ const BiffiAdmin = {
   criarNovidade(payload) { return this._fetch('/api/admin/novidades', 'POST', payload); },
   atualizarNovidade(id, payload) { return this._fetch(`/api/admin/novidades/${id}`, 'PUT', payload); },
   excluirNovidade(id) { return this._fetch(`/api/admin/novidades/${id}`, 'DELETE'); },
+
+  /* ── NECTARMINE: MERCADO (preço do pote de mel) ── */
+  getMercado() { return this._fetch('/api/admin/mercado'); },
+  salvarMercado(payload) { return this._fetch('/api/admin/mercado', 'PUT', payload); },
+
+  /* ── NECTARMINE: CARTEIRA (conversões NCT→R$, doações, descontos na
+     lojinha e saques PIX de todos os jogadores). Filtros opcionais por
+     status (ex.: "pendente") e/ou tipo (ex.: "saque_pix"). */
+  getCarteira(filtros = {}) {
+    const params = new URLSearchParams();
+    if (filtros.status) params.set('status', filtros.status);
+    if (filtros.tipo) params.set('tipo', filtros.tipo);
+    const qs = params.toString();
+    return this._fetch('/api/admin/carteira' + (qs ? `?${qs}` : ''));
+  },
+  atualizarCarteira(id, payload) { return this._fetch(`/api/admin/carteira/${id}`, 'PUT', payload); },
 };

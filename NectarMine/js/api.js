@@ -57,25 +57,32 @@ const NM_API = {
   // Modal comunicativo da tela de login (conteúdo editável no futuro painel admin)
   announcement: () => NM_API.call('/api/announcement'),
 
-  /* ── Jogo (economia real: apiários, produção, loja) ── */
+  /* ── Jogo (economia real: apiários, reservatório único, relógio de energia único) ── */
   jogoStatus: () => NM_API.call('/api/jogo/status'),
   envasar: () => NM_API.call('/api/jogo/envasar', 'POST'),
   comprarApiario: (tipo) => NM_API.call('/api/loja/apiario', 'POST', { tipo }),
   comprarCapacidade: () => NM_API.call('/api/loja/capacidade', 'POST'),
-  comprarRelogio: () => NM_API.call('/api/loja/relogio', 'POST'),
+  // minutos = quantas flores (1 flor = 1 minuto, 2 NCT cada) comprar de uma vez — sem limite.
+  comprarRelogio: (minutos) => NM_API.call('/api/loja/relogio', 'POST', { minutos }),
 
-  /* ── Desafios (metas diárias) ── */
+  /* ── Desafios (metas diárias, resetam às 21h de Brasília + metas únicas de indicação) ── */
   desafios: () => NM_API.call('/api/desafios'),
   resgatarDesafio: (chave) => NM_API.call('/api/desafios/resgatar', 'POST', { chave }),
 
-  /* ── Amigos (referral) ── */
+  /* ── Amigos (referral: comissão vitalícia de 10% sobre vendas do indicado) ── */
   amigos: () => NM_API.call('/api/amigos'),
   resgatarBonusAmigos: () => NM_API.call('/api/amigos/resgatar', 'POST'),
 
-  /* ── Mercado (compra/venda real de potes) ── */
+  /* ── Mercado (venda real de potes — preço configurável no admin) ── */
   mercado: () => NM_API.call('/api/mercado'),
   venderMercado: (quantidade) => NM_API.call('/api/mercado/vender', 'POST', { quantidade }),
-  comprarMercado: (quantidade) => NM_API.call('/api/mercado/comprar', 'POST', { quantidade }),
+
+  /* ── Carteira (swap NCT→R$, doação, desconto na lojinha, saque PIX) ── */
+  carteira: () => NM_API.call('/api/carteira'),
+  swapCarteira: (nct) => NM_API.call('/api/carteira/swap', 'POST', { nct }),
+  doarCarteira: (reais) => NM_API.call('/api/carteira/doar', 'POST', { reais }),
+  descontoLojaCarteira: (reais) => NM_API.call('/api/carteira/desconto-loja', 'POST', { reais }),
+  saquePixCarteira: (reais, chave_pix) => NM_API.call('/api/carteira/saque-pix', 'POST', { reais, chave_pix }),
 };
 
 /* ── GUARD DE AUTENTICAÇÃO ──

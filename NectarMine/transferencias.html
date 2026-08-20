@@ -21,19 +21,6 @@
     .balance-extra strong { display:block; color:var(--texto3); font-size:12px; }
     .balance-extra span { color:var(--verde); font-weight:bold; font-size:13px; }
 
-    /* Crypto grid */
-    .crypto-grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:12px; margin-bottom:20px; }
-    .crypto-btn {
-      background:var(--card); backdrop-filter:blur(10px);
-      border:1px solid var(--borda2); border-radius:var(--radius-sm); padding:12px;
-      text-align:center; transition:all .2s; cursor:pointer;
-    }
-    .crypto-btn:hover { border-color:var(--borda); }
-    .crypto-btn.selected { border-color:var(--amarelo); background:var(--amarelo-bg); }
-    .crypto-btn .csymbol { font-size:22px; font-weight:bold; margin-bottom:4px; color:var(--branco); }
-    .crypto-btn .cname { font-size:10px; color:var(--texto3); }
-    .crypto-btn .crate { font-size:12px; color:var(--amarelo); margin-top:4px; }
-
     /* Form saque */
     .saque-card {
       background:var(--card); backdrop-filter:blur(10px);
@@ -86,89 +73,78 @@
 
     <!-- Saldo -->
     <div class="nectar-balance">
-      <div class="balance-icon" style="font-size:40px;">💎</div>
+      <div class="balance-icon" style="font-size:40px;">🍯</div>
       <div>
-        <div class="balance-big">48.320 NCT</div>
-        <span>Saldo disponível para saque</span>
+        <div class="balance-big" id="saldo-nct">0 NCT</div>
+        <span>Seu saldo de Néctar</span>
       </div>
       <div class="balance-extra">
-        <strong>Mínimo para saque:</strong>
-        <span>20.000 NCT</span>
+        <strong>Saldo em Reais (carteira):</strong>
+        <span id="saldo-reais">R$ 0,00</span>
       </div>
     </div>
 
     <div class="transf-layout">
       <!-- FORM -->
       <div>
+        <!-- Conversão NCT -> R$ -->
         <div class="saque-card">
-          <h3><i class="fa-solid fa-money-bill-transfer" style="color:var(--amarelo)"></i> Sacar em Criptomoeda</h3>
-          <p style="font-size:12px;color:var(--texto2);margin-bottom:16px;">Selecione a criptomoeda e informe o endereço para recebimento.</p>
+          <h3><i class="fa-solid fa-money-bill-transfer" style="color:var(--amarelo)"></i> Converter Néctar em Reais</h3>
+          <p style="font-size:12px;color:var(--texto2);margin-bottom:16px;">Taxa fixa: <strong id="taxa-label">1.000.000 NCT = R$ 1,00</strong>. Conversão mínima: <strong id="min-swap-label">10.000 NCT</strong>.</p>
 
-          <label class="input-label">Criptomoeda</label>
-          <div class="crypto-grid">
-            <div class="crypto-btn selected" id="crypto-USDT" onclick="selectCrypto('USDT',0.000038)">
-              <div class="csymbol">₮ USDT</div>
-              <div class="cname">Tether (TRC20)</div>
-              <div class="crate">1 NCT = $0.000038</div>
-            </div>
-            <div class="crypto-btn" id="crypto-DOGE" onclick="selectCrypto('DOGE',0.00052)">
-              <div class="csymbol">Ð DOGE</div>
-              <div class="cname">Dogecoin</div>
-              <div class="crate">1 NCT = 0.00052 DOGE</div>
-            </div>
-            <div class="crypto-btn" id="crypto-LTC" onclick="selectCrypto('LTC',0.0000024)">
-              <div class="csymbol">Ł LTC</div>
-              <div class="cname">Litecoin</div>
-              <div class="crate">1 NCT = 0.0000024 LTC</div>
-            </div>
-            <div class="crypto-btn" id="crypto-TRX" onclick="selectCrypto('TRX',0.0048)">
-              <div class="csymbol">⚡ TRX</div>
-              <div class="cname">TRON</div>
-              <div class="crate">1 NCT = 0.0048 TRX</div>
-            </div>
-            <div class="crypto-btn" id="crypto-DGB" onclick="selectCrypto('DGB',0.032)">
-              <div class="csymbol">◆ DGB</div>
-              <div class="cname">DigiByte</div>
-              <div class="crate">1 NCT = 0.032 DGB</div>
-            </div>
-          </div>
-
-          <label class="input-label">Quantidade de NCT para sacar</label>
-          <input type="number" class="saque-input" id="saque-qty" value="20000" min="20000" max="48320" oninput="calcSaque()"/>
+          <label class="input-label">Quantidade de NCT para converter</label>
+          <input type="number" class="saque-input" id="swap-qty" value="10000" min="10000" step="1" oninput="calcSwap()"/>
 
           <div class="conversion-box">
-            <span class="from" id="from-val">20.000 NCT</span>
+            <span class="from" id="swap-from-val">10.000 NCT</span>
             <span class="arrow">→</span>
-            <span class="to" id="to-val">$0.76 USDT</span>
+            <span class="to" id="swap-to-val">R$ 0,01</span>
           </div>
-
-          <label class="input-label">Endereço da carteira <span id="crypto-label">(USDT TRC20)</span></label>
-          <input type="text" class="saque-input" id="wallet-addr" placeholder="Informe o endereço da sua carteira"/>
 
           <div style="display:flex;gap:8px;margin-top:8px;">
-            <button class="btn btn-sm btn-secondary" onclick="setSaqueQty(20000)">20k</button>
-            <button class="btn btn-sm btn-secondary" onclick="setSaqueQty(30000)">30k</button>
-            <button class="btn btn-sm btn-secondary" onclick="setSaqueQty(48320)">Tudo</button>
+            <button class="btn btn-sm btn-secondary" onclick="setSwapQty(10000)">10 mil</button>
+            <button class="btn btn-sm btn-secondary" onclick="setSwapQty(100000)">100 mil</button>
+            <button class="btn btn-sm btn-secondary" onclick="setSwapQtyMax()">Tudo</button>
           </div>
 
-          <button class="btn btn-primary btn-lg btn-block" onclick="sacar()" style="margin-top:16px;">
-            <i class="fa-solid fa-paper-plane"></i> Solicitar Saque
+          <button class="btn btn-primary btn-lg btn-block" onclick="converter()" style="margin-top:16px;">
+            <i class="fa-solid fa-right-left"></i> Converter para Reais
           </button>
-          <p style="font-size:11px;color:var(--texto3);text-align:center;margin-top:8px;">Processamento: até 24h · Limite: 3 saques/dia</p>
+        </div>
+
+        <!-- Uso do saldo em Reais -->
+        <div class="saque-card">
+          <h3><i class="fa-solid fa-wallet" style="color:var(--amarelo)"></i> Usar Saldo em Reais</h3>
+          <p style="font-size:12px;color:var(--texto2);margin-bottom:16px;">Seu saldo em R$ pode ser doado, usado como desconto na lojinha, ou sacado via PIX.</p>
+
+          <label class="input-label">Valor em R$</label>
+          <input type="number" class="saque-input" id="uso-valor" value="0" min="0" step="0.01"/>
+
+          <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap;">
+            <button class="btn btn-sm btn-roxo" onclick="doar()"><i class="fa-solid fa-heart"></i> Doar à Biblioteca de Oração</button>
+            <button class="btn btn-sm btn-secondary" onclick="descontoLoja()"><i class="fa-solid fa-tag"></i> Reservar desconto na lojinha</button>
+          </div>
+
+          <div style="margin-top:18px;padding-top:14px;border-top:1px solid var(--borda2);">
+            <label class="input-label" style="margin-top:0;">Chave PIX (para saque)</label>
+            <input type="text" class="saque-input" id="chave-pix" placeholder="CPF, e-mail, telefone ou chave aleatória"/>
+            <p style="font-size:11px;color:var(--texto3);margin-top:6px;">Saque mínimo: <strong id="pix-min-label">R$ 1,20</strong>. Processado manualmente em alguns dias úteis.</p>
+            <button class="btn btn-primary btn-block" onclick="saquePix()" style="margin-top:8px;">
+              <i class="fa-solid fa-paper-plane"></i> Solicitar Saque PIX
+            </button>
+          </div>
         </div>
 
         <!-- Histórico -->
         <div style="background:var(--card);backdrop-filter:blur(10px);border:1px solid var(--borda2);border-radius:var(--radius);overflow:hidden;">
           <div style="padding:14px 18px;border-bottom:1px solid var(--borda2);">
-            <h3 style="font-size:14px;color:var(--branco);">📋 Histórico de Saques</h3>
+            <h3 style="font-size:14px;color:var(--branco);">📋 Histórico da Carteira</h3>
           </div>
           <div style="overflow-x:auto;padding:4px;">
             <table class="hist-table">
-              <thead><tr><th>Data</th><th>Crypto</th><th>NCT</th><th>Valor</th><th>Status</th></tr></thead>
-              <tbody>
-                <tr><td>25/06/2026</td><td>USDT</td><td>25.000</td><td>$0.95</td><td><span class="status-tag ok">Confirmado</span></td></tr>
-                <tr><td>18/06/2026</td><td>DOGE</td><td>30.000</td><td>15.6 DOGE</td><td><span class="status-tag ok">Confirmado</span></td></tr>
-                <tr><td>10/06/2026</td><td>USDT</td><td>20.000</td><td>$0.76</td><td><span class="status-tag ok">Confirmado</span></td></tr>
+              <thead><tr><th>Data</th><th>Tipo</th><th>NCT</th><th>Valor (R$)</th><th>Status</th></tr></thead>
+              <tbody id="hist-carteira">
+                <tr><td colspan="5" style="color:var(--texto3);">Carregando...</td></tr>
               </tbody>
             </table>
           </div>
@@ -179,12 +155,12 @@
       <!-- ASIDE -->
       <div>
         <div class="rules-card">
-          <h3 style="font-size:14px;color:var(--branco);margin-bottom:12px;">📋 Regras de Saque</h3>
-          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Mínimo: <strong style="color:var(--amarelo)">20.000 NCT</strong> por saque.</span></div>
-          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Máximo: <strong>3 saques</strong> por dia.</span></div>
-          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Processamento: <strong>até 24 horas</strong> úteis.</span></div>
-          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Taxa de saque: <strong style="color:var(--verde)">0%</strong> (grátis).</span></div>
-          <div class="rule-item"><i class="fa-solid fa-triangle-exclamation" style="color:var(--vermelho);"></i><span>Verifique o endereço — transações não são reversíveis.</span></div>
+          <h3 style="font-size:14px;color:var(--branco);margin-bottom:12px;">📋 Regras da Carteira</h3>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Conversão mínima: <strong style="color:var(--amarelo)">10.000 NCT</strong>, sem valor máximo.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Taxa fixa: <strong>1.000.000 NCT = R$ 1,00</strong>.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>Saque PIX mínimo: <strong>R$ 1,20</strong>, processado manualmente.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-circle-info"></i><span>O saldo em R$ também pode ser doado ou usado como desconto na lojinha.</span></div>
+          <div class="rule-item"><i class="fa-solid fa-triangle-exclamation" style="color:var(--vermelho);"></i><span>Confira a chave PIX — pedidos já enviados não podem ser alterados, só cancelados pelo admin.</span></div>
         </div>
 
         <div class="anuncio anuncio-300" style="margin-bottom:14px;"><iframe src="https://zerads.com/ad/ad.php?width=300&ref=11517" marginwidth="0" marginheight="0" width="300" height="250" scrolling="no" border="0" frameborder="0"></iframe></div>
@@ -202,36 +178,144 @@
 <script src="js/global.js"></script>
 <script src="js/api.js"></script>
 <script>
-  let currentCrypto = 'USDT', currentRate = 0.000038;
+  let WALLET = { nct: 0, saldo_reais: 0, taxa_nct_por_real: 1000000, swap_minimo_nct: 10000, pix_minimo_reais: 1.20 };
 
-  function selectCrypto(symbol, rate) {
-    document.querySelectorAll('.crypto-btn').forEach(b=>b.classList.remove('selected'));
-    document.getElementById('crypto-'+symbol).classList.add('selected');
-    currentCrypto = symbol; currentRate = rate;
-    document.getElementById('crypto-label').textContent = '('+symbol+')';
-    calcSaque();
+  const TIPO_LABEL = {
+    swap: 'Conversão NCT→R$', doacao: 'Doação', desconto_loja: 'Desconto lojinha', saque_pix: 'Saque PIX',
+  };
+  const STATUS_LABEL = {
+    concluido: 'Concluído', disponivel: 'Disponível', pendente: 'Pendente', pago: 'Pago', cancelado: 'Cancelado',
+  };
+  const STATUS_CLASS = {
+    concluido: 'ok', disponivel: 'ok', pago: 'ok', pendente: 'pend', cancelado: 'pend',
+  };
+
+  document.addEventListener('nm:ready', carregarCarteira);
+
+  async function carregarCarteira() {
+    try {
+      const c = await NM_API.carteira();
+      WALLET = c;
+      document.getElementById('saldo-nct').textContent = nmFormatInt(c.nct) + ' NCT';
+      document.getElementById('saldo-reais').textContent = 'R$ ' + nmFormat(c.saldo_reais, 2);
+      document.getElementById('taxa-label').textContent = nmFormatInt(c.taxa_nct_por_real) + ' NCT = R$ 1,00';
+      document.getElementById('min-swap-label').textContent = nmFormatInt(c.swap_minimo_nct) + ' NCT';
+      document.getElementById('pix-min-label').textContent = 'R$ ' + nmFormat(c.pix_minimo_reais, 2);
+
+      const qtyEl = document.getElementById('swap-qty');
+      if (!qtyEl.value || Number(qtyEl.value) < c.swap_minimo_nct) qtyEl.value = c.swap_minimo_nct;
+      qtyEl.min = c.swap_minimo_nct;
+      calcSwap();
+
+      const hist = document.getElementById('hist-carteira');
+      if (!c.historico || !c.historico.length) {
+        hist.innerHTML = `<tr><td colspan="5" style="color:var(--texto3);">Nenhuma movimentação ainda.</td></tr>`;
+      } else {
+        hist.innerHTML = c.historico.map(h => {
+          const data = new Date(h.created_at + 'Z').toLocaleString('pt-BR', { dateStyle:'short', timeStyle:'short' });
+          const nctCol = h.nct ? nmFormatInt(h.nct) : '—';
+          const reaisCol = h.reais ? 'R$ ' + nmFormat(h.reais, 2) : '—';
+          return `<tr>
+            <td>${data}</td>
+            <td>${TIPO_LABEL[h.tipo] || h.tipo}</td>
+            <td>${nctCol}</td>
+            <td>${reaisCol}</td>
+            <td><span class="status-tag ${STATUS_CLASS[h.status] || 'pend'}">${STATUS_LABEL[h.status] || h.status}</span></td>
+          </tr>`;
+        }).join('');
+      }
+    } catch (e) {
+      NM_SWAL.error('Ops!', 'Não foi possível carregar sua carteira.');
+    }
   }
 
-  function calcSaque() {
-    const qty = parseInt(document.getElementById('saque-qty').value)||0;
-    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
-    document.getElementById('from-val').textContent = nmFormatInt(qty)+' NCT';
-    document.getElementById('to-val').textContent   = converted+' '+currentCrypto;
+  function calcSwap() {
+    const qty = Math.max(0, parseInt(document.getElementById('swap-qty').value) || 0);
+    const reais = qty / (WALLET.taxa_nct_por_real || 1000000);
+    document.getElementById('swap-from-val').textContent = nmFormatInt(qty) + ' NCT';
+    document.getElementById('swap-to-val').textContent = 'R$ ' + nmFormat(reais, 2);
   }
 
-  function setSaqueQty(n) { document.getElementById('saque-qty').value=n; calcSaque(); }
+  function setSwapQty(n) { document.getElementById('swap-qty').value = n; calcSwap(); }
+  function setSwapQtyMax() { document.getElementById('swap-qty').value = WALLET.nct; calcSwap(); }
 
-  async function sacar() {
-    const qty = parseInt(document.getElementById('saque-qty').value)||0;
-    const addr = document.getElementById('wallet-addr').value.trim();
-    if (!addr) { NM_SWAL.error('Endereço inválido','Informe o endereço da sua carteira.'); return; }
-    const converted = (qty * currentRate).toFixed(currentRate < 0.001 ? 8 : 4);
-    const {isConfirmed} = await NM_SWAL.withAd(
-      '💸 Confirmar Saque',
-      `Sacar <strong>${nmFormatInt(qty)} NCT</strong> → <strong>${converted} ${currentCrypto}</strong><br/>Para: <code style="font-size:11px;color:var(--texto2);">${addr.substring(0,20)}...</code>`,
-      'Confirmar Saque', 'ad-saque-modal'
+  async function converter() {
+    const qty = Math.max(0, parseInt(document.getElementById('swap-qty').value) || 0);
+    if (qty < WALLET.swap_minimo_nct) { NM_SWAL.error('Valor muito baixo', `A conversão mínima é de ${nmFormatInt(WALLET.swap_minimo_nct)} NCT.`); return; }
+    if (qty > WALLET.nct) { NM_SWAL.error('Saldo insuficiente', 'Você não tem NCT suficiente para essa conversão.'); return; }
+    const reais = qty / (WALLET.taxa_nct_por_real || 1000000);
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '💱 Confirmar Conversão',
+      `Converter <strong>${nmFormatInt(qty)} NCT</strong> em <strong>R$ ${nmFormat(reais, 2)}</strong>?`,
+      'Confirmar Conversão', 'ad-swap-modal'
     );
-    if (isConfirmed) NM_SWAL.success('Saque solicitado!', `Seu saque de <strong>${converted} ${currentCrypto}</strong> foi registrado e será processado em até 24h.`);
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.swapCarteira(qty);
+      await carregarCarteira();
+      NM_SWAL.success('Convertido!', `+R$ ${nmFormat(r.reais_creditados, 2)} adicionados ao seu saldo em Reais.`);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  async function doar() {
+    const valor = Number(document.getElementById('uso-valor').value) || 0;
+    if (valor <= 0) { NM_SWAL.error('Valor inválido', 'Informe um valor em R$ maior que zero.'); return; }
+    if (valor > WALLET.saldo_reais) { NM_SWAL.error('Saldo insuficiente', 'Seu saldo em R$ é menor que esse valor.'); return; }
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '❤️ Confirmar Doação',
+      `Doar <strong>R$ ${nmFormat(valor, 2)}</strong> para a Biblioteca de Oração?`,
+      'Confirmar Doação', 'ad-doar-modal'
+    );
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.doarCarteira(valor);
+      await carregarCarteira();
+      NM_SWAL.success('Obrigado!', r.mensagem);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  async function descontoLoja() {
+    const valor = Number(document.getElementById('uso-valor').value) || 0;
+    if (valor <= 0) { NM_SWAL.error('Valor inválido', 'Informe um valor em R$ maior que zero.'); return; }
+    if (valor > WALLET.saldo_reais) { NM_SWAL.error('Saldo insuficiente', 'Seu saldo em R$ é menor que esse valor.'); return; }
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '🏷️ Reservar Desconto',
+      `Reservar <strong>R$ ${nmFormat(valor, 2)}</strong> como desconto para usar na lojinha?`,
+      'Confirmar Reserva', 'ad-desconto-modal'
+    );
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.descontoLojaCarteira(valor);
+      await carregarCarteira();
+      NM_SWAL.success('Desconto reservado!', r.mensagem);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
+  }
+
+  async function saquePix() {
+    const valor = Number(document.getElementById('uso-valor').value) || 0;
+    const chave = document.getElementById('chave-pix').value.trim();
+    if (valor < WALLET.pix_minimo_reais) { NM_SWAL.error('Valor muito baixo', `O saque mínimo é de R$ ${nmFormat(WALLET.pix_minimo_reais, 2)}.`); return; }
+    if (valor > WALLET.saldo_reais) { NM_SWAL.error('Saldo insuficiente', 'Seu saldo em R$ é menor que esse valor.'); return; }
+    if (!chave) { NM_SWAL.error('Chave PIX obrigatória', 'Informe sua chave PIX para receber o saque.'); return; }
+    const { isConfirmed } = await NM_SWAL.withAd(
+      '💸 Confirmar Saque PIX',
+      `Sacar <strong>R$ ${nmFormat(valor, 2)}</strong> via PIX para a chave:<br/><code style="font-size:11px;color:var(--texto2);">${chave}</code>`,
+      'Solicitar Saque', 'ad-pix-modal'
+    );
+    if (!isConfirmed) return;
+    try {
+      const r = await NM_API.saquePixCarteira(valor, chave);
+      await carregarCarteira();
+      NM_SWAL.success('Saque solicitado!', r.mensagem);
+    } catch (e) {
+      NM_SWAL.error('Ops!', e.message);
+    }
   }
 </script>
 

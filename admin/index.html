@@ -340,6 +340,12 @@
     <div class="nav-item" data-view="clientes">
       <span class="icon">👥</span> Clientes
     </div>
+    <div class="nav-item" data-view="mercado">
+      <span class="icon">🏪</span> Mercado
+    </div>
+    <div class="nav-item" data-view="carteira">
+      <span class="icon">💰</span> Carteira
+    </div>
     <div class="nav-item" data-view="doar-ebook">
       <span class="icon">🎁</span> Doar E-book
     </div>
@@ -556,6 +562,79 @@
       </div>
     </div>
 
+    <!-- ═══ VIEW: MERCADO (NectarMine) ═══ -->
+    <div class="view" id="view-mercado">
+      <h1>🏪 Mercado do NectarMine</h1>
+      <p class="subtitle">Preço pago por cada pote de mel vendido no mercado do jogo. A mudança vale imediatamente para todos os jogadores.</p>
+
+      <div class="card" style="max-width:420px;">
+        <form id="form-mercado">
+          <div class="field">
+            <label>Preço por pote (NCT)</label>
+            <input type="number" id="mk-preco" min="1" step="1" required>
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn-salvar" id="mk-btn-salvar">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar
+            </button>
+          </div>
+          <div class="save-msg" id="mk-msg"></div>
+        </form>
+      </div>
+    </div>
+
+    <!-- ═══ VIEW: CARTEIRA (NectarMine) ═══ -->
+    <div class="view" id="view-carteira">
+      <h1>💰 Carteira dos Jogadores</h1>
+      <p class="subtitle">Conversões de Néctar em Reais, doações à Biblioteca de Oração, descontos reservados para a lojinha e pedidos de saque via PIX de todos os jogadores.</p>
+
+      <div class="clientes-resumo" id="carteira-resumo"></div>
+
+      <div class="filtro-status">
+        <label>Tipo:</label>
+        <select id="carteira-filtro-tipo">
+          <option value="">Todos</option>
+          <option value="swap">Conversão NCT→R$</option>
+          <option value="doacao">Doação</option>
+          <option value="desconto_loja">Desconto lojinha</option>
+          <option value="saque_pix">Saque PIX</option>
+        </select>
+        <label>Status:</label>
+        <select id="carteira-filtro-status">
+          <option value="">Todos</option>
+          <option value="concluido">Concluído</option>
+          <option value="disponivel">Disponível</option>
+          <option value="pendente">Pendente</option>
+          <option value="pago">Pago</option>
+          <option value="cancelado">Cancelado</option>
+        </select>
+        <button type="button" class="btn-secundario" id="btn-atualizar-carteira" style="padding:8px 14px;font-size:12px;"><i class="fa-solid fa-rotate"></i> Atualizar</button>
+      </div>
+
+      <div class="card">
+        <div class="tabela-scroll">
+          <table class="tabela-clientes">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Data</th>
+                <th>Jogador</th>
+                <th>Tipo</th>
+                <th>NCT</th>
+                <th>Valor (R$)</th>
+                <th>Chave PIX</th>
+                <th>Nota</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="lista-carteira">
+              <tr><td colspan="9" style="font-size:12.5px;">Carregando...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- ═══ VIEW: DOAR E-BOOK ═══ -->
     <div class="view" id="view-doar-ebook">
       <h1>🎁 Doar E-book</h1>
@@ -679,6 +758,8 @@
         if (item.dataset.view === 'produtos') carregarProdutos();
         if (item.dataset.view === 'pedidos') carregarPedidos();
         if (item.dataset.view === 'clientes') carregarClientes();
+        if (item.dataset.view === 'mercado') carregarMercado();
+        if (item.dataset.view === 'carteira') carregarCarteiraAdmin();
         if (item.dataset.view === 'doar-ebook') carregarDoarEbook();
         if (item.dataset.view === 'contatos') carregarContatos();
         if (item.dataset.view === 'acessos') carregarAcessos();
@@ -1645,6 +1726,161 @@
       ].some(campo => (campo || '').toLowerCase().includes(termo)));
       renderizarClientes(filtrados);
     });
+
+    /* ═══ MERCADO (NectarMine) ═══ */
+    const formMercado = document.getElementById('form-mercado');
+    const msgMercado = document.getElementById('mk-msg');
+    let mercadoCarregado = false;
+
+    async function carregarMercado() {
+      if (mercadoCarregado) return;
+      try {
+        const { preco_pote } = await BiffiAdmin.getMercado();
+        document.getElementById('mk-preco').value = preco_pote;
+        mercadoCarregado = true;
+      } catch (err) {
+        msgMercado.className = 'save-msg err';
+        msgMercado.textContent = 'Não foi possível carregar o preço atual: ' + err.message;
+      }
+    }
+
+    formMercado.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('mk-btn-salvar');
+      btn.disabled = true;
+      msgMercado.className = 'save-msg';
+      msgMercado.style.display = 'none';
+      try {
+        const { preco_pote } = await BiffiAdmin.salvarMercado({ preco_pote: Number(document.getElementById('mk-preco').value) });
+        msgMercado.className = 'save-msg ok';
+        msgMercado.textContent = `✔ Salvo! Cada pote agora vale ${preco_pote} NCT no mercado.`;
+      } catch (err) {
+        msgMercado.className = 'save-msg err';
+        msgMercado.textContent = 'Erro ao salvar: ' + err.message;
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    /* ═══ CARTEIRA (NectarMine) — conversões, doações, descontos e saques PIX ═══
+       Busca tudo de uma vez (até 300 mais recentes) e filtra/renderiza no
+       navegador, igual ao módulo de Clientes — evita ida e volta ao servidor
+       toda vez que o admin troca o filtro. */
+    let carteiraCache = [];
+
+    const TIPO_LABEL_CARTEIRA = {
+      swap: 'Conversão NCT→R$', doacao: 'Doação', desconto_loja: 'Desconto lojinha', saque_pix: 'Saque PIX',
+    };
+    const STATUS_LABEL_CARTEIRA = {
+      concluido: 'Concluído', disponivel: 'Disponível', pendente: 'Pendente', pago: 'Pago', cancelado: 'Cancelado',
+    };
+
+    function formatarReaisCarteira(valor) {
+      return 'R$ ' + Number(valor || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    }
+
+    function atualizarResumoCarteira(lista) {
+      const pixPendentes = lista.filter(t => t.tipo === 'saque_pix' && t.status === 'pendente');
+      const valorPixPendente = pixPendentes.reduce((s, t) => s + (t.reais || 0), 0);
+      const doacoes = lista.filter(t => t.tipo === 'doacao' && t.status === 'concluido');
+      const valorDoacoes = doacoes.reduce((s, t) => s + (t.reais || 0), 0);
+      const descontosAbertos = lista.filter(t => t.tipo === 'desconto_loja' && t.status === 'disponivel');
+      const valorDescontos = descontosAbertos.reduce((s, t) => s + (t.reais || 0), 0);
+      document.getElementById('carteira-resumo').innerHTML = `
+        <div class="resumo-pill"><strong>${pixPendentes.length}</strong>⏳ Saques PIX pendentes</div>
+        <div class="resumo-pill"><strong>${formatarReaisCarteira(valorPixPendente)}</strong>Valor pendente de saque</div>
+        <div class="resumo-pill"><strong>${formatarReaisCarteira(valorDoacoes)}</strong>❤️ Total doado</div>
+        <div class="resumo-pill"><strong>${formatarReaisCarteira(valorDescontos)}</strong>🏷️ Descontos reservados (não usados)</div>
+      `;
+    }
+
+    function renderizarCarteira(lista) {
+      const tbody = document.getElementById('lista-carteira');
+      if (!lista.length) { tbody.innerHTML = '<tr><td colspan="9" style="font-size:12.5px;">Nenhuma movimentação encontrada.</td></tr>'; return; }
+
+      tbody.innerHTML = lista.map(t => `
+        <tr>
+          <td>#${t.id}</td>
+          <td>${new Date(t.created_at.replace(' ', 'T') + 'Z').toLocaleString('pt-BR')}</td>
+          <td><strong>${t.username}</strong><br><span style="font-size:10.5px;opacity:0.7;">${t.email}</span></td>
+          <td>${TIPO_LABEL_CARTEIRA[t.tipo] || t.tipo}</td>
+          <td>${t.nct ? Number(t.nct).toLocaleString('pt-BR') : celula(null)}</td>
+          <td>${t.reais ? formatarReaisCarteira(t.reais) : celula(null)}</td>
+          <td>${celula(t.chave_pix)}</td>
+          <td>${celula(t.admin_nota)}</td>
+          <td>
+            <select data-id="${t.id}" class="select-status-carteira">
+              <option value="concluido" ${t.status === 'concluido' ? 'selected' : ''}>Concluído</option>
+              <option value="disponivel" ${t.status === 'disponivel' ? 'selected' : ''}>Disponível</option>
+              <option value="pendente" ${t.status === 'pendente' ? 'selected' : ''}>Pendente</option>
+              <option value="pago" ${t.status === 'pago' ? 'selected' : ''}>Pago</option>
+              <option value="cancelado" ${t.status === 'cancelado' ? 'selected' : ''}>Cancelado</option>
+            </select>
+          </td>
+        </tr>
+      `).join('');
+
+      tbody.querySelectorAll('.select-status-carteira').forEach(sel => {
+        sel.addEventListener('change', async () => {
+          const id = Number(sel.dataset.id);
+          const tx = carteiraCache.find(t => t.id === id);
+          const novoStatus = sel.value;
+          if (!tx || novoStatus === tx.status) return;
+
+          const avisoEstorno = (novoStatus === 'cancelado' && tx.reais > 0)
+            ? `<p style="color:#a02020;margin-top:10px;"><strong>Isso devolve ${formatarReaisCarteira(tx.reais)} para o saldo do jogador.</strong></p>`
+            : '';
+          const result = await Swal.fire({
+            title: `Marcar como "${STATUS_LABEL_CARTEIRA[novoStatus]}"?`,
+            html: `
+              <div style="text-align:left;font-size:13px;">
+                <p>${tx.username} — ${TIPO_LABEL_CARTEIRA[tx.tipo] || tx.tipo}${tx.reais ? ' — ' + formatarReaisCarteira(tx.reais) : ''}</p>
+                ${avisoEstorno}
+                <label style="display:block;font-weight:bold;margin:12px 0 4px;">Nota (opcional)</label>
+                <input id="carteira-nota" class="swal2-input" style="margin:0;width:100%;" value="${String(tx.admin_nota ?? '').replace(/"/g, '&quot;')}">
+              </div>
+            `,
+            showCancelButton: true, confirmButtonText: 'Confirmar', cancelButtonText: 'Cancelar', confirmButtonColor: '#7A4A2D',
+            focusConfirm: false,
+            preConfirm: () => document.getElementById('carteira-nota').value.trim(),
+          });
+
+          if (!result.isConfirmed) { sel.value = tx.status; return; }
+          try {
+            await BiffiAdmin.atualizarCarteira(id, { status: novoStatus, admin_nota: result.value });
+            carregarCarteiraAdmin();
+          } catch (err) {
+            Swal.fire({ icon: 'error', title: 'Erro', text: err.message });
+            sel.value = tx.status;
+          }
+        });
+      });
+    }
+
+    function aplicarFiltrosCarteira() {
+      const tipo = document.getElementById('carteira-filtro-tipo').value;
+      const status = document.getElementById('carteira-filtro-status').value;
+      const filtrados = carteiraCache.filter(t =>
+        (!tipo || t.tipo === tipo) && (!status || t.status === status)
+      );
+      renderizarCarteira(filtrados);
+    }
+
+    async function carregarCarteiraAdmin() {
+      const tbody = document.getElementById('lista-carteira');
+      try {
+        const { transacoes } = await BiffiAdmin.getCarteira();
+        carteiraCache = transacoes;
+        atualizarResumoCarteira(transacoes);
+        aplicarFiltrosCarteira();
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="9" style="font-size:12.5px;color:#a02020;">Erro ao carregar: ${err.message}</td></tr>`;
+      }
+    }
+
+    document.getElementById('carteira-filtro-tipo').addEventListener('change', aplicarFiltrosCarteira);
+    document.getElementById('carteira-filtro-status').addEventListener('change', aplicarFiltrosCarteira);
+    document.getElementById('btn-atualizar-carteira').addEventListener('click', carregarCarteiraAdmin);
 
     /* ═══ DOAR E-BOOK ═══ */
     const formDoarEbook = document.getElementById('form-doar-ebook');

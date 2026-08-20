@@ -193,31 +193,9 @@
         </div>
       </div>
 
-      <!-- Painel de negociação -->
-      <div class="trade-panel">
-        <div class="trade-card buy">
-          <h3><i class="fa-solid fa-cart-plus"></i> Comprar Potes</h3>
-          <div class="trade-row"><span>Preço atual:</span><strong id="preco-compra-label">0,00 NCT/pote</strong></div>
-          <div class="trade-row"><span>Seu saldo:</span><strong id="saldo-nct-label">0 NCT</strong></div>
-          <label style="font-size:11px;color:var(--texto3);">Quantidade de compra</label>
-          <div class="trade-input-wrap">
-            <input type="number" id="qtd-compra" value="100" min="1" oninput="calcCompra()"/>
-            <span class="unit">potes</span>
-          </div>
-          <div class="trade-quick">
-            <button class="btn btn-sm btn-ghost" onclick="setQtdCompra(50)">50</button>
-            <button class="btn btn-sm btn-ghost" onclick="setQtdCompra(100)">100</button>
-            <button class="btn btn-sm btn-ghost" onclick="setQtdCompra(500)">500</button>
-          </div>
-          <div class="trade-total">
-            <div class="label">Custo total</div>
-            <div class="value" id="total-compra">0 NCT</div>
-          </div>
-          <button class="btn btn-buy btn-block" onclick="comprar()">
-            <i class="fa-solid fa-jar"></i> Comprar Agora
-          </button>
-        </div>
-
+      <!-- Painel de negociação — só venda: o mercado do NectarMine não compra
+           potes de volta, só vende o que o jogador produziu (envasou). -->
+      <div class="trade-panel" style="grid-template-columns:1fr;max-width:420px;">
         <div class="trade-card sell">
           <h3><i class="fa-solid fa-cart-arrow-down"></i> Vender Potes</h3>
           <div class="trade-row"><span>Preço atual:</span><strong id="preco-venda-label">0,00 NCT/pote</strong></div>
@@ -254,8 +232,8 @@
       <div class="anuncio anuncio-300" style="margin:0 auto;"><iframe src="https://zerads.com/ad/ad.php?width=300&ref=11517" marginwidth="0" marginheight="0" width="300" height="250" scrolling="no" border="0" frameborder="0"></iframe></div>
 
       <div class="info-box info-box-yellow" style="font-size:12px;">
-        <strong>💡 Dica de mercado</strong>
-        O preço sobe entre 18h–22h (horário de Brasília). Venda nesse período para maximizar seu lucro.
+        <strong>💡 Sobre o preço</strong>
+        O preço do pote é fixo e definido pela administração do jogo — não varia sozinho ao longo do dia.
       </div>
 
       <!-- Propagandas do rodapé -->
@@ -289,9 +267,7 @@
       MEUS_POTES = status.potes;
 
       document.getElementById('preco-atual-display').textContent = nmFormat(PRECO_ATUAL) + ' NCT';
-      document.getElementById('preco-compra-label').textContent = nmFormat(PRECO_ATUAL) + ' NCT/pote';
       document.getElementById('preco-venda-label').textContent = nmFormat(PRECO_ATUAL) + ' NCT/pote';
-      document.getElementById('saldo-nct-label').textContent = nmFormat(status.nct, 0) + ' NCT';
       document.getElementById('ms-potes').textContent = nmFormatInt(MEUS_POTES);
       document.getElementById('seus-potes-label').textContent = nmFormatInt(MEUS_POTES);
       document.getElementById('qtd-venda').max = MEUS_POTES;
@@ -308,15 +284,14 @@
           return `
             <div class="list-row">
               <div class="list-main">
-                <strong>${nmFormatInt(h.quantidade)} potes ${h.tipo === 'venda' ? 'vendidos' : 'comprados'}</strong>
-                <span>${h.tipo === 'venda' ? 'VENDIDO' : 'COMPRADO'} · Preço ${nmFormat(h.preco_unit)} NCT · Total ${nmFormat(h.total_nct, 0)} NCT · ${data}</span>
+                <strong>${nmFormatInt(h.quantidade)} potes vendidos</strong>
+                <span>VENDIDO · Preço ${nmFormat(h.preco_unit)} NCT · Total ${nmFormat(h.total_nct, 0)} NCT · ${data}</span>
               </div>
               <span class="status-pill executada">EXECUTADA</span>
             </div>`;
         }).join('');
       }
 
-      calcCompra();
       calcVenda();
     } catch (e) {
       NM_SWAL.error('Ops!', e.message);
@@ -366,12 +341,6 @@
   function setQtdVenda(n) { document.getElementById('qtd-venda').value = n; calcVenda(); }
   function setQtdVendaMax() { document.getElementById('qtd-venda').value = MEUS_POTES; calcVenda(); }
 
-  function calcCompra() {
-    const qtd = parseInt(document.getElementById('qtd-compra').value)||0;
-    document.getElementById('total-compra').textContent = nmFormat(qtd * PRECO_ATUAL, 0) + ' NCT';
-  }
-  function setQtdCompra(n) { document.getElementById('qtd-compra').value = n; calcCompra(); }
-
   async function vender() {
     const qtd = parseInt(document.getElementById('qtd-venda').value)||0;
     if (!qtd || qtd > MEUS_POTES) return;
@@ -391,28 +360,8 @@
     }
   }
 
-  async function comprar() {
-    const qtd = parseInt(document.getElementById('qtd-compra').value)||0;
-    if (!qtd) return;
-    const total = qtd * PRECO_ATUAL;
-    const { isConfirmed } = await NM_SWAL.withAd(
-      '🍯 Confirmar Compra',
-      `Comprar <strong>${nmFormatInt(qtd)} potes</strong> a <strong>${nmFormat(PRECO_ATUAL)} NCT/pote</strong><br/>Custo: <strong>${nmFormat(total,0)} NCT</strong>`,
-      'Comprar agora', 'ad-compra-modal'
-    );
-    if (!isConfirmed) return;
-    try {
-      const r = await NM_API.comprarMercado(qtd);
-      await carregarMercado();
-      NM_SWAL.success('Compra concluída!', `Você adquiriu <strong>${nmFormatInt(r.quantidade)} potes</strong> por ${nmFormat(r.total_pago,0)} NCT.`);
-    } catch (e) {
-      NM_SWAL.error('Ops!', e.message);
-    }
-  }
-
   initChart(genCandles(60));
   calcVenda();
-  calcCompra();
 </script>
 
 </body>
